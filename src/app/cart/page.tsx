@@ -1,31 +1,102 @@
-import Link from "next/link";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
+'use client';
+
+import Link from 'next/link';
+import Image from 'next/image';
+import {
+  removeProductFromCart,
+  updateCartItemQuantity,
+  useCart,
+} from '@/firebase/cart';
+import { useUser } from '@/firebase';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { products } from "@/lib/data/products";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { formatPrice } from "@/lib/utils";
-import { CreditCard, Trash2 } from "lucide-react";
-import PageHeader from "@/components/page-header";
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { formatPrice } from '@/lib/utils';
+import { CreditCard, Trash2, Loader2 } from 'lucide-react';
+import PageHeader from '@/components/page-header';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CartPage() {
-  const cartItems = products.slice(0, 3);
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price, 0);
+  const { user, isUserLoading } = useUser();
+  const {
+    cartItems,
+    isLoading: isCartLoading,
+    cartId,
+  } = useCart(user?.uid);
+  const { toast } = useToast();
+
+  const subtotal = cartItems.reduce(
+    (acc, item) => acc + item.product.price * item.quantity,
+    0
+  );
+  const shippingFee = 5;
+  const total = subtotal + shippingFee;
+
+  const handleRemoveItem = (cartItemId: string) => {
+    if (!user || !cartId) return;
+    removeProductFromCart(user.uid, cartId, cartItemId);
+    toast({
+      title: 'Item removido!',
+      description: 'O produto foi removido do seu carrinho.',
+    });
+  };
+
+  const handleQuantityChange = (cartItemId: string, newQuantity: number) => {
+    if (!user || !cartId || newQuantity < 1) return;
+    updateCartItemQuantity(user.uid, cartId, cartItemId, newQuantity);
+  };
+
+  if (isUserLoading || isCartLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <PageHeader title="Carrinho de Compras" />
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <PageHeader title="Carrinho de Compras" />
+        <p className="mt-4">
+          Você precisa estar logado para ver seu carrinho.
+        </p>
+        <Button asChild className="mt-4">
+          <Link href="/login">Fazer Login</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  if (cartItems.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <PageHeader title="Carrinho de Compras" />
+        <p className="mt-4">Seu carrinho está vazio.</p>
+        <Button asChild className="mt-4">
+          <Link href="/">Ver Produtos</Link>
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -37,7 +108,7 @@ export default function CartPage() {
               <ul className="divide-y divide-border">
                 {cartItems.map((item) => {
                   const placeholder = PlaceHolderImages.find(
-                    (p) => p.id === item.image
+                    (p) => p.id === item.product.image
                   );
                   return (
                     <li key={item.id} className="flex items-start gap-4 py-4">
@@ -45,7 +116,7 @@ export default function CartPage() {
                         {placeholder && (
                           <Image
                             src={placeholder.imageUrl}
-                            alt={item.name}
+                            alt={item.product.name}
                             fill
                             className="object-cover"
                             data-ai-hint={placeholder.imageHint}
@@ -53,18 +124,26 @@ export default function CartPage() {
                         )}
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold">{item.name}</h3>
+                        <h3 className="font-semibold">{item.product.name}</h3>
                         <p className="text-sm text-muted-foreground">
-                          {formatPrice(item.price)}
+                          {formatPrice(item.product.price)}
                         </p>
                         <div className="mt-2 flex items-center gap-2">
                           <Input
                             type="number"
-                            defaultValue={1}
+                            value={item.quantity}
+                            onChange={(e) =>
+                              handleQuantityChange(item.id, parseInt(e.target.value))
+                            }
                             min={1}
                             className="h-8 w-16"
                           />
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => handleRemoveItem(item.id)}
+                          >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -88,15 +167,18 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between">
                 <span>Frete</span>
-                <span>{formatPrice(5)}</span>
+                <span>{formatPrice(shippingFee)}</span>
               </div>
               <Separator />
               <div className="flex justify-between font-bold">
                 <span>Total</span>
-                <span>{formatPrice(subtotal + 5)}</span>
+                <span>{formatPrice(total)}</span>
               </div>
               <div className="grid gap-2">
-                <label htmlFor="payment-method" className="text-sm font-medium">
+                <label
+                  htmlFor="payment-method"
+                  className="text-sm font-medium"
+                >
                   Forma de Pagamento
                 </label>
                 <Select>
@@ -106,7 +188,9 @@ export default function CartPage() {
                   <SelectContent>
                     <SelectItem value="pix">Pix</SelectItem>
                     <SelectItem value="cash">Dinheiro</SelectItem>
-                    <SelectItem value="card">Cartão de Crédito/Débito</SelectItem>
+                    <SelectItem value="card">
+                      Cartão de Crédito/Débito
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>

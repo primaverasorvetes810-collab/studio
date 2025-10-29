@@ -1,105 +1,189 @@
-"use client";
+'use client';
 
 import {
   collection,
   doc,
   getDocs,
   query,
-  where,
   limit,
   runTransaction,
   serverTimestamp,
-  getDoc,
-  writeBatch,
-  increment
-} from "firebase/firestore";
-import { getSdks } from "@/firebase";
-import { errorEmitter } from "./error-emitter";
-import { FirestorePermissionError } from "./errors";
+  deleteDoc,
+  updateDoc,
+} from 'firebase/firestore';
+import { getSdks, useCollection, useMemoFirebase } from '@/firebase';
+import { errorEmitter } from './error-emitter';
+import { FirestorePermissionError } from './errors';
+import {
+  deleteDocumentNonBlocking,
+  updateDocumentNonBlocking,
+} from './non-blocking-updates';
+import { useEffect, useState } from 'react';
+import type { Product } from '@/lib/data/products';
+import { products } from '@/lib/data/products';
 
 const { firestore } = getSdks();
 
-// Helper function to find a user's shopping cart
-async function findUserShoppingCart(userId: string) {
+// Helper to find a user's shopping cart. Assumes one cart per user.
+async function findUserShoppingCartRef(userId: string) {
   const cartsCollection = collection(firestore, `users/${userId}/shoppingCarts`);
   const q = query(cartsCollection, limit(1));
-  const snapshot = await getDocs(q);
-  if (!snapshot.empty) {
-    return snapshot.docs[0].ref;
+  try {
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      return snapshot.docs[0].ref;
+    }
+  } catch (e: any) {
+     errorEmitter.emit(
+      'permission-error',
+      new FirestorePermissionError({
+        path: `users/${userId}/shoppingCarts`,
+        operation: 'list',
+      })
+    );
   }
   return null;
 }
 
-// Helper function to create a new shopping cart for a user
-async function createUserShoppingCart(userId: string) {
-  const cartsCollection = collection(firestore, `users/${userId}/shoppingCarts`);
-  const newCartRef = doc(cartsCollection); // Creates a new doc with a generated ID
-  const newCartData = {
-    userId: userId,
-    createdAt: serverTimestamp(),
-  };
+// Add product to cart using a transaction
+export function addProductToCart(
+  userId: string,
+  productId: string,
+  quantity: number = 1
+) {
+  runTransaction(firestore, async (transaction) => {
+    let cartRef = await findUserShoppingCartRef(userId);
 
-  const promise = setDocumentNonBlocking(newCartRef, newCartData, {});
-  
-  return newCartRef;
-}
+    // If no cart exists, create one within the transaction
+    if (!cartRef) {
+      const newCartRef = doc(
+        collection(firestore, `users/${userId}/shoppingCarts`)
+      );
+      transaction.set(newCartRef, { userId, createdAt: serverTimestamp() });
+      cartRef = newCartRef;
+    }
 
-// Main function to add a product to the cart
-export function addProductToCart(userId: string, productId: string, quantity: number = 1) {
-    runTransaction(firestore, async (transaction) => {
-        let cartRef = await findUserShoppingCart(userId);
+    const cartItemsCollection = collection(cartRef, 'cartItems');
+    const newCartItemRef = doc(cartItemsCollection); // Let Firestore generate ID
 
-        if (!cartRef) {
-            // No cart exists, create one
-            const newCartRef = doc(collection(firestore, `users/${userId}/shoppingCarts`));
-            transaction.set(newCartRef, { userId: userId, createdAt: serverTimestamp() });
-            cartRef = newCartRef;
-        }
-
-        const cartItemsCollection = collection(cartRef, "cartItems");
-        const productQuery = query(cartItemsCollection, where("productId", "==", productId), limit(1));
-        const productSnapshot = await getDocs(productQuery);
-
-        if (productSnapshot.empty) {
-            // Product not in cart, add it
-            const newCartItemRef = doc(cartItemsCollection);
-            transaction.set(newCartItemRef, {
-                productId: productId,
-                quantity: quantity,
-                addedAt: serverTimestamp(),
-            });
-        } else {
-            // Product is in cart, update quantity
-            const existingItemRef = productSnapshot.docs[0].ref;
-            transaction.update(existingItemRef, {
-                quantity: increment(quantity),
-            });
-        }
-    }).catch(error => {
-        errorEmitter.emit(
-          'permission-error',
-          new FirestorePermissionError({
-            path: `users/${userId}/shoppingCarts`,
-            operation: 'write', 
-            requestResourceData: { productId, quantity },
-          })
-        )
-      });
-}
-
-/**
- * Initiates a setDoc operation for a document reference.
- * Does NOT await the write operation internally.
- */
-function setDocumentNonBlocking(docRef: any, data: any, options: any) {
-  setDoc(docRef, data, options).catch(error => {
+    // In a real app, you might query if the item already exists.
+    // For simplicity, we add a new item each time, which is fine if cart displays aggregate.
+    // A more robust solution would check for existing `productId` and update quantity.
+    transaction.set(newCartItemRef, {
+      productId: productId,
+      quantity: quantity,
+      addedAt: serverTimestamp(),
+    });
+  }).catch((error) => {
     errorEmitter.emit(
       'permission-error',
       new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'write', // or 'create'/'update' based on options
-        requestResourceData: data,
+        path: `users/${userId}/shoppingCarts`,
+        operation: 'write',
+        requestResourceData: { productId, quantity },
       })
-    )
-  })
+    );
+  });
+}
+
+// Remove a product from the cart
+export function removeProductFromCart(
+  userId: string,
+  cartId: string,
+  cartItemId: string
+) {
+  const itemRef = doc(
+    firestore,
+    `users/${userId}/shoppingCarts/${cartId}/cartItems`,
+    cartItemId
+  );
+  deleteDocumentNonBlocking(itemRef);
+}
+
+// Update the quantity of a product in the cart
+export function updateCartItemQuantity(
+  userId: string,
+  cartId: string,
+  cartItemId: string,
+  quantity: number
+) {
+  if (quantity <= 0) {
+    // If quantity is zero or less, remove the item
+    removeProductFromCart(userId, cartId, cartItemId);
+  } else {
+    const itemRef = doc(
+      firestore,
+      `users/${userId}/shoppingCarts/${cartId}/cartItems`,
+      cartItemId
+    );
+    updateDocumentNonBlocking(itemRef, { quantity });
+  }
+}
+
+// --- Hooks for Cart Data ---
+
+interface CartItem {
+  id: string;
+  productId: string;
+  quantity: number;
+}
+
+interface CartItemWithProduct extends CartItem {
+  product: Product;
+}
+
+export function useCart(userId?: string) {
+  const [cartId, setCartId] = useState<string | null>(null);
+  const [isCartIdLoading, setIsCartIdLoading] = useState(true);
+
+  // Effect to find the user's cart ID
+  useEffect(() => {
+    if (!userId) {
+      setIsCartIdLoading(false);
+      setCartId(null);
+      return;
+    }
+
+    setIsCartIdLoading(true);
+    findUserShoppingCartRef(userId).then((ref) => {
+      setCartId(ref ? ref.id : null);
+      setIsCartIdLoading(false);
+    });
+  }, [userId]);
+
+  // Memoize the query to the cartItems subcollection
+  const cartItemsQuery = useMemoFirebase(() => {
+    if (!userId || !cartId) return null;
+    return collection(
+      firestore,
+      `users/${userId}/shoppingCarts/${cartId}/cartItems`
+    );
+  }, [userId, cartId]);
+
+  // Use the useCollection hook to get cart items
+  const {
+    data: cartItemsData,
+    isLoading: isCartItemsLoading,
+    error,
+  } = useCollection<CartItem>(cartItemsQuery);
+
+  // Combine cart item data with full product details
+  const cartItemsWithProducts = useMemoFirebase((): CartItemWithProduct[] => {
+    if (!cartItemsData) return [];
+
+    return cartItemsData
+      .map((item) => {
+        const product = products.find((p) => p.id === item.productId);
+        // If product not found, filter it out
+        return product ? { ...item, product } : null;
+      })
+      .filter((item): item is CartItemWithProduct => item !== null);
+  }, [cartItemsData]);
+
+  return {
+    cartId,
+    cartItems: cartItemsWithProducts,
+    isLoading: isCartIdLoading || isCartItemsLoading,
+    error,
+  };
 }
