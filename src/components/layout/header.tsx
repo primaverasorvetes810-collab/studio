@@ -17,13 +17,13 @@ export default function Header() {
               href="/"
               className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              Products
+              Produtos
             </Link>
             <Link
               href="/orders"
               className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              My Orders
+              Meus Pedidos
             </Link>
             <Link
               href="/admin/dashboard"
@@ -38,13 +38,13 @@ export default function Header() {
             <Button variant="ghost" size="icon" asChild>
               <Link href="/cart">
                 <ShoppingCart className="h-5 w-5" />
-                <span className="sr-only">Shopping Cart</span>
+                <span className="sr-only">Carrinho de Compras</span>
               </Link>
             </Button>
             <Button variant="ghost" size="icon" asChild>
               <Link href="/login">
                 <User className="h-5 w-5" />
-                <span className="sr-only">User Profile</span>
+                <span className="sr-only">Perfil do Usuário</span>
               </Link>
             </Button>
           </nav>

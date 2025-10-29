@@ -29,27 +29,27 @@ import { Badge } from "@/components/ui/badge";
 export default function ClientsPage() {
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader title="Clients" description="Manage your customers.">
+      <PageHeader title="Clientes" description="Gerencie seus clientes.">
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Client
+          Adicionar Cliente
         </Button>
       </PageHeader>
       <Card>
         <CardHeader>
-            <CardTitle>Client List</CardTitle>
+            <CardTitle>Lista de Clientes</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Total Orders</TableHead>
-                <TableHead>Total Spent</TableHead>
-                <TableHead>Due Amount</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>E-mail</TableHead>
+                <TableHead>Total de Pedidos</TableHead>
+                <TableHead>Total Gasto</TableHead>
+                <TableHead>Valor Devido</TableHead>
                 <TableHead>
-                  <span className="sr-only">Actions</span>
+                  <span className="sr-only">Ações</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -72,14 +72,14 @@ export default function ClientsPage() {
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
                           <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
+                          <span className="sr-only">Alternar menu</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
+                        <DropdownMenuItem>Editar</DropdownMenuItem>
+                        <DropdownMenuItem>Excluir</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

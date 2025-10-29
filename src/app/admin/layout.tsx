@@ -44,7 +44,7 @@ export default function AdminLayout({
               <SidebarMenuButton asChild>
                 <Link href="/admin/dashboard">
                   <LayoutDashboard />
-                  Dashboard
+                  Painel
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -52,7 +52,7 @@ export default function AdminLayout({
               <SidebarMenuButton asChild>
                 <Link href="/admin/orders">
                   <ShoppingCart />
-                  Orders
+                  Pedidos
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -60,7 +60,7 @@ export default function AdminLayout({
               <SidebarMenuButton asChild>
                 <Link href="/admin/clients">
                   <Users />
-                  Clients
+                  Clientes
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -68,7 +68,7 @@ export default function AdminLayout({
               <SidebarMenuButton asChild>
                 <Link href="/admin/products">
                   <Package />
-                  Products
+                  Produtos
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -76,7 +76,7 @@ export default function AdminLayout({
               <SidebarMenuButton asChild>
                 <Link href="#">
                   <DollarSign />
-                  Revenue
+                  Receita
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -88,7 +88,7 @@ export default function AdminLayout({
               <SidebarMenuButton asChild>
                 <Link href="#">
                   <Settings />
-                  Settings
+                  Configurações
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -96,7 +96,7 @@ export default function AdminLayout({
               <SidebarMenuButton asChild>
                 <Link href="/">
                   <LogOut />
-                  Logout
+                  Sair
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -107,7 +107,7 @@ export default function AdminLayout({
         <header className="flex h-14 items-center gap-4 border-b bg-background/50 px-6 backdrop-blur-sm">
             <SidebarTrigger className="md:hidden" />
             <div className="flex-1">
-                {/* Search or other header content can go here */}
+                {/* Conteúdo de pesquisa ou outro cabeçalho pode ir aqui */}
             </div>
             <Avatar>
               <AvatarImage src="https://picsum.photos/seed/admin/40/40" />

@@ -9,7 +9,7 @@ export type OrderItem = {
 export type Order = {
   id: string;
   date: string;
-  status: "Pending" | "Paid" | "Shipped" | "Delivered" | "Canceled" | "Overdue";
+  status: "Pendente" | "Pago" | "Enviado" | "Entregue" | "Cancelado" | "Atrasado";
   total: number;
   items: OrderItem[];
   paymentMethod: "Pix" | "Dinheiro" | "Cartão de Crédito ou Débito";
@@ -19,7 +19,7 @@ export const orders: Order[] = [
   {
     id: "ORD-001",
     date: "2023-10-26",
-    status: "Delivered",
+    status: "Entregue",
     total: 85.4,
     items: [
       { product: products[0], quantity: 1, price: products[0].price },
@@ -30,7 +30,7 @@ export const orders: Order[] = [
   {
     id: "ORD-002",
     date: "2023-11-15",
-    status: "Paid",
+    status: "Pago",
     total: 30.5,
     items: [
       { product: products[0], quantity: 1, price: products[0].price },
@@ -41,7 +41,7 @@ export const orders: Order[] = [
   {
     id: "ORD-003",
     date: "2024-01-05",
-    status: "Overdue",
+    status: "Atrasado",
     total: 12.0,
     items: [{ product: products[2], quantity: 1, price: products[2].price }],
     paymentMethod: "Dinheiro",
@@ -49,7 +49,7 @@ export const orders: Order[] = [
   {
     id: "ORD-004",
     date: "2024-02-20",
-    status: "Pending",
+    status: "Pendente",
     total: 23.0,
     items: [
         { product: products[7], quantity: 1, price: products[7].price },

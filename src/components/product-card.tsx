@@ -45,7 +45,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <p className="text-xl font-bold text-primary">{formatPrice(product.price)}</p>
         <Button size="sm">
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add to Cart
+          Adicionar
         </Button>
       </CardFooter>
     </Card>

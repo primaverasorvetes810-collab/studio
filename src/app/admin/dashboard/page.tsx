@@ -29,58 +29,58 @@ import { cn } from "@/lib/utils";
 
 const chartData = [
   { name: "Jan", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Feb", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Fev", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Mar", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Apr", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "May", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Abr", total: Math.floor(Math.random() * 5000) + 1000 },
+  { name: "Mai", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Jun", total: Math.floor(Math.random() * 5000) + 1000 },
   { name: "Jul", total: Math.floor(Math.random() * 5000) + 1000 },
 ];
 
 const statusColors: Record<Order["status"], string> = {
-  Pending: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
-  Paid: "bg-green-500/20 text-green-500 border-green-500/20",
-  Overdue: "bg-red-500/20 text-red-500 border-red-500/20",
-  Shipped: "bg-blue-500/20 text-blue-500 border-blue-500/20",
-  Delivered: "bg-primary/20 text-primary border-primary/20",
-  Canceled: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
+  Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
+  Pago: "bg-green-500/20 text-green-500 border-green-500/20",
+  Atrasado: "bg-red-500/20 text-red-500 border-red-500/20",
+  Enviado: "bg-blue-500/20 text-blue-500 border-blue-500/20",
+  Entregue: "bg-primary/20 text-primary border-primary/20",
+  Cancelado: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
 };
 
 export default function DashboardPage() {
   const recentOrders = orders.slice(0, 5);
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader title="Dashboard" description="An overview of your store." />
+      <PageHeader title="Painel" description="Uma visão geral da sua loja." />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <AdminStatsCard
-          title="Total Revenue"
+          title="Receita Total"
           value={formatPrice(54231.89)}
           icon={DollarSign}
-          description="+20.1% from last month"
+          description="+20.1% do mês passado"
         />
         <AdminStatsCard
-          title="Clients"
+          title="Clientes"
           value="+235"
           icon={Users}
-          description="+18.1% from last month"
+          description="+18.1% do mês passado"
         />
         <AdminStatsCard
-          title="Orders"
+          title="Pedidos"
           value="+12,234"
           icon={ShoppingCart}
-          description="+19% from last month"
+          description="+19% do mês passado"
         />
         <AdminStatsCard
-          title="Products in Stock"
+          title="Produtos em Estoque"
           value="573"
           icon={Package}
-          description="201 active"
+          description="201 ativos"
         />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
         <Card className="lg:col-span-4">
           <CardHeader>
-            <CardTitle>Overview</CardTitle>
+            <CardTitle>Visão Geral</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
             <ResponsiveContainer width="100%" height={350}>
@@ -106,18 +106,18 @@ export default function DashboardPage() {
         </Card>
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
+            <CardTitle>Pedidos Recentes</CardTitle>
             <CardDescription>
-              You made {orders.length} orders this month.
+              Você fez {orders.length} pedidos este mês.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Order ID</TableHead>
+                  <TableHead>ID do Pedido</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -29,7 +29,7 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <PageHeader title="Shopping Cart" />
+      <PageHeader title="Carrinho de Compras" />
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <Card>
@@ -79,7 +79,7 @@ export default function CartPage() {
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle>Resumo do Pedido</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4">
               <div className="flex justify-between">
@@ -87,7 +87,7 @@ export default function CartPage() {
                 <span>{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Shipping</span>
+                <span>Frete</span>
                 <span>{formatPrice(5)}</span>
               </div>
               <Separator />
@@ -97,11 +97,11 @@ export default function CartPage() {
               </div>
               <div className="grid gap-2">
                 <label htmlFor="payment-method" className="text-sm font-medium">
-                  Payment Method
+                  Forma de Pagamento
                 </label>
                 <Select>
                   <SelectTrigger id="payment-method">
-                    <SelectValue placeholder="Select a method" />
+                    <SelectValue placeholder="Selecione um método" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pix">Pix</SelectItem>
@@ -114,7 +114,7 @@ export default function CartPage() {
             <CardFooter>
               <Button className="w-full">
                 <CreditCard className="mr-2 h-4 w-4" />
-                Place Order
+                Finalizar Pedido
               </Button>
             </CardFooter>
           </Card>

@@ -29,26 +29,26 @@ import { Badge } from "@/components/ui/badge";
 export default function ProductsPage() {
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader title="Products" description="Manage your store's products.">
+      <PageHeader title="Produtos" description="Gerencie os produtos da sua loja.">
         <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Product
+          Adicionar Produto
         </Button>
       </PageHeader>
       <Card>
         <CardHeader>
-            <CardTitle>Product List</CardTitle>
+            <CardTitle>Lista de Produtos</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>Nome</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
+                <TableHead>Preço</TableHead>
+                <TableHead>Estoque</TableHead>
                 <TableHead>
-                  <span className="sr-only">Actions</span>
+                  <span className="sr-only">Ações</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -56,7 +56,7 @@ export default function ProductsPage() {
               {products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell><Badge variant="outline">{product.stock > 0 ? 'In Stock' : 'Out of Stock'}</Badge></TableCell>
+                  <TableCell><Badge variant="outline">{product.stock > 0 ? 'Em Estoque' : 'Fora de Estoque'}</Badge></TableCell>
                   <TableCell>{formatPrice(product.price)}</TableCell>
                   <TableCell>{product.stock}</TableCell>
                   <TableCell>
@@ -64,13 +64,13 @@ export default function ProductsPage() {
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
                           <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
+                          <span className="sr-only">Alternar menu</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuItem>Editar</DropdownMenuItem>
+                        <DropdownMenuItem>Excluir</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

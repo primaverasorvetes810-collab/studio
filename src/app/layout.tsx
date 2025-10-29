@@ -13,7 +13,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: "Primavera Delivery",
-  description: "Your favorite products, delivered.",
+  description: "Seus produtos favoritos, entregues.",
 };
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="pt-BR" className="dark">
       <body
         className={cn(
           "min-h-screen bg-background font-body antialiased",

@@ -16,22 +16,22 @@ export default function ResetPasswordPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Reset Password</CardTitle>
+        <CardTitle className="text-2xl">Redefinir Senha</CardTitle>
         <CardDescription>
-          Enter your email to receive a password reset link.
+          Digite seu e-mail para receber um link de redefinição de senha.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">E-mail</Label>
           <Input id="email" type="email" placeholder="m@example.com" />
         </div>
         <Button type="submit" className="w-full">
-          Send Reset Link
+          Enviar Link de Redefinição
         </Button>
       </CardContent>
       <div className="mt-4 text-center text-sm p-6 pt-0">
-        Remembered your password?{" "}
+        Lembrou sua senha?{" "}
         <Link href="/login" className="underline">
           Login
         </Link>

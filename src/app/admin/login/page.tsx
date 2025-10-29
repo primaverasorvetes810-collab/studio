@@ -21,18 +21,18 @@ export default function AdminLoginPage() {
             <div className="flex justify-center mb-4">
                 <PrimaveraLogo className="h-10 w-10 text-primary" />
             </div>
-          <CardTitle className="text-2xl">Admin Access</CardTitle>
+          <CardTitle className="text-2xl">Acesso Administrativo</CardTitle>
           <CardDescription>
-            Enter the password to access the admin dashboard.
+            Digite a senha para acessar o painel de administração.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Senha</Label>
             <Input id="password" type="password" />
           </div>
           <Button type="submit" className="w-full" asChild>
-            <Link href="/admin/dashboard">Proceed to Dashboard</Link>
+            <Link href="/admin/dashboard">Ir para o Painel</Link>
           </Button>
         </CardContent>
       </Card>

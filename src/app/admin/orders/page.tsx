@@ -29,12 +29,12 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const statusColors: Record<Order["status"], string> = {
-    Pending: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
-    Paid: "bg-green-500/20 text-green-500 border-green-500/20",
-    Overdue: "bg-red-500/20 text-red-500 border-red-500/20",
-    Shipped: "bg-blue-500/20 text-blue-500 border-blue-500/20",
-    Delivered: "bg-primary/20 text-primary border-primary/20",
-    Canceled: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
+    Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
+    Pago: "bg-green-500/20 text-green-500 border-green-500/20",
+    Atrasado: "bg-red-500/20 text-red-500 border-red-500/20",
+    Enviado: "bg-blue-500/20 text-blue-500 border-blue-500/20",
+    Entregue: "bg-primary/20 text-primary border-primary/20",
+    Cancelado: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
 };
 
 export default function OrdersAdminPage() {
@@ -45,22 +45,22 @@ export default function OrdersAdminPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader title="Orders" description="Manage customer orders." />
+      <PageHeader title="Pedidos" description="Gerencie os pedidos dos clientes." />
       <Card>
         <CardHeader>
-            <CardTitle>Order History</CardTitle>
+            <CardTitle>Histórico de Pedidos</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order ID</TableHead>
+                <TableHead>ID do Pedido</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Client</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Cliente</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>
-                  <span className="sr-only">Actions</span>
+                  <span className="sr-only">Ações</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -79,13 +79,13 @@ export default function OrdersAdminPage() {
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
                           <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
+                          <span className="sr-only">Alternar menu</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Update Status</DropdownMenuItem>
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
+                        <DropdownMenuItem>Atualizar Status</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
