@@ -19,15 +19,6 @@ import type { CartItemWithProduct } from './cart';
 import type { Product } from '@/lib/data/products';
 import { products as staticProducts } from '@/lib/data/products';
 
-export interface Order {
-  id: string;
-  userId: string;
-  orderDate: Timestamp;
-  paymentMethod: string;
-  totalAmount: number;
-  status: 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Atrasado';
-}
-
 export interface OrderItem {
   id: string;
   orderId: string;
@@ -40,9 +31,17 @@ export interface OrderItemWithProduct extends OrderItem {
   product: Product;
 }
 
-export interface OrderWithItems extends Order {
+export interface Order {
+  id: string;
+  userId: string;
+  orderDate: Timestamp;
+  paymentMethod: string;
+  totalAmount: number;
+  status: 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Atrasado';
   items: OrderItemWithProduct[];
 }
+
+export interface OrderWithItems extends Order {}
 
 export async function createOrderFromCart(
   userId: string,
@@ -54,40 +53,50 @@ export async function createOrderFromCart(
   const { firestore } = getSdks();
   try {
     await runTransaction(firestore, async (transaction) => {
-      // 1. Create a new order document
+      // 1. Create a new order document with items included
       const ordersCollection = collection(firestore, `users/${userId}/orders`);
       const newOrderRef = doc(ordersCollection);
-      const newOrder: Omit<Order, 'id' | 'orderDate'> & { orderDate: any } = {
+
+      // Prepare items to be embedded
+      const orderItems = cartItems.map((cartItem) => ({
+        id: cartItem.id, // Using cart item id, or generate a new one
+        productId: cartItem.productId,
+        quantity: cartItem.quantity,
+        itemPrice: cartItem.product.price,
+        product: { // Embed product details
+          id: cartItem.product.id,
+          name: cartItem.product.name,
+          description: cartItem.product.description,
+          price: cartItem.product.price,
+          image: cartItem.product.image,
+          stock: cartItem.product.stock,
+        }
+      }));
+
+
+      const newOrderData = {
         userId,
         orderDate: serverTimestamp(),
         paymentMethod,
         totalAmount,
         status: 'Pendente',
+        items: orderItems,
       };
-      transaction.set(newOrderRef, newOrder);
+      
+      transaction.set(newOrderRef, newOrderData);
 
-      // 2. Create order items for each item in the cart
-      const orderItemsCollection = collection(firestore, `orders/${newOrderRef.id}/orderItems`);
-      for (const cartItem of cartItems) {
-        const newOrderItemRef = doc(orderItemsCollection);
-        const newOrderItem: Omit<OrderItem, 'id'> = {
-          orderId: newOrderRef.id,
-          productId: cartItem.productId,
-          quantity: cartItem.quantity,
-          itemPrice: cartItem.product.price,
-        };
-        transaction.set(newOrderItemRef, newOrderItem);
-      }
-
-      // 3. Delete all items from the user's cart
-      const cartItemsCollectionRef = collection(firestore, `users/${userId}/shoppingCarts/${cartId}/cartItems`);
-      for (const cartItem of cartItems) {
-        const cartItemRef = doc(cartItemsCollectionRef, cartItem.id);
-        transaction.delete(cartItemRef);
+      // 2. Delete all items from the user's cart
+      const cartItemsCollectionRef = collection(
+        firestore,
+        `users/${userId}/shoppingCarts/${cartId}/cartItems`
+      );
+      const cartItemsSnapshot = await getDocs(query(cartItemsCollectionRef));
+      for (const cartDoc of cartItemsSnapshot.docs) {
+        transaction.delete(cartDoc.ref);
       }
     });
   } catch (error) {
-     errorEmitter.emit(
+    errorEmitter.emit(
       'permission-error',
       new FirestorePermissionError({
         path: `users/${userId}/orders`,
@@ -100,82 +109,21 @@ export async function createOrderFromCart(
   }
 }
 
-async function getOrderItems(orderId: string): Promise<OrderItemWithProduct[]> {
-    const { firestore } = getSdks();
-    const itemsCollection = collection(firestore, `orders/${orderId}/orderItems`);
-    const q = query(itemsCollection);
-
-    try {
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-            return [];
-        }
-
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OrderItem));
-
-        // Join with static product data
-        return items.map(item => {
-            const product = staticProducts.find(p => p.id === item.productId);
-            return { ...item, product: product! };
-        }).filter(item => item.product);
-
-    } catch (e: any) {
-        errorEmitter.emit(
-            'permission-error',
-            new FirestorePermissionError({
-                path: `orders/${orderId}/orderItems`,
-                operation: 'list',
-            })
-        );
-        return [];
-    }
-}
-
-
 export function useUserOrders(userId?: string) {
-    const [orders, setOrders] = useState<OrderWithItems[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const { firestore } = getSdks();
+  const { firestore } = getSdks();
 
-    const ordersQuery = useMemoFirebase(() => {
-        if (!userId) return null;
-        return query(collection(firestore, `users/${userId}/orders`));
-    }, [userId, firestore]);
+  const ordersQuery = useMemoFirebase(() => {
+    if (!userId) return null;
+    return query(collection(firestore, `users/${userId}/orders`));
+  }, [userId, firestore]);
 
-    const { data: ordersData, isLoading: areOrdersLoading, error } = useCollection<Order>(ordersQuery);
+  const { data: ordersData, isLoading, error } = useCollection<OrderWithItems>(ordersQuery);
 
-    useEffect(() => {
-        if (areOrdersLoading || !ordersData) {
-            setIsLoading(areOrdersLoading);
-            return;
-        }
+  const sortedOrders = useMemoFirebase(() => {
+     if (!ordersData) return [];
+     return ordersData.sort((a, b) => b.orderDate.toDate().getTime() - a.orderDate.toDate().getTime());
+  }, [ordersData]);
 
-        if (error) {
-            setIsLoading(false);
-            return;
-        }
 
-        let isMounted = true;
-        const fetchAllOrderItems = async () => {
-            setIsLoading(true);
-            const ordersWithItems = await Promise.all(
-                ordersData.map(async (order) => {
-                    const items = await getOrderItems(order.id);
-                    return { ...order, items };
-                })
-            );
-            if (isMounted) {
-                setOrders(ordersWithItems.sort((a, b) => b.orderDate.toDate().getTime() - a.orderDate.toDate().getTime()));
-                setIsLoading(false);
-            }
-        };
-
-        fetchAllOrderItems();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [ordersData, areOrdersLoading, error]);
-
-    return { orders, isLoading, error };
+  return { orders: sortedOrders, isLoading, error };
 }
