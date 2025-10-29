@@ -1,0 +1,416 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Primavera Delivery application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "registerTime": {
+          "type": "string",
+          "description": "Timestamp of when the user registered.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "registerTime"
+      ]
+    },
+    "Product": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Product",
+      "type": "object",
+      "description": "Represents a product available for sale.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the product entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the product."
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the product."
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the product."
+        },
+        "stockLevel": {
+          "type": "number",
+          "description": "Current stock level of the product."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "price",
+        "stockLevel"
+      ]
+    },
+    "ShoppingCart": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ShoppingCart",
+      "type": "object",
+      "description": "Represents the shopping cart of a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the shopping cart entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who owns the cart. (Relationship: User 1:1 ShoppingCart)"
+        }
+      },
+      "required": [
+        "id",
+        "userId"
+      ]
+    },
+    "CartItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CartItem",
+      "type": "object",
+      "description": "Represents an item in a shopping cart.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the cart item entity."
+        },
+        "shoppingCartId": {
+          "type": "string",
+          "description": "Reference to the ShoppingCart that contains this item. (Relationship: ShoppingCart 1:N CartItem)"
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the Product in this cart item. (Relationship: Product 1:N CartItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the product in the cart."
+        }
+      },
+      "required": [
+        "id",
+        "shoppingCartId",
+        "productId",
+        "quantity"
+      ]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents an order placed by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who placed the order. (Relationship: User 1:N Order)"
+        },
+        "orderDate": {
+          "type": "string",
+          "description": "Date and time when the order was placed.",
+          "format": "date-time"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Payment method used for the order (Pix, Dinheiro, Cartão de Crédito ou Débito)."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "Total amount of the order."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "orderDate",
+        "paymentMethod",
+        "totalAmount"
+      ]
+    },
+    "OrderItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OrderItem",
+      "type": "object",
+      "description": "Represents an item in an order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order item entity."
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to the Order that contains this item. (Relationship: Order 1:N OrderItem)"
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the Product in this order item. (Relationship: Product 1:N OrderItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the product in the order."
+        },
+        "itemPrice": {
+          "type": "number",
+          "description": "Price of the product at the time of the order."
+        }
+      },
+      "required": [
+        "id",
+        "orderId",
+        "productId",
+        "quantity",
+        "itemPrice"
+      ]
+    },
+    "Payment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Payment",
+      "type": "object",
+      "description": "Represents a payment made for an order, including installment support.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the payment entity."
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to the Order this payment is for. (Relationship: Order 1:N Payment)"
+        },
+        "paymentDate": {
+          "type": "string",
+          "description": "Date and time when the payment was made.",
+          "format": "date-time"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount paid in this payment."
+        },
+        "installmentNumber": {
+          "type": "number",
+          "description": "Installment number for this payment (if applicable)."
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "Due date for this payment installment.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the payment (e.g., pending, paid, expired)."
+        }
+      },
+      "required": [
+        "id",
+        "orderId",
+        "paymentDate",
+        "amount",
+        "status"
+      ]
+    },
+    "Admin": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Admin",
+      "type": "object",
+      "description": "Represents an administrator of the Primavera Delivery application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the admin entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the administrator.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "email"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles.  Only the user can access their data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Stores product information. Publicly accessible for reading, write access is restricted to admins.",
+          "params": [
+            {
+              "name": "productId",
+              "description": "The unique identifier for the product."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/shoppingCarts/{cartId}",
+        "definition": {
+          "entityName": "ShoppingCart",
+          "schema": {
+            "$ref": "#/backend/entities/ShoppingCart"
+          },
+          "description": "Stores shopping carts for each user. Path-based ownership ensures only the user can access their cart.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "cartId",
+              "description": "The unique identifier for the shopping cart."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}",
+        "definition": {
+          "entityName": "CartItem",
+          "schema": {
+            "$ref": "#/backend/entities/CartItem"
+          },
+          "description": "Stores cart items within a shopping cart. Inherits ownership from the parent shopping cart.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "cartId",
+              "description": "The unique identifier for the shopping cart."
+            },
+            {
+              "name": "cartItemId",
+              "description": "The unique identifier for the cart item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores order information for each user. Path-based ownership ensures only the user can access their orders.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/orders/{orderId}/orderItems/{orderItemId}",
+        "definition": {
+          "entityName": "OrderItem",
+          "schema": {
+            "$ref": "#/backend/entities/OrderItem"
+          },
+          "description": "Stores order items within an order.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            },
+            {
+              "name": "orderItemId",
+              "description": "The unique identifier for the order item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/orders/{orderId}/payments/{paymentId}",
+        "definition": {
+          "entityName": "Payment",
+          "schema": {
+            "$ref": "#/backend/entities/Payment"
+          },
+          "description": "Stores payments associated with an order.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            },
+            {
+              "name": "paymentId",
+              "description": "The unique identifier for the payment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{uid}",
+        "definition": {
+          "entityName": "Admin",
+          "schema": {
+            "$ref": "#/backend/entities/Admin"
+          },
+          "description": "Indicates administrative privileges. Existence of a document grants admin rights.",
+          "params": [
+            {
+              "name": "uid",
+              "description": "The unique identifier for the admin user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the Primavera Delivery application, focusing on scalability, security, and ease of maintenance. It leverages path-based ownership and denormalization to ensure authorization independence, which is critical for robust security rules and atomic operations. \n\n**Authorization Independence and QAPs (Rules are not Filters):**\nAuthorization Independence is achieved through denormalization. For example, access to a user's shopping cart or orders is directly tied to the user's ID in the path, eliminating the need for `get()` calls to verify ownership. For the Admin role, the existence of a document in the `/roles_admin/{uid}` collection grants administrative privileges. The structure avoids relying on parent data for authorization, enabling atomic operations and simplifying security rules. QAPs are supported by segregating data based on access requirements. User-specific data is stored under `/users/{userId}`, while products are stored globally in `/products`. This segregation ensures that list operations can be performed securely without filtering based on authorization.\n\n**Structure Overview:**\n\n*   `/users/{userId}`: Stores user profiles. This path ensures that only the user can access their data.\n*   `/products/{productId}`: Stores product information. Publicly accessible for reading, but write access is restricted to admins.\n*   `/users/{userId}/shoppingCarts/{cartId}`: Stores shopping carts for each user. Path-based ownership ensures only the user can access their cart.\n*   `/users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}`: Stores cart items within a shopping cart. Inherits ownership from the parent shopping cart.\n*   `/users/{userId}/orders/{orderId}`: Stores order information for each user. Path-based ownership ensures only the user can access their orders.\n*   `/orders/{orderId}/orderItems/{orderItemId}`: Stores order items within an order. The order id is necessary for querying orderItems.\n*   `/orders/{orderId}/payments/{paymentId}`: Stores payments associated with an order. The order id is necessary for querying payments.\n*   `/roles_admin/{uid}`: Indicates administrative privileges. Existence of a document grants admin rights.\n"
+  }
+}
