@@ -18,9 +18,9 @@ import {
   deleteDocumentNonBlocking,
   updateDocumentNonBlocking,
 } from './non-blocking-updates';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import type { Product } from '@/lib/data/products';
-import { products } from '@/lib/data/products';
+import { products as staticProducts } from '@/lib/data/products';
 
 // Helper to find a user's shopping cart. Assumes one cart per user.
 async function findUserShoppingCartRef(userId: string) {
@@ -130,7 +130,7 @@ interface CartItem {
   quantity: number;
 }
 
-interface CartItemWithProduct extends CartItem {
+export interface CartItemWithProduct extends CartItem {
   product: Product;
 }
 
@@ -170,9 +170,13 @@ export function useCart(userId?: string) {
     error,
   } = useCollection<CartItem>(cartItemsQuery);
 
+  const productsCollection = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
+  const { data: products, isLoading: areProductsLoading } = useCollection<Product>(productsCollection);
+
+
   // Combine cart item data with full product details
-  const cartItemsWithProducts = useMemoFirebase((): CartItemWithProduct[] => {
-    if (!cartItemsData) return [];
+  const cartItemsWithProducts = useMemo((): CartItemWithProduct[] => {
+    if (!cartItemsData || !products) return [];
 
     return cartItemsData
       .map((item) => {
@@ -181,12 +185,12 @@ export function useCart(userId?: string) {
         return product ? { ...item, product } : null;
       })
       .filter((item): item is CartItemWithProduct => item !== null);
-  }, [cartItemsData]);
+  }, [cartItemsData, products]);
 
   return {
     cartId,
     cartItems: cartItemsWithProducts,
-    isLoading: isCartIdLoading || isCartItemsLoading,
+    isLoading: isCartIdLoading || isCartItemsLoading || areProductsLoading,
     error,
   };
 }
