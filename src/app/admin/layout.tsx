@@ -86,14 +86,6 @@ export default function AdminLayout({
            <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="#">
-                  <Settings />
-                  Configurações
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
                 <Link href="/">
                   <LogOut />
                   Sair
