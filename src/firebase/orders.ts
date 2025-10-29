@@ -1,8 +1,10 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import {
   collection,
   addDoc,
+  doc,
   serverTimestamp,
   runTransaction,
   query,
@@ -55,9 +57,9 @@ export async function createOrderFromCart(
       // 1. Create a new order document
       const ordersCollection = collection(firestore, `users/${userId}/orders`);
       const newOrderRef = doc(ordersCollection);
-      const newOrder: Omit<Order, 'id'> = {
+      const newOrder: Omit<Order, 'id' | 'orderDate'> & { orderDate: any } = {
         userId,
-        orderDate: serverTimestamp() as Timestamp,
+        orderDate: serverTimestamp(),
         paymentMethod,
         totalAmount,
         status: 'Pendente',
