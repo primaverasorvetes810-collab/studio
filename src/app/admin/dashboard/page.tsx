@@ -1,3 +1,5 @@
+"use client";
+
 import {
   DollarSign,
   Users,
@@ -22,20 +24,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { orders, type Order } from "@/lib/data/orders";
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-
-const chartData = [
-  { name: "Jan", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Fev", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Mar", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Abr", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Mai", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Jun", total: Math.floor(Math.random() * 5000) + 1000 },
-  { name: "Jul", total: Math.floor(Math.random() * 5000) + 1000 },
-];
+import { OverviewChart } from "@/components/overview-chart";
 
 const statusColors: Record<Order["status"], string> = {
   Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
@@ -83,25 +75,7 @@ export default function DashboardPage() {
             <CardTitle>Visão Geral</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={chartData}>
-                <XAxis
-                  dataKey="name"
-                  stroke="#888888"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="#888888"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(value) => `${formatPrice(value as number)}`}
-                />
-                <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <OverviewChart />
           </CardContent>
         </Card>
         <Card className="lg:col-span-3">
