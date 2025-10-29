@@ -1,10 +1,12 @@
 'use client';
 
-import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
+import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect, useRef } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import { useToast } from '@/hooks/use-toast';
+
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -66,6 +68,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     isUserLoading: true, // Start loading until first auth event
     userError: null,
   });
+  const { toast } = useToast();
+  const previousUserRef = useRef<User | null>(null);
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
@@ -79,15 +83,24 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     const unsubscribe = onAuthStateChanged(
       auth,
       (firebaseUser) => { // Auth state determined
+        if (previousUserRef.current === null && firebaseUser !== null) {
+          // User just logged in
+          toast({
+            title: "Boas-vindas!",
+            description: "Login realizado com sucesso.",
+          });
+        }
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+        previousUserRef.current = firebaseUser;
       },
       (error) => { // Auth listener error
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
+        previousUserRef.current = null;
       }
     );
     return () => unsubscribe(); // Cleanup
-  }, [auth]); // Depends on the auth instance
+  }, [auth, toast]); // Depends on the auth instance
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
