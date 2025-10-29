@@ -30,15 +30,17 @@ import { formatPrice } from '@/lib/utils';
 import { CreditCard, Trash2, Loader2 } from 'lucide-react';
 import PageHeader from '@/components/page-header';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { createOrderFromCart } from '@/firebase/orders';
+import { useRouter } from 'next/navigation';
 
 export default function CartPage() {
   const { user, isUserLoading } = useUser();
-  const {
-    cartItems,
-    isLoading: isCartLoading,
-    cartId,
-  } = useCart(user?.uid);
+  const { cartItems, isLoading: isCartLoading, cartId } = useCart(user?.uid);
   const { toast } = useToast();
+  const router = useRouter();
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.product.price * item.quantity,
@@ -59,6 +61,30 @@ export default function CartPage() {
   const handleQuantityChange = (cartItemId: string, newQuantity: number) => {
     if (!user || !cartId || newQuantity < 1) return;
     updateCartItemQuantity(user.uid, cartId, cartItemId, newQuantity);
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!user || !cartId || cartItems.length === 0 || !paymentMethod) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro no pedido',
+        description: 'Selecione uma forma de pagamento e verifique seu carrinho.',
+      });
+      return;
+    }
+    setIsPlacingOrder(true);
+    try {
+      await createOrderFromCart(user.uid, cartId, cartItems, paymentMethod, total);
+      toast({
+        title: 'Pedido realizado!',
+        description: 'Seu pedido foi criado com sucesso.',
+      });
+      router.push('/orders');
+    } catch (error) {
+      // Error is handled by the global listener
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   if (isUserLoading || isCartLoading) {
@@ -181,14 +207,14 @@ export default function CartPage() {
                 >
                   Forma de Pagamento
                 </label>
-                <Select>
+                <Select onValueChange={setPaymentMethod} value={paymentMethod}>
                   <SelectTrigger id="payment-method">
                     <SelectValue placeholder="Selecione um método" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pix">Pix</SelectItem>
-                    <SelectItem value="cash">Dinheiro</SelectItem>
-                    <SelectItem value="card">
+                    <SelectItem value="Pix">Pix</SelectItem>
+                    <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="Cartão de Crédito ou Débito">
                       Cartão de Crédito/Débito
                     </SelectItem>
                   </SelectContent>
@@ -196,9 +222,18 @@ export default function CartPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full">
-                <CreditCard className="mr-2 h-4 w-4" />
-                Finalizar Pedido
+              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder || !paymentMethod}>
+                {isPlacingOrder ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Finalizando...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Finalizar Pedido
+                  </>
+                )}
               </Button>
             </CardFooter>
           </Card>
