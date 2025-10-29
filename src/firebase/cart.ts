@@ -22,10 +22,9 @@ import { useEffect, useState } from 'react';
 import type { Product } from '@/lib/data/products';
 import { products } from '@/lib/data/products';
 
-const { firestore } = getSdks();
-
 // Helper to find a user's shopping cart. Assumes one cart per user.
 async function findUserShoppingCartRef(userId: string) {
+  const { firestore } = getSdks();
   const cartsCollection = collection(firestore, `users/${userId}/shoppingCarts`);
   const q = query(cartsCollection, limit(1));
   try {
@@ -51,6 +50,7 @@ export function addProductToCart(
   productId: string,
   quantity: number = 1
 ) {
+  const { firestore } = getSdks();
   runTransaction(firestore, async (transaction) => {
     let cartRef = await findUserShoppingCartRef(userId);
 
@@ -92,6 +92,7 @@ export function removeProductFromCart(
   cartId: string,
   cartItemId: string
 ) {
+  const { firestore } = getSdks();
   const itemRef = doc(
     firestore,
     `users/${userId}/shoppingCarts/${cartId}/cartItems`,
@@ -111,6 +112,7 @@ export function updateCartItemQuantity(
     // If quantity is zero or less, remove the item
     removeProductFromCart(userId, cartId, cartItemId);
   } else {
+    const { firestore } = getSdks();
     const itemRef = doc(
       firestore,
       `users/${userId}/shoppingCarts/${cartId}/cartItems`,
@@ -135,6 +137,7 @@ interface CartItemWithProduct extends CartItem {
 export function useCart(userId?: string) {
   const [cartId, setCartId] = useState<string | null>(null);
   const [isCartIdLoading, setIsCartIdLoading] = useState(true);
+  const { firestore } = getSdks();
 
   // Effect to find the user's cart ID
   useEffect(() => {
@@ -158,7 +161,7 @@ export function useCart(userId?: string) {
       firestore,
       `users/${userId}/shoppingCarts/${cartId}/cartItems`
     );
-  }, [userId, cartId]);
+  }, [userId, cartId, firestore]);
 
   // Use the useCollection hook to get cart items
   const {
