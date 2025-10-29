@@ -14,6 +14,10 @@ import {
 } from "@/components/ui/card";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { PlusCircle } from "lucide-react";
+import { useAuth, useUser } from "@/firebase";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { addProductToCart } from "@/firebase/cart";
 
 type ProductCardProps = {
   product: Product;
@@ -21,6 +25,22 @@ type ProductCardProps = {
 
 export function ProductCard({ product }: ProductCardProps) {
   const placeholder = PlaceHolderImages.find((p) => p.id === product.image);
+  const { user } = useUser();
+  const auth = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const handleAddToCart = () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    addProductToCart(user.uid, product.id);
+    toast({
+      title: "Sucesso!",
+      description: `${product.name} foi adicionado ao seu carrinho.`,
+    });
+  };
 
   return (
     <Card className="flex flex-col overflow-hidden">
@@ -43,7 +63,7 @@ export function ProductCard({ product }: ProductCardProps) {
       </CardContent>
       <CardFooter className="flex items-center justify-between p-4 pt-0">
         <p className="text-xl font-bold text-primary">{formatPrice(product.price)}</p>
-        <Button size="sm">
+        <Button size="sm" onClick={handleAddToCart}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar
         </Button>
