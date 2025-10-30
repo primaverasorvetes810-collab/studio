@@ -53,9 +53,9 @@ export default function AdminLoginPage({ onLoginSuccess }: AdminLoginPageProps) 
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <PrimaveraLogo className="h-10 w-10 text-primary" />
+            <PrimaveraLogo className="h-12 w-auto" />
           </div>
-          <CardTitle className="text-2xl">Acesso ao Cofre</CardTitle>
+          <CardTitle className="text-2xl font-headline">Acesso ao Cofre</CardTitle>
           <CardDescription>
             Digite a chave mestra para visualizar as informações.
           </CardDescription>

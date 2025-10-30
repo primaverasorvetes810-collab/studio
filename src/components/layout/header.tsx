@@ -37,8 +37,7 @@ export default function Header() {
       <div className="container mx-auto flex h-16 items-center space-x-4 px-4 sm:justify-between sm:space-x-0">
         <div className="flex gap-6 md:gap-10">
           <Link href="/" className="flex items-center space-x-2">
-            <PrimaveraLogo className="h-6 w-6 text-primary" />
-            <span className="inline-block font-bold">Primavera</span>
+            <PrimaveraLogo className="h-10" />
           </Link>
           <nav className="hidden gap-6 md:flex">
             <Link

@@ -65,8 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <Sidebar className="hidden md:flex md:flex-col md:w-64 border-r bg-sidebar text-sidebar-foreground">
           <SidebarHeader>
             <div className="flex items-center gap-2">
-              <PrimaveraLogo className="w-6 h-6 text-primary" />
-              <span className="text-lg font-semibold">Primavera</span>
+              <PrimaveraLogo className="h-10" />
             </div>
           </SidebarHeader>
           <SidebarContent>
