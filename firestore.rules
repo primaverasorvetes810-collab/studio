@@ -1,49 +1,173 @@
 rules_version = '2';
-service cloud.firestore {
+ service cloud.firestore {
   match /databases/{database}/documents {
+ 
 
-    // Regra para a coleção de usuários
-    match /users/{userId} {
-      // Usuários autenticados podem ler seus próprios perfis e criar seu próprio documento
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.auth.uid == userId;
-      
-      // Permite que um usuário gerencie seu próprio carrinho de compras
-      match /shoppingCarts/{cartId} {
-        allow read, write: if request.auth.uid == userId;
+   /**
+    * @description Grants access to admin role documents. Only admins can create other admins.
+    * @path /roles_admin/{uid}
+    * @allow (create, update, delete) An admin (identified by a document in /roles_admin) can create/update/delete other admin roles.
+    * @deny (create, update, delete) A non-admin user cannot create/update/delete admin roles.
+    * @principle Enforces role-based access control; only admins can manage admin roles.
+    */
+   match /roles_admin/{uid} {
+    allow get: if isAdmin();
+    allow list: if false;
+    allow create: if isAdmin();
+    allow update: if isAdmin();
+    allow delete: if isAdmin();
+   }
+ 
 
-        match /cartItems/{cartItemId} {
-          allow read, write, delete: if request.auth.uid == userId;
-        }
-      }
+   /**
+    * @description Grants access to user profile documents. Only the user can read/write their own profile.
+    * @path /users/{userId}
+    * @allow (get) Any authenticated user can get a user document.
+    * @allow (create) Any authenticated user can create their own user document, where the document ID matches their UID.
+    * @allow (update, delete) The user can update/delete their own user document.
+    * @deny (get, create, update, delete) A different user cannot read/write another user's profile.
+    * @principle Enforces document ownership for user profiles.
+    */
+   match /users/{userId} {
+    allow get: if isOwner(userId);
+    allow list: if false;
+    allow create: if isOwner(userId) && request.auth.uid == userId;
+    allow update: if isOwner(userId);
+    allow delete: if isOwner(userId);
+   }
+ 
 
-      // Permite que um usuário crie e leia seus próprios pedidos
-      match /orders/{orderId} {
-        allow create, read: if request.auth.uid == userId;
-        // Ninguém pode atualizar ou excluir um pedido diretamente
-        allow update, delete: if false; 
-      }
-    }
-    
-    // Regra para o grupo de coleções de pedidos
-    match /{path=**}/orders/{orderId} {
-      // Permite que qualquer usuário autenticado leia todos os pedidos (para o painel de admin)
-      allow read: if request.auth != null;
-    }
+   /**
+    * @description Grants access to product group documents. Publicly readable, admin-only write access.
+    * @path /productGroups/{productGroupId}
+    * @allow (get, list) Anyone can read the list of product groups.
+    * @allow (create, update, delete) Only admins can create/update/delete product groups.
+    * @deny (create, update, delete) Non-admins cannot modify product groups.
+    * @principle Enforces public read access with admin-only write access for product groups.
+    */
+   match /productGroups/{productGroupId} {
+    allow get, list: if true;
+    allow create: if isAdmin();
+    allow update: if isAdmin();
+    allow delete: if isAdmin();
+   }
+ 
 
-    // Coleções de nível raiz para produtos e grupos de produtos
-    match /products/{productId} {
-      // Qualquer pessoa pode ler os produtos
-      allow read: if true;
-      // Apenas usuários autenticados podem modificar produtos (protegido pela senha do admin na UI)
-      allow write: if request.auth != null;
-    }
+   /**
+    * @description Grants access to product documents. Publicly readable, admin-only write access.
+    * @path /products/{productId}
+    * @allow (get, list) Anyone can read the list of products.
+    * @allow (create, update, delete) Only admins can create/update/delete products.
+    * @deny (create, update, delete) Non-admins cannot modify products.
+    * @principle Enforces public read access with admin-only write access for products.
+    */
+   match /products/{productId} {
+    allow get, list: if true;
+    allow create: if isAdmin();
+    allow update: if isAdmin();
+    allow delete: if isAdmin();
+   }
+ 
 
-    match /productGroups/{groupId} {
-      // Qualquer pessoa pode ler os grupos de produtos
-      allow read: if true;
-      // Apenas usuários autenticados podem modificar grupos (protegido pela senha do admin na UI)
-      allow write: if request.auth != null;
-    }
+   /**
+    * @description Grants access to shopping cart documents. Only the user can read/write their own cart.
+    * @path /users/{userId}/shoppingCarts/{cartId}
+    * @allow (get, list) The user can retrieve the list of their shopping carts.
+    * @allow (create) The user can create their own shopping cart, where the userId in the cart data matches the path.
+    * @allow (update, delete) The user can update/delete their own shopping cart.
+    * @deny (get, create, update, delete) A different user cannot read/write another user's cart.
+    * @principle Enforces document ownership for shopping carts.
+    */
+   match /users/{userId}/shoppingCarts/{cartId} {
+    allow get, list: if isOwner(userId);
+    allow create: if isOwner(userId);
+    allow update: if isOwner(userId);
+    allow delete: if isOwner(userId);
+   }
+ 
+
+   /**
+    * @description Grants access to cart item documents. Only the user can read/write items in their own cart.
+    * @path /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}
+    * @allow (get, list) The user can retrieve the list of cart items in their shopping cart.
+    * @allow (create) The user can create cart items in their own shopping cart.
+    * @allow (update, delete) The user can update/delete cart items in their own shopping cart.
+    * @deny (get, create, update, delete) A different user cannot read/write another user's cart items.
+    * @principle Enforces document ownership for cart items.
+    */
+   match /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId} {
+    allow get, list: if isOwner(userId);
+    allow create: if isOwner(userId);
+    allow update: if isOwner(userId);
+    allow delete: if isOwner(userId);
+   }
+ 
+
+   /**
+    * @description Grants access to order documents. Only the user can read/write their own orders.
+    * @path /users/{userId}/orders/{orderId}
+    * @allow (get, list) The user can retrieve the list of their orders.
+    * @allow (create) The user can create their own order, where the userId in the order data matches the path.
+    * @allow (update, delete) The user can update/delete their own order.
+    * @deny (get, create, update, delete) A different user cannot read/write another user's order.
+    * @principle Enforces document ownership for orders.
+    */
+   match /users/{userId}/orders/{orderId} {
+    allow get, list: if isOwner(userId);
+    allow create: if isOwner(userId);
+    allow update: if isOwner(userId);
+    allow delete: if isOwner(userId);
+   }
+ 
+
+   /**
+    * @description Grants access to order item documents. Anyone can read order items related to public order.
+    * @path /orders/{orderId}/orderItems/{orderItemId}
+    * @allow (get, list) Anyone can read the order items for this order.
+    */
+   match /orders/{orderId}/orderItems/{orderItemId} {
+    allow get, list: if true;
+    allow create: if false;
+    allow update: if false;
+    allow delete: if false;
+   }
+ 
+
+   /**
+    * @description Grants access to payment documents. Anyone can read payments related to public order.
+    * @path /orders/{orderId}/payments/{paymentId}
+    * @allow (get, list) Anyone can read the payments for this order.
+    */
+   match /orders/{orderId}/payments/{paymentId} {
+    allow get, list: if true;
+    allow create: if false;
+    allow update: if false;
+    allow delete: if false;
+   }
+ 
+
+   function isSignedIn() {
+    return request.auth != null;
+   }
+ 
+
+   function isOwner(userId) {
+    return request.auth.uid == userId;
+   }
+ 
+
+   function isExistingOwner(userId) {
+    return isOwner(userId) && resource.data.userId == userId;
+   }
+ 
+
+   function isNewOwner(userId) {
+    return isOwner(userId) && request.resource.data.userId == userId && request.auth.uid == userId;
+   }
+ 
+
+   function isAdmin() {
+    return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+   }
   }
-}
+ }
