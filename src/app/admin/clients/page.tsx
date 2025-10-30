@@ -1,5 +1,7 @@
+
 'use client';
 
+import { useEffect, useState } from 'react';
 import PageHeader from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useFirestore } from "@/firebase";
 import { MoreHorizontal, Loader2 } from "lucide-react";
 import {
     DropdownMenu,
@@ -25,7 +27,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu";
-import { collection, Timestamp } from "firebase/firestore";
+import { collection, Timestamp, getDocs } from "firebase/firestore";
 import Link from "next/link";
 
 // Define a mais flexível para clientes, já que registerTime pode não ser sempre um objeto Timestamp inicialmente.
@@ -42,8 +44,27 @@ type Client = {
 
 export default function ClientsPage() {
   const firestore = useFirestore();
-  const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
-  const { data: clients, isLoading } = useCollection<Client>(usersQuery);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchClients() {
+      if (!firestore) return;
+      setIsLoading(true);
+      try {
+        const usersCollection = collection(firestore, 'users');
+        const usersSnapshot = await getDocs(usersCollection);
+        const clientsList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
+        setClients(clientsList);
+      } catch (error) {
+        console.error("Error fetching clients: ", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchClients();
+  }, [firestore]);
+
 
   const formatDate = (timestamp: any) => {
     if (timestamp && typeof timestamp.toDate === 'function') {

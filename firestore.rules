@@ -1,14 +1,33 @@
 /**
- * @file Firestore Security Rules for Primavera Delivery Application
- * @corePhilosophy This ruleset enforces a hybrid security model: user-ownership for personal data (profiles, carts, orders), public read access with admin-only writes for product catalog data, and role-based access for administrative functions.
- * @dataStructure The database is structured with user-specific data nested under `/users/{userId}`. Product catalog data is stored in top-level collections (`/productGroups`, `/products`). Administrative roles are stored in the `/roles_admin/{uid}` collection.
- * @keySecurityDecisions
- *   - User data is strictly controlled by the owning user.
- *   - Product catalog data is publicly readable to facilitate browsing but can only be modified by administrators.
- *   - Listing of all users is explicitly denied for privacy.
- *   - Administrative privileges are granted based on the existence of a document in the `/roles_admin/{uid}` collection.
- * @denormalizationForAuthorization The rules leverage path-based authorization (e.g., `/users/{userId}`) and role-based authorization (checking for the existence of a document in `/roles_admin/{uid}`). No additional denormalization is required.
- * @structuralSegregation Public product catalog data is stored in top-level collections, separate from private user data. This avoids the need for complex filtering based on public/private flags and improves query performance.
+ * @fileoverview Firestore Security Rules for Primavera Delivery application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a hybrid security model. User data is strictly protected
+ * by ownership, while product information is publicly readable but admin-writeable.
+ *
+ * Data Structure:
+ * - /users/{userId}: User profiles, accessible only to the owning user.
+ * - /productGroups/{productGroupId}: Product categories, publicly readable but
+ *   modifiable only by admins.
+ * - /products/{productId}: Product details, publicly readable but modifiable only
+ *   by admins.  Products are linked to product groups via the `groupId` field.
+ * - /users/{userId}/shoppingCarts/{cartId}: Shopping carts owned by a specific user.
+ * - /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}: Items within a user's cart.
+ * - /users/{userId}/orders/{orderId}: Orders placed by a specific user.
+ * - /orders/{orderId}/orderItems/{orderItemId}: Items within an order.
+ * - /orders/{orderId}/payments/{paymentId}: Payment information for an order.
+ * - /roles_admin/{uid}:  Admin role assignments. Document existence grants admin role.
+ *
+ * Key Security Decisions:
+ * - User listing is disallowed for privacy.
+ * - Public read access is granted to product-related data to allow browsing
+ *   without authentication.
+ *
+ * Denormalization for Authorization:
+ * - The `products` collection denormalizes the `groupId` to allow for efficient
+ *   filtering and rule simplicity.  Admin status is checked via the
+ *   `isAdmin()` function, which checks for the existence of a document in the
+ *   `/roles_admin/{uid}` collection.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -16,223 +35,189 @@ service cloud.firestore {
 
     /**
      * @description Checks if the user is signed in.
-     * @return {bool} True if the user is signed in, false otherwise.
+     * @path N/A
+     * @allow N/A
+     * @deny N/A
+     * @principle Authentication required for most operations.
      */
     function isSignedIn() {
       return request.auth != null;
     }
 
     /**
-     * @description Checks if the authenticated user ID matches the provided user ID.
-     * @param {string} userId The user ID to compare against.
-     * @return {bool} True if the authenticated user is the owner, false otherwise.
+     * @description Checks if the user is the owner of the resource, based on the provided userId.
+     * @path N/A
+     * @allow N/A
+     * @deny N/A
+     * @principle Ownership is determined by matching the authenticated user's UID to the resource's userId.
      */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
     /**
-     * @description Checks if the user is signed in and the document exists, and if the authenticated user ID matches the provided user ID.
-     * @param {string} userId The user ID to compare against.
-     * @return {bool} True if the authenticated user is the owner and the document exists, false otherwise.
+     * @description Checks if the user is the owner of the resource and that the resource exists.
+     * @path N/A
+     * @allow N/A
+     * @deny N/A
+     * @principle Combines ownership check with resource existence for destructive operations.
      */
     function isExistingOwner(userId) {
-        return isSignedIn() && resource != null && request.auth.uid == userId;
+      return isOwner(userId) && resource != null;
     }
 
     /**
-     * @description Checks if the user is an admin by verifying the existence of a document in the `/roles_admin/{uid}` collection.
-     * @return {bool} True if the user is an admin, false otherwise.
+     * @description Checks if the user has admin privileges by verifying the existence
+     *              of a document in the `/roles_admin/{uid}` collection.
+     * @path N/A
+     * @allow N/A
+     * @deny N/A
+     * @principle Admin privileges are granted by document existence in the roles_admin collection.
      */
     function isAdmin() {
-      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+        return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
+    /**
+     * @description Rules for the /users/{userId} collection.
+     * @path /users/{userId}
+     * @allow (create) User with UID 'user123' creates their own profile.
+     *          request.auth.uid == 'user123' && request.resource.data.id == 'user123'
+     * @allow (get, update, delete) User with UID 'user123' accesses their own profile.
+     *          request.auth.uid == 'user123'
+     * @deny (create) User with UID 'user123' attempts to create a profile for another user 'user456'.
+     *          request.auth.uid == 'user123' && request.resource.data.id == 'user456'
+     * @deny (list) Any user attempts to list all users.
+     * @principle Enforces document ownership for user profiles.
+     */
     match /users/{userId} {
-      /**
-       * @description Manages user profiles. Only the user can access their data.
-       * @path /users/{userId}
-       * @allow (create) User with UID 'user123' creates their profile.
-       *   - Request: `auth.uid = 'user123'`
-       * @allow (get) User with UID 'user123' reads their profile.
-       *   - Request: `auth.uid = 'user123'`
-       * @allow (update) User with UID 'user123' updates their profile.
-       *   - Request: `auth.uid = 'user123'`
-       * @allow (delete) User with UID 'user123' deletes their profile.
-       *   - Request: `auth.uid = 'user123'`
-       * @deny (create) User with UID 'user456' attempts to create a profile for 'user123'.
-       *   - Request: `auth.uid = 'user456'`
-       * @principle Enforces document ownership for writes. Restricts access to a user's own data tree.
-       */
       allow get: if isOwner(userId);
-      allow list: if false; // Explicitly deny listing all users.
+      allow list: if false;
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
     }
 
+    /**
+     * @description Rules for the /productGroups/{productGroupId} collection.
+     * @path /productGroups/{productGroupId}
+     * @allow (get, list) Any user can read product groups.
+     * @allow (create, update, delete) Only admins can modify product groups.
+     * @deny (create, update, delete) Non-admin user attempts to modify product groups.
+     * @principle Public read access with admin-only writes for product groups.
+     */
     match /productGroups/{productGroupId} {
-      /**
-       * @description Manages product groups. Publicly readable, admin-only write access.
-       * @path /productGroups/{productGroupId}
-       * @allow (get) Any user reads a product group.
-       *   - Request: `auth.uid = null` (anonymous user) or `auth.uid = 'anyUser'`
-       * @allow (list) Any user lists product groups.
-       *   - Request: `auth.uid = null` (anonymous user) or `auth.uid = 'anyUser'`
-       * @allow (create) Admin user creates a product group.
-       *   - Request: `auth.uid = 'adminUid'`, admin document exists in `/roles_admin/adminUid`
-       * @deny (create) Non-admin user attempts to create a product group.
-       *   - Request: `auth.uid = 'userUid'`, no document exists in `/roles_admin/userUid`
-       * @principle Public read access with role-based write access.
-       */
       allow get, list: if true;
       allow create: if isAdmin();
       allow update: if isAdmin() && resource != null;
       allow delete: if isAdmin() && resource != null;
     }
 
+    /**
+     * @description Rules for the /products/{productId} collection.
+     * @path /products/{productId}
+     * @allow (get, list) Any user can read products.
+     * @allow (create, update, delete) Only admins can modify products.
+     * @deny (create, update, delete) Non-admin user attempts to modify products.
+     * @principle Public read access with admin-only writes for products.
+     */
     match /products/{productId} {
-      /**
-       * @description Manages products. Products are queried by their 'groupId'. Publicly readable, admin-only write access.
-       * @path /products/{productId}
-       * @allow (get) Any user reads a product.
-       *   - Request: `auth.uid = null` (anonymous user) or `auth.uid = 'anyUser'`
-       * @allow (list) Any user lists products.
-       *   - Request: `auth.uid = null` (anonymous user) or `auth.uid = 'anyUser'`
-       * @allow (create) Admin user creates a product.
-       *   - Request: `auth.uid = 'adminUid'`, admin document exists in `/roles_admin/adminUid`
-       * @deny (create) Non-admin user attempts to create a product.
-       *   - Request: `auth.uid = 'userUid'`, no document exists in `/roles_admin/userUid`
-       * @principle Public read access with role-based write access.
-       */
       allow get, list: if true;
       allow create: if isAdmin();
       allow update: if isAdmin() && resource != null;
       allow delete: if isAdmin() && resource != null;
     }
 
+    /**
+     * @description Rules for the /users/{userId}/shoppingCarts/{cartId} collection.
+     * @path /users/{userId}/shoppingCarts/{cartId}
+     * @allow (create, get, update, delete) Only the owner user can manage their shopping cart.
+     * @deny (create, get, update, delete) Other users cannot manage someone else's shopping cart.
+     * @deny (list) Any user attempts to list all shopping carts.
+     * @principle Enforces document ownership for shopping carts.
+     */
     match /users/{userId}/shoppingCarts/{cartId} {
-      /**
-       * @description Manages shopping carts for each user. Path-based ownership ensures only the user can access their cart.
-       * @path /users/{userId}/shoppingCarts/{cartId}
-       * @allow (create) User with UID 'user123' creates their shopping cart.
-       *   - Request: `auth.uid = 'user123'`
-       * @allow (get) User with UID 'user123' reads their shopping cart.
-       *   - Request: `auth.uid = 'user123'`
-       * @allow (update) User with UID 'user123' updates their shopping cart.
-       *   - Request: `auth.uid = 'user123'`
-       * @allow (delete) User with UID 'user123' deletes their shopping cart.
-       *   - Request: `auth.uid = 'user123'`
-       * @deny (create) User with UID 'user456' attempts to create a shopping cart for 'user123'.
-       *   - Request: `auth.uid = 'user456'`
-       * @principle Enforces document ownership for writes. Restricts access to a user's own shopping cart.
-       */
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow create: if isOwner(userId) && request.resource.data.userId == userId && request.resource.data.id == cartId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
-
-      match /cartItems/{cartItemId} {
-        /**
-         * @description Manages cart items within a shopping cart. Inherits ownership from the parent shopping cart.
-         * @path /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}
-         * @allow (create) User with UID 'user123' creates a cart item in their cart.
-         *   - Request: `auth.uid = 'user123'`
-         * @allow (get) User with UID 'user123' reads a cart item in their cart.
-         *   - Request: `auth.uid = 'user123'`
-         * @allow (update) User with UID 'user123' updates a cart item in their cart.
-         *   - Request: `auth.uid = 'user123'`
-         * @allow (delete) User with UID 'user123' deletes a cart item in their cart.
-         *   - Request: `auth.uid = 'user123'`
-         * @deny (create) User with UID 'user456' attempts to create a cart item in 'user123's cart.
-         *   - Request: `auth.uid = 'user456'`
-         * @principle Enforces document ownership inherited from the parent.
-         */
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.shoppingCartId == cartId;
-        allow update: if isExistingOwner(userId) && request.resource.data.shoppingCartId == resource.data.shoppingCartId;
-        allow delete: if isExistingOwner(userId);
-      }
     }
 
+    /**
+     * @description Rules for the /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId} collection.
+     * @path /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}
+     * @allow (create, get, update, delete) Only the owner user can manage items in their shopping cart.
+     * @deny (create, get, update, delete) Other users cannot manage items in someone else's shopping cart.
+     * @deny (list) Any user attempts to list all cart items.
+     * @principle Enforces ownership inherited from the parent shopping cart.
+     */
+    match /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.shoppingCartId == cartId;
+      allow update: if isExistingOwner(userId) && request.resource.data.shoppingCartId == cartId;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Rules for the /users/{userId}/orders/{orderId} collection.
+     * @path /users/{userId}/orders/{orderId}
+     * @allow (create, get, update, delete) Only the owner user can manage their orders.
+     * @deny (create, get, update, delete) Other users cannot manage someone else's orders.
+     * @deny (list) Any user attempts to list all orders.
+     * @principle Enforces document ownership for orders.
+     */
     match /users/{userId}/orders/{orderId} {
-      /**
-       * @description Manages order information for each user. Path-based ownership ensures only the user can access their orders.
-       * @path /users/{userId}/orders/{orderId}
-       * @allow (create) User with UID 'user123' creates their order.
-       *   - Request: `auth.uid = 'user123'`
-       * @allow (get) User with UID 'user123' reads their order.
-       *   - Request: `auth.uid = 'user123'`
-       * @allow (update) User with UID 'user123' updates their order.
-       *   - Request: `auth.uid = 'user123'`
-       * @allow (delete) User with UID 'user123' deletes their order.
-       *   - Request: `auth.uid = 'user123'`
-       * @deny (create) User with UID 'user456' attempts to create an order for 'user123'.
-       *   - Request: `auth.uid = 'user456'`
-       * @principle Enforces document ownership for writes. Restricts access to a user's own orders.
-       */
       allow get: if isOwner(userId);
       allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow create: if isOwner(userId) && request.resource.data.userId == userId && request.resource.data.id == orderId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId && request.resource.data.id == resource.data.id;
       allow delete: if isExistingOwner(userId);
-
-      match /orderItems/{orderItemId} {
-        /**
-         * @description Manages order items within an order.
-         * @path /users/{userId}/orders/{orderId}/orderItems/{orderItemId}
-         * @allow (create) User with UID 'user123' creates an order item in their order.
-         *   - Request: `auth.uid = 'user123'`
-         * @allow (get) User with UID 'user123' reads an order item in their order.
-         *   - Request: `auth.uid = 'user123'`
-         * @allow (update) User with UID 'user123' updates an order item in their order.
-         *   - Request: `auth.uid = 'user123'`
-         * @allow (delete) User with UID 'user123' deletes an order item in their order.
-         *   - Request: `auth.uid = 'user123'`
-         * @deny (create) User with UID 'user456' attempts to create an order item in 'user123's order.
-         *   - Request: `auth.uid = 'user456'`
-         * @principle Enforces document ownership inherited from the parent.
-         */
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.orderId == orderId;
-        allow update: if isExistingOwner(userId) && request.resource.data.orderId == resource.data.orderId;
-        allow delete: if isExistingOwner(userId);
-      }
     }
 
-     match /orders/{orderId}/payments/{paymentId} {
-        /**
-         * @description Manages payments associated with an order.
-         * @path /orders/{orderId}/payments/{paymentId}
-         */
-        allow get: if isAdmin();
-        allow list: if isAdmin();
-        allow create: if isAdmin() && request.resource.data.orderId == orderId;
-        allow update: if isAdmin() && resource != null && request.resource.data.orderId == resource.data.orderId;
-        allow delete: if isAdmin() && resource != null;
-      }
-
-
-    match /roles_admin/{uid} {
-      /**
-       * @description Indicates administrative privileges. The document ID is the user's UID. Existence of a document grants admin rights.
-       * @path /roles_admin/{uid}
-       * @allow (create) Only a server-side process can create admin roles.  This rule only allows creating the document if the UID matches the document ID.
-       *   - Request: `auth.uid = 'adminUid'`, the document ID is also 'adminUid'
-       * @allow (get) Any authenticated user can check if they are an admin.
-       *   - Request: `auth.uid = 'anyUser'`
-       * @deny (create) User attempts to create their own admin role.
-       *   - Request: `auth.uid = 'userUid'`
-       * @principle Role-based access control.
-       */
-      allow get: if isSignedIn();
+    /**
+     * @description Rules for the /orders/{orderId}/orderItems/{orderItemId} collection.
+     * @path /orders/{orderId}/orderItems/{orderItemId}
+     * @allow (create, get, update, delete) Anyone can manage order items for now. // TODO: Review security for OrderItems
+     * @deny (list) Any user attempts to list all order items.
+     */
+    match /orders/{orderId}/orderItems/{orderItemId} {
+      allow get: if true;
       allow list: if false;
-      allow create: if request.auth.uid == uid; // Only allow creation if the UID matches the document ID.  This should ideally be done via a trusted environment.
-      allow update: if false;
-      allow delete: if false;
+      allow create: if true; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow update: if resource != null; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow delete: if resource != null; // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+    /**
+     * @description Rules for the /orders/{orderId}/payments/{paymentId} collection.
+     * @path /orders/{orderId}/payments/{paymentId}
+     * @allow (create, get, update, delete) Anyone can manage payments for now.  // TODO: Review security for Payments
+     * @deny (list) Any user attempts to list all payments.
+     */
+    match /orders/{orderId}/payments/{paymentId} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if true; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow update: if resource != null; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow delete: if resource != null; // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+    /**
+     * @description Rules for the /roles_admin/{uid} collection.
+     * @path /roles_admin/{uid}
+     * @allow (get) Only the admin user can retrieve their own admin document.
+     * @allow (create) Only a service account can create admin documents. // TODO: implement service account
+     * @deny (list, update, delete) Listing, updating, and deleting admin documents is prohibited.
+     * @principle Admin privileges are managed through document existence.
+     */
+    match /roles_admin/{uid} {
+        allow get: if isAdmin();
+        allow list: if false;
+        allow create: if false; // TODO: implement service account.
+        allow update: if false;
+        allow delete: if false;
     }
   }
 }
