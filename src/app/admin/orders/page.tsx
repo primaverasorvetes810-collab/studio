@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { type Order, useUserOrders, type User } from "@/firebase/orders";
+import { type Order, type User } from "@/firebase/orders";
 import { formatPrice } from "@/lib/utils";
 import { MoreHorizontal, Loader2 } from "lucide-react";
 import {
