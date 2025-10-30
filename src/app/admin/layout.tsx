@@ -69,7 +69,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="#">
+                  <Link href="/admin/revenue">
                     <DollarSign />
                     Receita
                   </Link>
