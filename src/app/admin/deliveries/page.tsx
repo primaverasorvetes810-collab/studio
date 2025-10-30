@@ -1,21 +1,22 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { collectionGroup, query, getDocs } from 'firebase/firestore';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { collectionGroup, query, getDocs, onSnapshot, where, Unsubscribe } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { OrderWithItems } from '@/firebase/orders';
 import { updateOrderStatus } from '@/firebase/orders';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Bike, Rocket } from 'lucide-react';
+import { Loader2, Bike, Rocket, BellRing } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { PrimaveraLogo } from '@/components/icons';
 
 // Custom hook to fetch all orders
-function useAllOrders() {
+function useAllPaidOrders() {
   const firestore = useFirestore();
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,52 +25,102 @@ function useAllOrders() {
   useEffect(() => {
     if (!firestore) return;
 
-    const fetchOrders = async () => {
-      setIsLoading(true);
-      try {
-        const ordersQuery = query(collectionGroup(firestore, 'orders'));
-        const ordersSnapshot = await getDocs(ordersQuery);
-        
-        const allOrders = ordersSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        } as OrderWithItems));
+    const q = query(collectionGroup(firestore, 'orders'), where('status', '==', 'Pago'));
+    setIsLoading(true);
 
-        allOrders.sort((a, b) => {
-            const dateA = a.orderDate?.toDate()?.getTime() || 0;
-            const dateB = b.orderDate?.toDate()?.getTime() || 0;
-            return dateA - dateB; // Sort oldest first
-        });
-        
-        setOrders(allOrders);
-      } catch (e) {
-        setError(e as Error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const paidOrders = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as OrderWithItems));
+      
+      paidOrders.sort((a, b) => {
+        const dateA = a.orderDate?.toDate()?.getTime() || 0;
+        const dateB = b.orderDate?.toDate()?.getTime() || 0;
+        return dateA - dateB; // Sort oldest first
+      });
 
-    fetchOrders();
+      setOrders(paidOrders);
+      setIsLoading(false);
+    }, (err) => {
+      console.error(err);
+      setError(err);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [firestore]);
 
   return { orders, setOrders, isLoading, error };
 }
 
-export default function DeliveriesPage() {
-  const { orders, setOrders, isLoading } = useAllOrders();
-  const { toast } = useToast();
 
-  const ordersToDeliver = useMemo(() => {
-    return orders.filter(order => order.status === 'Pago');
-  }, [orders]);
+export default function DeliveriesPage() {
+  const { orders: ordersToDeliver, setOrders, isLoading } = useAllPaidOrders();
+  const { toast } = useToast();
+  const [notificationPermission, setNotificationPermission] = useState('default');
+  const notifiedOrderIds = useRef(new Set<string>());
+
+  // Effect to request notification permission
+  useEffect(() => {
+    if ("Notification" in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  // Effect to show notifications for new paid orders
+  useEffect(() => {
+    if (notificationPermission === 'granted') {
+      ordersToDeliver.forEach(order => {
+        if (!notifiedOrderIds.current.has(order.id)) {
+          new Notification('Novo Pedido para Entrega!', {
+            body: `Pedido #${order.id.substring(0,7)} para ${order.userName}. Total: ${formatPrice(order.totalAmount)}`,
+            icon: '/logo-notification.png', // You would need to add a logo in your public folder
+            lang: 'pt-BR',
+            vibrate: [200, 100, 200],
+          });
+          notifiedOrderIds.current.add(order.id);
+        }
+      });
+    }
+  }, [ordersToDeliver, notificationPermission]);
+
+
+  const requestNotificationPermission = () => {
+    if (!("Notification" in window)) {
+        toast({
+            variant: "destructive",
+            title: "Navegador não suportado",
+            description: "Este navegador não suporta notificações de desktop.",
+        });
+      return;
+    }
+
+    Notification.requestPermission().then((permission) => {
+      setNotificationPermission(permission);
+      if (permission === 'granted') {
+        toast({
+            title: "Notificações Ativadas!",
+            description: "Você será notificado sobre novas entregas.",
+        });
+         new Notification('Notificações Ativadas!', {
+            body: 'Você será notificado sobre novas entregas.',
+            icon: '/logo-notification.png',
+        });
+      } else {
+        toast({
+            variant: "destructive",
+            title: "Notificações Bloqueadas",
+            description: "Você precisa permitir as notificações nas configurações do seu navegador.",
+        });
+      }
+    });
+  };
 
   const handleStartDelivery = async (order: OrderWithItems) => {
     try {
       await updateOrderStatus(order.userId, order.id, 'Enviado');
-      // Update local state to immediately reflect the change
-      setOrders(prevOrders => 
-        prevOrders.map(o => o.id === order.id ? { ...o, status: 'Enviado' } : o)
-      );
+      // The real-time listener will automatically update the UI, no need for local state update
       toast({
         title: 'Entrega Iniciada!',
         description: `O pedido de ${order.userName} está a caminho.`,
@@ -82,6 +133,31 @@ export default function DeliveriesPage() {
       });
     }
   };
+  
+  if (notificationPermission !== 'granted') {
+    return (
+      <div className="flex h-[calc(100vh-200px)] items-center justify-center">
+        <Card className="max-w-md text-center">
+          <CardHeader>
+             <div className="flex justify-center mb-4">
+                <BellRing className="h-12 w-12 text-primary" />
+            </div>
+            <CardTitle className="text-2xl">Ativar Notificações de Entrega</CardTitle>
+             <CardContent className="pt-4">
+                <p className="text-muted-foreground mb-6">
+                    Para ser alertado sobre novos pedidos em tempo real, você precisa habilitar as notificações em seu navegador.
+                </p>
+                <Button onClick={requestNotificationPermission}>
+                    <BellRing className="mr-2 h-4 w-4" />
+                    Habilitar Notificações
+                </Button>
+            </CardContent>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
 
   return (
     <div className="flex flex-col gap-8">
@@ -99,7 +175,7 @@ export default function DeliveriesPage() {
            <CardContent>
              <Bike className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
              <h3 className="text-xl font-semibold">Nenhuma entrega pendente!</h3>
-             <p className="text-muted-foreground mt-2">Assim que um pedido for pago, ele aparecerá aqui.</p>
+             <p className="text-muted-foreground mt-2">Assim que um pedido for pago, ele aparecerá aqui com uma notificação.</p>
            </CardContent>
         </Card>
       ) : (
