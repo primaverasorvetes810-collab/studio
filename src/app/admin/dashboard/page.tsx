@@ -86,6 +86,43 @@ function useAllOrders() {
     return { orders, isLoading, error };
 }
 
+function useAllUsers() {
+    const firestore = useFirestore();
+    const [users, setUsers] = useState<User[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
+
+    useEffect(() => {
+        if (!firestore) return;
+
+        const fetchUsers = async () => {
+            setIsLoading(true);
+            try {
+                const usersCollection = collection(firestore, 'users');
+                const usersSnapshot = await getDocs(usersCollection);
+                const allUsers = usersSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                } as User));
+                setUsers(allUsers);
+            } catch (e) {
+                const contextualError = new FirestorePermissionError({
+                    path: 'users',
+                    operation: 'list',
+                });
+                errorEmitter.emit('permission-error', contextualError);
+                setError(contextualError);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchUsers();
+    }, [firestore]);
+
+    return { users, isLoading, error };
+}
+
+
 const statusColors: Record<Order["status"], string> = {
   Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
   Pago: "bg-green-500/20 text-green-500 border-green-500/20",
@@ -97,6 +134,8 @@ const statusColors: Record<Order["status"], string> = {
 
 export default function DashboardPage() {
   const { orders, isLoading: isLoadingOrders } = useAllOrders();
+  const { users, isLoading: isLoadingUsers } = useAllUsers();
+
   const firestore = useFirestore();
 
   const productsQuery = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
@@ -115,7 +154,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader title="Painel" description="Uma visão geral da sua loja." />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <AdminStatsCard
           title="Receita Total"
           value={formatPrice(totalRevenue)}
@@ -130,6 +169,11 @@ export default function DashboardPage() {
           title="Produtos Cadastrados"
           value={isLoadingProducts ? <Loader2 className="h-6 w-6 animate-spin" /> : totalProducts.toString()}
           icon={Package}
+        />
+        <AdminStatsCard
+          title="Total de Clientes"
+          value={isLoadingUsers ? <Loader2 className="h-6 w-6 animate-spin" /> : users.length.toString()}
+          icon={Users}
         />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
@@ -186,7 +230,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
-
-    
