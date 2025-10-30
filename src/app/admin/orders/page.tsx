@@ -115,7 +115,7 @@ export default function OrdersAdminPage() {
                                         <span className="font-bold text-base">{order.userName}</span>
                                         <span className="text-sm text-muted-foreground">Pedido #{order.id.substring(0, 7)}...</span>
                                     </div>
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
                                         <span className="font-bold text-primary">{formatPrice(order.totalAmount)}</span>
                                         <OrderStatusSelector order={order} onStatusChange={handleStatusChange} />
                                     </div>
