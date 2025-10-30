@@ -26,6 +26,7 @@ import {
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu";
 import { collection, Timestamp } from "firebase/firestore";
+import Link from "next/link";
 
 // Define a mais flexível para clientes, já que registerTime pode não ser sempre um objeto Timestamp inicialmente.
 type Client = {
@@ -97,7 +98,9 @@ export default function ClientsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/admin/clients/${client.id}`}>Ver Detalhes</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem disabled>Editar</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
