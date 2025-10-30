@@ -16,10 +16,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarProvider,
-  SidebarInset,
   SidebarFooter,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { PrimaveraLogo } from '@/components/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -33,8 +30,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 
   return (
-    <SidebarProvider>
-      <Sidebar>
+    <div className="flex min-h-screen">
+      <Sidebar className="hidden md:flex md:flex-col md:w-64 border-r">
         <SidebarHeader>
           <div className="flex items-center gap-2">
             <PrimaveraLogo className="w-6 h-6 text-primary" />
@@ -96,11 +93,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>
-        <header className="flex h-14 items-center gap-4 border-b bg-background/50 px-6 backdrop-blur-sm">
-          <SidebarTrigger className="md:hidden" />
+      <div className="flex-1 flex flex-col">
+        <header className="flex h-14 items-center gap-4 border-b bg-background/50 px-6 backdrop-blur-sm sticky top-0 z-30">
+          {/* A trigger for mobile could be added here if needed */}
           <div className="flex-1">
-            {/* Conteúdo de pesquisa ou outro cabeçalho pode ir aqui */}
+            {/* Search or other header content can go here */}
           </div>
           <Avatar>
             <AvatarImage src={`https://picsum.photos/seed/admin/40/40`} />
@@ -108,7 +105,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Avatar>
         </header>
         <main className="flex-1 p-6">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+      </div>
+    </div>
   );
 }
