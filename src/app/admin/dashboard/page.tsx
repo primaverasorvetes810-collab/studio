@@ -32,7 +32,7 @@ import { OverviewChart } from "@/components/overview-chart";
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { collection, query, getDocs, collectionGroup } from 'firebase/firestore';
 import { useMemo, useState, useEffect } from "react";
-import type { Order } from "@/firebase/orders";
+import type { Order, User } from "@/firebase/orders";
 import type { Product } from "@/lib/data/products";
 
 
@@ -104,12 +104,18 @@ export default function DashboardPage() {
   const productsQuery = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
   const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
-  const { totalProducts } = useMemo(() => {
-    if (!products) {
-      return { totalProducts: 0 };
+  const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+  const { data: users, isLoading: isLoadingUsers } = useCollection<User>(usersQuery);
+
+  const { totalProducts, totalUsers } = useMemo(() => {
+    if (!products || !users) {
+      return { totalProducts: 0, totalUsers: 0 };
     }
-    return { totalProducts: products.length };
-  }, [products]);
+    return {
+       totalProducts: products.length,
+       totalUsers: users.length 
+    };
+  }, [products, users]);
 
   const recentOrders = orders.slice(0, 5);
   const totalRevenue = orders.reduce((acc, order) => acc + order.totalAmount, 0);
@@ -117,7 +123,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader title="Painel" description="Uma visão geral da sua loja." />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <AdminStatsCard
           title="Receita Total"
           value={formatPrice(totalRevenue)}
@@ -132,6 +138,11 @@ export default function DashboardPage() {
           title="Produtos Cadastrados"
           value={isLoadingProducts ? <Loader2 className="h-6 w-6 animate-spin" /> : totalProducts.toString()}
           icon={Package}
+        />
+        <AdminStatsCard
+          title="Total de Clientes"
+          value={isLoadingUsers ? <Loader2 className="h-6 w-6 animate-spin" /> : totalUsers.toString()}
+          icon={Users}
         />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">

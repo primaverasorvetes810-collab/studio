@@ -95,6 +95,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+               <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/admin/clients">
+                    <Users />
+                    Clientes
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/admin/revenue">
