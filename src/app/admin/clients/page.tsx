@@ -51,15 +51,18 @@ export default function ClientsPage() {
   const firestore = useFirestore();
   const [clients, setClients] = useState<ClientFromOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchClientsFromOrders() {
+      // Don't run if firestore is not available yet.
       if (!firestore) return;
-      setIsLoading(true);
       
-      const ordersQuery = query(collectionGroup(firestore, 'orders'));
-
+      setIsLoading(true);
+      setError(null);
+      
       try {
+        const ordersQuery = query(collectionGroup(firestore, 'orders'));
         const ordersSnapshot = await getDocs(ordersQuery);
         const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
 
@@ -70,7 +73,11 @@ export default function ClientsPage() {
             if (!order.userId || !order.userName || !order.userEmail) continue;
 
             const existingClient = clientsMap.get(order.userId);
-            const orderDate = order.orderDate.toDate();
+            
+            // Ensure orderDate is a valid Timestamp before converting
+            const orderDate = order.orderDate instanceof Timestamp 
+                ? order.orderDate.toDate() 
+                : new Date(); // Fallback for safety
 
             if (existingClient) {
                 existingClient.totalOrders += 1;
@@ -99,7 +106,8 @@ export default function ClientsPage() {
         const clientsList = Array.from(clientsMap.values()).sort((a, b) => b.lastOrderDate.getTime() - a.lastOrderDate.getTime());
         setClients(clientsList);
 
-      } catch (e) {
+      } catch (e: any) {
+         setError("Falha ao carregar clientes. Verifique as permissões do Firestore.");
          errorEmitter.emit('permission-error', new FirestorePermissionError({
              path: 'orders', // This is now a collection group query
              operation: 'list'
@@ -128,7 +136,11 @@ export default function ClientsPage() {
              <div className="flex justify-center items-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : clients && clients.length > 0 ? (
+          ) : error ? (
+            <div className="text-center text-destructive py-8">
+                {error}
+            </div>
+          ) : clients.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
