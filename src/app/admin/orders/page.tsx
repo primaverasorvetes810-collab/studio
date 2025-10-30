@@ -1,3 +1,4 @@
+
 'use client';
 
 import PageHeader from "@/components/page-header";
@@ -7,30 +8,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { type Order, type User } from "@/firebase/orders";
+import { type Order, type OrderWithItems } from "@/firebase/orders";
 import { formatPrice } from "@/lib/utils";
-import { MoreHorizontal, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuTrigger,
-  } from "@/components/ui/dropdown-menu";
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+  } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useFirestore } from "@/firebase";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { collection, query, getDocs, collectionGroup } from "firebase/firestore";
+import { collectionGroup, getDocs, query } from "firebase/firestore";
+import { Separator } from "@/components/ui/separator";
 
 const statusColors: Record<Order["status"], string> = {
     Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
@@ -44,7 +36,7 @@ const statusColors: Record<Order["status"], string> = {
 // Custom hook to fetch all orders from all users
 function useAllOrders() {
     const firestore = useFirestore();
-    const [orders, setOrders] = useState<Order[]>([]);
+    const [orders, setOrders] = useState<OrderWithItems[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
@@ -60,7 +52,7 @@ function useAllOrders() {
                 const allOrders = ordersSnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
-                } as Order));
+                } as OrderWithItems));
 
                 allOrders.sort((a, b) => {
                     const dateA = a.orderDate?.toDate()?.getTime() || 0;
@@ -93,65 +85,81 @@ export default function OrdersAdminPage() {
             <CardHeader>
                 <CardTitle>Histórico de Pedidos</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
                 {isLoading ? (
-                     <div className="flex justify-center items-center h-64">
+                     <div className="flex justify-center items-center h-64 p-6">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 ) : error ? (
-                    <div className="text-center text-red-500 py-8">
+                    <div className="text-center text-red-500 py-8 p-6">
                         Ocorreu um erro ao carregar os pedidos.
                     </div>
                 ) : orders.length === 0 ? (
-                    <div className="text-center text-muted-foreground py-8">
+                    <div className="text-center text-muted-foreground py-8 p-6">
                         Nenhum pedido encontrado.
                     </div>
                 ) : (
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <TableHead>Cliente</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Data</TableHead>
-                            <TableHead>ID do Pedido</TableHead>
-                            <TableHead className="text-right">Total</TableHead>
-                            <TableHead>
-                            <span className="sr-only">Ações</span>
-                            </TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                    <Accordion type="single" collapsible className="w-full">
                         {orders.map((order) => (
-                            <TableRow key={order.id}>
-                            <TableCell>
-                              <div className="font-medium">{order.userName || 'Nome não disponível'}</div>
-                              <div className="text-sm text-muted-foreground">{order.userEmail}</div>
-                            </TableCell>
-                            <TableCell>
-                                <Badge className={cn(statusColors[order.status])} variant="outline">{order.status}</Badge>
-                            </TableCell>
-                            <TableCell>{order.orderDate.toDate().toLocaleDateString()}</TableCell>
-                            <TableCell className="font-medium">{order.id.substring(0, 7)}...</TableCell>
-                            <TableCell className="text-right">{formatPrice(order.totalAmount)}</TableCell>
-                            <TableCell>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Alternar menu</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                    <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
-                                    <DropdownMenuItem>Atualizar Status</DropdownMenuItem>
-                                </DropdownMenuContent>
-                                </DropdownMenu>
-                            </TableCell>
-                            </TableRow>
+                        <AccordionItem value={order.id} key={order.id} className="border-b">
+                            <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-2 text-left">
+                                    <div className="flex flex-col items-start">
+                                        <span className="font-bold text-base">{order.userName}</span>
+                                        <span className="text-sm text-muted-foreground">Pedido #{order.id.substring(0, 7)}...</span>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <span className="font-bold text-primary">{formatPrice(order.totalAmount)}</span>
+                                        <Badge className={cn("whitespace-nowrap", statusColors[order.status])} variant="outline">
+                                            {order.status}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </AccordionTrigger>
+                             <AccordionContent className="px-6 pb-4 bg-muted/50">
+                                <div className="space-y-4 pt-4">
+                                    <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4'>
+                                        <div>
+                                            <h4 className='font-semibold mb-2'>Detalhes do Cliente</h4>
+                                            <div className='text-sm space-y-1'>
+                                                <p><span className='text-muted-foreground'>Email:</span> {order.userEmail}</p>
+                                                <p><span className='text-muted-foreground'>Telefone:</span> {order.userPhone || 'N/A'}</p>
+                                                <p><span className='text-muted-foreground'>Endereço:</span> {order.userAddress || 'N/A'}, {order.userNeighborhood}, {order.userCity}</p>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h4 className='font-semibold mb-2'>Detalhes do Pedido</h4>
+                                            <div className='text-sm space-y-1'>
+                                                <p><span className='text-muted-foreground'>Data:</span> {order.orderDate.toDate().toLocaleString()}</p>
+                                                <p><span className='text-muted-foreground'>Pagamento:</span> {order.paymentMethod}</p>
+                                                <p><span className='text-muted-foreground'>Status:</span> {order.status}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Separator />
+                                    <div>
+                                        <h4 className='font-semibold mb-2'>Itens do Pedido</h4>
+                                        <ul className="space-y-2">
+                                            {order.items.map((item) => (
+                                                <li key={item.id} className="flex justify-between items-center text-sm p-2 rounded-md bg-background">
+                                                    <div>
+                                                        <span className='font-medium'>{item.product.name}</span>
+                                                        <span className='text-muted-foreground'> (Qtd: {item.quantity})</span>
+                                                    </div>
+                                                    <span>{formatPrice(item.itemPrice * item.quantity)}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <Separator />
+                                    <div className="flex justify-end font-bold text-lg">
+                                        <span>Total: {formatPrice(order.totalAmount)}</span>
+                                    </div>
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
                         ))}
-                        </TableBody>
-                    </Table>
+                    </Accordion>
                 )}
             </CardContent>
           </Card>

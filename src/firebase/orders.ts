@@ -107,8 +107,8 @@ export async function createOrderFromCart(
 
       const newOrderData = {
         userId,
-        userName: userData.fullName || user.displayName,
-        userEmail: userData.email,
+        userName: userData.fullName || user.displayName || 'N/A',
+        userEmail: userData.email || 'N/A',
         userPhone: userData.phone,
         userAddress: userData.address,
         userNeighborhood: userData.neighborhood,
