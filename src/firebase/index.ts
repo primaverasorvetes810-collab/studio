@@ -25,21 +25,21 @@ export function initializeFirebase() {
       firebaseApp = initializeApp(firebaseConfig);
     }
 
-    return getSdks(firebaseApp);
+    return getClientSdks(firebaseApp);
   }
 
   // If already initialized, return the SDKs with the already initialized App
-  return getSdks(getApp());
+  return getClientSdks(getApp());
 }
 
-export function getSdks(firebaseApp?: FirebaseApp) {
-  const app = firebaseApp || (getApps().length ? getApp() : initializeApp(firebaseConfig));
+export function getClientSdks(firebaseApp: FirebaseApp) {
   return {
-    firebaseApp: app,
-    auth: getAuth(app),
-    firestore: getFirestore(app)
+    firebaseApp: firebaseApp,
+    auth: getAuth(firebaseApp),
+    firestore: getFirestore(firebaseApp)
   };
 }
+
 
 export * from './provider';
 export * from './client-provider';

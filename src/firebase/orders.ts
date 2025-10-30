@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   collection,
   addDoc,
@@ -12,7 +12,7 @@ import {
   where,
   Timestamp,
 } from 'firebase/firestore';
-import { getSdks, useCollection, useMemoFirebase } from '@/firebase';
+import { getClientSdks, useCollection, useMemoFirebase } from '@/firebase';
 import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
 import type { CartItemWithProduct } from './cart';
@@ -50,7 +50,7 @@ export async function createOrderFromCart(
   paymentMethod: string,
   totalAmount: number
 ) {
-  const { firestore } = getSdks();
+  const { firestore } = getClientSdks();
   try {
     await runTransaction(firestore, async (transaction) => {
       // 1. Create a new order document with items included
@@ -110,7 +110,7 @@ export async function createOrderFromCart(
 }
 
 export function useUserOrders(userId?: string) {
-  const { firestore } = getSdks();
+  const { firestore } = getClientSdks();
 
   const ordersQuery = useMemoFirebase(() => {
     if (!userId) return null;
@@ -119,7 +119,7 @@ export function useUserOrders(userId?: string) {
 
   const { data: ordersData, isLoading, error } = useCollection<OrderWithItems>(ordersQuery);
 
-  const sortedOrders = useMemoFirebase(() => {
+  const sortedOrders = useMemo(() => {
      if (!ordersData) return [];
      return ordersData.sort((a, b) => b.orderDate.toDate().getTime() - a.orderDate.toDate().getTime());
   }, [ordersData]);
