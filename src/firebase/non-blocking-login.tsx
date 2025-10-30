@@ -26,10 +26,11 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
       // Use setDoc to create the user document. It won't be awaited here
       // but will be handled by Firestore in the background.
       // Errors will be caught by the global handler if rules fail.
-      setDoc(userRef, {
+      const userData = {
         email: user.email,
         registerTime: serverTimestamp(),
-      }).catch(error => {
+      };
+      setDoc(userRef, userData).catch(error => {
         // This is a failsafe. If creating the user document fails due
         // to permissions, the global error handler will catch it.
         errorEmitter.emit(
@@ -37,10 +38,7 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
           new FirestorePermissionError({
             path: `users/${user.uid}`,
             operation: 'create',
-            requestResourceData: { 
-              email: user.email,
-              registerTime: 'serverTimestamp' 
-            },
+            requestResourceData: userData,
           })
         );
       });

@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/table";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import type { User } from "@/firebase/orders"; // Reusing User type
-import { formatPrice } from "@/lib/utils";
 import { MoreHorizontal, Loader2 } from "lucide-react";
 import {
     DropdownMenu,
@@ -27,12 +26,7 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
 import { collection } from "firebase/firestore";
-
-// Note: This page shows basic user info. A real implementation would need
-// to aggregate order data to show 'Total Gasto', 'Valor Devido', etc.
-// This is out of scope for the current fix.
 
 export default function ClientsPage() {
   const firestore = useFirestore();
@@ -67,7 +61,7 @@ export default function ClientsPage() {
               {clients.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell className="font-medium">{client.email}</TableCell>
-                  <TableCell>{client.registerTime ? client.registerTime.toDate().toLocaleDateString() : 'N/A'}</TableCell>
+                  <TableCell>{client.registerTime ? new Date(client.registerTime.seconds * 1000).toLocaleDateString() : 'N/A'}</TableCell>
                   <TableCell className="text-muted-foreground">{client.id}</TableCell>
                   <TableCell>
                   <DropdownMenu>
