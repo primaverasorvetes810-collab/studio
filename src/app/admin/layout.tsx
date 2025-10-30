@@ -17,6 +17,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarProvider,
 } from '@/components/ui/sidebar';
 import { PrimaveraLogo } from '@/components/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -30,82 +31,84 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar className="hidden md:flex md:flex-col md:w-64 border-r">
-        <SidebarHeader>
-          <div className="flex items-center gap-2">
-            <PrimaveraLogo className="w-6 h-6 text-primary" />
-            <span className="text-lg font-semibold">Primavera</span>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/admin/dashboard">
-                  <LayoutDashboard />
-                  Painel
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/admin/orders">
-                  <ShoppingCart />
-                  Pedidos
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/admin/clients">
-                  <Users />
-                  Clientes
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="/admin/products">
-                  <Package />
-                  Produtos
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href="#">
-                  <DollarSign />
-                  Receita
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton>
-                <LogOut />
-                Sair
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      </Sidebar>
-      <div className="flex-1 flex flex-col">
-        <header className="flex h-14 items-center gap-4 border-b bg-background/50 px-6 backdrop-blur-sm sticky top-0 z-30">
-          {/* A trigger for mobile could be added here if needed */}
-          <div className="flex-1">
-            {/* Search or other header content can go here */}
-          </div>
-          <Avatar>
-            <AvatarImage src={`https://picsum.photos/seed/admin/40/40`} />
-            <AvatarFallback>{getInitials("Admin")}</AvatarFallback>
-          </Avatar>
-        </header>
-        <main className="flex-1 p-6">{children}</main>
+    <SidebarProvider>
+      <div className="flex h-full">
+        <Sidebar className="hidden md:flex md:flex-col md:w-64 border-r">
+          <SidebarHeader>
+            <div className="flex items-center gap-2">
+              <PrimaveraLogo className="w-6 h-6 text-primary" />
+              <span className="text-lg font-semibold">Primavera</span>
+            </div>
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/admin/dashboard">
+                    <LayoutDashboard />
+                    Painel
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/admin/orders">
+                    <ShoppingCart />
+                    Pedidos
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/admin/clients">
+                    <Users />
+                    Clientes
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/admin/products">
+                    <Package />
+                    Produtos
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="#">
+                    <DollarSign />
+                    Receita
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarContent>
+          <SidebarFooter>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton>
+                  <LogOut />
+                  Sair
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </Sidebar>
+        <div className="flex-1 flex flex-col">
+          <header className="flex h-14 items-center gap-4 border-b bg-background/50 px-6 backdrop-blur-sm sticky top-0 z-30">
+            {/* A trigger for mobile could be added here if needed */}
+            <div className="flex-1">
+              {/* Search or other header content can go here */}
+            </div>
+            <Avatar>
+              <AvatarImage src={`https://picsum.photos/seed/admin/40/40`} />
+              <AvatarFallback>{getInitials("Admin")}</AvatarFallback>
+            </Avatar>
+          </header>
+          <main className="flex-1 p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
