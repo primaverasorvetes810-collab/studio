@@ -99,33 +99,6 @@ export default function DashboardPage() {
   const { orders, isLoading: isLoadingOrders } = useAllOrders();
   const firestore = useFirestore();
 
-  const [totalClients, setTotalClients] = useState<number | null>(null);
-  const [isClientsLoading, setIsClientsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!firestore) return;
-    const fetchClientsCount = async () => {
-      setIsClientsLoading(true);
-      const usersCollection = collection(firestore, 'users');
-      getDocs(usersCollection)
-        .then(usersSnapshot => {
-          setTotalClients(usersSnapshot.size);
-        })
-        .catch(serverError => {
-            const permissionError = new FirestorePermissionError({
-                path: 'users',
-                operation: 'list',
-            });
-            errorEmitter.emit('permission-error', permissionError);
-            setTotalClients(0);
-        })
-        .finally(() => {
-          setIsClientsLoading(false);
-        });
-    };
-    fetchClientsCount();
-  }, [firestore]);
-
   const productsQuery = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
   const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
@@ -142,16 +115,11 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader title="Painel" description="Uma visão geral da sua loja." />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <AdminStatsCard
           title="Receita Total"
           value={formatPrice(totalRevenue)}
           icon={DollarSign}
-        />
-        <AdminStatsCard
-          title="Clientes"
-          value={isClientsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : `+${totalClients ?? 0}`}
-          icon={Users}
         />
         <AdminStatsCard
           title="Pedidos"
