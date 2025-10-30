@@ -34,6 +34,7 @@ export type ProductFormValues = z.infer<typeof productSchema>;
 
 interface ProductFormProps {
   product?: Product | null;
+  groupId: string; // groupId is required
   onSuccess?: () => void;
 }
 
@@ -46,15 +47,15 @@ function fileToDataUrl(file: File): Promise<string> {
     });
   }
 
-export function ProductForm({ product, onSuccess }: ProductFormProps) {
+export function ProductForm({ product, groupId, onSuccess }: ProductFormProps) {
   const { toast } = useToast();
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: product?.name ?? '',
       description: product?.description ?? '',
-      price: product?.price ?? '',
-      stock: product?.stock ?? '',
+      price: product?.price ?? 0,
+      stock: product?.stock ?? 0,
       image: product?.image ?? '',
     },
   });
@@ -78,6 +79,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     const payload: ProductPayload = {
       ...data,
       image: imageDataUrl,
+      groupId: groupId, // Always associate with the current group
     };
 
     try {
@@ -93,10 +95,11 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         await createProduct(payload);
         toast({
           title: 'Produto criado!',
-          description: `"${data.name}" foi adicionado à loja.`,
+          description: `"${data.name}" foi adicionado ao grupo.`,
         });
       }
       onSuccess?.();
+      form.reset(); // Reset form after successful submission
     } catch (error: any) {
         // Error is handled by the global error listener.
         // We can still show a generic toast message.

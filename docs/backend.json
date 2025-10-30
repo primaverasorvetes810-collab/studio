@@ -58,15 +58,43 @@
         "city"
       ]
     },
+    "ProductGroup": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProductGroup",
+      "type": "object",
+      "description": "Represents a group or category of products.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the product group."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the product group."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description for the product group."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
     "Product": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Product",
       "type": "object",
-      "description": "Represents a product available for sale.",
+      "description": "Represents a product available for sale, belonging to a group.",
       "properties": {
         "id": {
           "type": "string",
           "description": "Unique identifier for the product entity."
+        },
+        "groupId": {
+          "type": "string",
+          "description": "Reference to the ProductGroup this product belongs to."
         },
         "name": {
           "type": "string",
@@ -87,6 +115,7 @@
       },
       "required": [
         "id",
+        "groupId",
         "name",
         "description",
         "price",
@@ -306,13 +335,29 @@
         }
       },
       {
+        "path": "/productGroups/{productGroupId}",
+        "definition": {
+          "entityName": "ProductGroup",
+          "schema": {
+            "$ref": "#/backend/entities/ProductGroup"
+          },
+          "description": "Stores product groups. Publicly readable, admin-only write access.",
+          "params": [
+            {
+              "name": "productGroupId",
+              "description": "The unique identifier for the product group."
+            }
+          ]
+        }
+      },
+      {
         "path": "/products/{productId}",
         "definition": {
           "entityName": "Product",
           "schema": {
             "$ref": "#/backend/entities/Product"
           },
-          "description": "Stores product information. Publicly accessible for reading, write access is restricted to admins.",
+          "description": "Stores all products. Products are queried by their 'groupId'. Publicly readable, admin-only write access.",
           "params": [
             {
               "name": "productId",
@@ -442,6 +487,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the Primavera Delivery application, focusing on scalability, security, and ease of maintenance. It leverages path-based ownership and denormalization to ensure authorization independence, which is critical for robust security rules and atomic operations. \n\n**Authorization Independence and QAPs (Rules are not Filters):**\nAuthorization Independence is achieved through denormalization. For example, access to a user's shopping cart or orders is directly tied to the user's ID in the path, eliminating the need for `get()` calls to verify ownership. For the Admin role, the existence of a document in the `/roles_admin/{uid}` collection grants administrative privileges. The structure avoids relying on parent data for authorization, enabling atomic operations and simplifying security rules. QAPs are supported by segregating data based on access requirements. User-specific data is stored under `/users/{userId}`, while products are stored globally in `/products`. This segregation ensures that list operations can be performed securely without filtering based on authorization.\n\n**Structure Overview:**\n\n*   `/users/{userId}`: Stores user profiles. This path ensures that only the user can access their data.\n*   `/products/{productId}`: Stores product information. Publicly accessible for reading, but write access is restricted to admins.\n*   `/users/{userId}/shoppingCarts/{cartId}`: Stores shopping carts for each user. Path-based ownership ensures only the user can access their cart.\n*   `/users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}`: Stores cart items within a shopping cart. Inherits ownership from the parent shopping cart.\n*   `/users/{userId}/orders/{orderId}`: Stores order information for each user. Path-based ownership ensures only the user can access their orders.\n*   `/orders/{orderId}/orderItems/{orderItemId}`: Stores order items within an order. The order id is necessary for querying orderItems.\n*   `/orders/{orderId}/payments/{paymentId}`: Stores payments associated with an order. The order id is necessary for querying payments.\n*   `/roles_admin/{uid}`: Indicates administrative privileges. Existence of a document grants admin rights.\n"
+    "reasoning": "The data structure is updated to support Product Groups. A new top-level collection `/productGroups` is introduced. The `/products` collection now includes a `groupId` field on each product document, allowing for efficient querying of products within a specific group (e.g., `db.collection('products').where('groupId', '==', 'some-group-id')`). This maintains a denormalized structure that is good for query performance and security rule simplicity, as product reads don't depend on traversing a nested path. All other collections remain as they were, ensuring existing functionality for users, carts, and orders is unaffected. This design allows for a scalable product catalog while keeping security and data access patterns straightforward."
   }
 }

@@ -5,16 +5,32 @@ import { ProductCard } from '@/components/product-card';
 import type { Product } from '@/lib/data/products';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import { Loader2 } from 'lucide-react';
 
 type ProductGridProps = {
-  initialProducts: Product[];
+  groupId: string;
 };
 
-export function ProductGrid({ initialProducts }: ProductGridProps) {
+export function ProductGrid({ groupId }: ProductGridProps) {
+  const firestore = useFirestore();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(initialProducts);
+  
+  const productsQuery = useMemoFirebase(() => {
+    if (!firestore || !groupId) return null;
+    return query(collection(firestore, 'products'), where('groupId', '==', groupId));
+  }, [firestore, groupId]);
+
+  const { data: initialProducts, isLoading } = useCollection<Product>(productsQuery);
+
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   useEffect(() => {
+    if (!initialProducts) {
+      setFilteredProducts([]);
+      return;
+    }
     const lowercasedFilter = searchTerm.toLowerCase();
     const filtered = initialProducts.filter((product) =>
       product.name.toLowerCase().includes(lowercasedFilter)
@@ -22,13 +38,21 @@ export function ProductGrid({ initialProducts }: ProductGridProps) {
     setFilteredProducts(filtered);
   }, [searchTerm, initialProducts]);
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
   return (
     <>
       <div className="mb-8 max-w-sm">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
-            placeholder="Buscar produtos..."
+            placeholder="Buscar produtos neste grupo..."
             className="pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -44,9 +68,9 @@ export function ProductGrid({ initialProducts }: ProductGridProps) {
       ) : (
         <div className="text-center py-16">
           <p className="text-lg text-muted-foreground">
-            {initialProducts.length > 0
+            {initialProducts && initialProducts.length > 0
               ? `Nenhum produto encontrado para "${searchTerm}".`
-              : 'Nenhum produto disponível no momento.'}
+              : 'Nenhum produto disponível neste grupo.'}
           </p>
         </div>
       )}
