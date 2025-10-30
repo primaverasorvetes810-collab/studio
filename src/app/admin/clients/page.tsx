@@ -17,7 +17,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import type { User } from "@/firebase/orders"; // Reusing User type
 import { MoreHorizontal, Loader2 } from "lucide-react";
 import {
     DropdownMenu,
@@ -26,12 +25,26 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu";
-import { collection } from "firebase/firestore";
+import { collection, Timestamp } from "firebase/firestore";
+
+// Define a more flexible type for clients, as registerTime might not always be a Timestamp object initially.
+type Client = {
+    id: string;
+    email: string;
+    registerTime?: Timestamp; // Make it optional or allow for different types if needed
+};
 
 export default function ClientsPage() {
   const firestore = useFirestore();
   const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
-  const { data: clients, isLoading } = useCollection<User>(usersQuery);
+  const { data: clients, isLoading } = useCollection<Client>(usersQuery);
+
+  const formatDate = (timestamp: any) => {
+    if (timestamp && typeof timestamp.toDate === 'function') {
+      return timestamp.toDate().toLocaleDateString();
+    }
+    return 'N/A';
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -61,7 +74,7 @@ export default function ClientsPage() {
               {clients.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell className="font-medium">{client.email}</TableCell>
-                  <TableCell>{client.registerTime ? client.registerTime.toDate().toLocaleDateString() : 'N/A'}</TableCell>
+                  <TableCell>{formatDate(client.registerTime)}</TableCell>
                   <TableCell className="text-muted-foreground">{client.id}</TableCell>
                   <TableCell>
                   <DropdownMenu>
