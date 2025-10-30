@@ -32,7 +32,7 @@ import { OverviewChart } from "@/components/overview-chart";
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { collection, query, getDocs, collectionGroup } from 'firebase/firestore';
 import { useMemo, useState, useEffect } from "react";
-import type { Order, User } from "@/firebase/orders";
+import type { Order } from "@/firebase/orders";
 import type { Product } from "@/lib/data/products";
 
 
@@ -104,18 +104,16 @@ export default function DashboardPage() {
   const productsQuery = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
   const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
-  const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
-  const { data: users, isLoading: isLoadingUsers } = useCollection<User>(usersQuery);
-
-  const { totalProducts, totalUsers } = useMemo(() => {
-    if (!products || !users) {
-      return { totalProducts: 0, totalUsers: 0 };
+  const { totalProducts, totalClients } = useMemo(() => {
+    if (!products || !orders) {
+      return { totalProducts: 0, totalClients: 0 };
     }
+    const uniqueClients = new Set(orders.map(order => order.userId));
     return {
        totalProducts: products.length,
-       totalUsers: users.length 
+       totalClients: uniqueClients.size,
     };
-  }, [products, users]);
+  }, [products, orders]);
 
   const recentOrders = orders.slice(0, 5);
   const totalRevenue = orders.reduce((acc, order) => acc + order.totalAmount, 0);
@@ -141,7 +139,7 @@ export default function DashboardPage() {
         />
         <AdminStatsCard
           title="Total de Clientes"
-          value={isLoadingUsers ? <Loader2 className="h-6 w-6 animate-spin" /> : totalUsers.toString()}
+          value={isLoadingOrders ? <Loader2 className="h-6 w-6 animate-spin" /> : totalClients.toString()}
           icon={Users}
         />
       </div>

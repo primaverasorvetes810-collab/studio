@@ -17,9 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { type User, type Order } from "@/firebase/orders";
-import { collection, collectionGroup, getDocs, query } from "firebase/firestore";
+import { useFirestore } from "@/firebase";
+import { type Order } from "@/firebase/orders";
+import { collectionGroup, getDocs, query } from "firebase/firestore";
 import { MoreHorizontal, Loader2, Eye } from "lucide-react";
 import {
     DropdownMenu,
@@ -29,7 +29,7 @@ import {
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { formatPrice } from '@/lib/utils';
@@ -94,10 +94,12 @@ export default function ClientsPage() {
 
           } catch (e: any) {
              setError("Falha ao carregar clientes. Verifique as permissões do Firestore.");
-             errorEmitter.emit('permission-error', new FirestorePermissionError({
-                 path: 'orders', // This is now a collection group query
-                 operation: 'list'
-             }));
+             if (e.message.includes('permission-denied')) {
+                errorEmitter.emit('permission-error', new FirestorePermissionError({
+                    path: 'orders', // This is now a collection group query
+                    operation: 'list'
+                }));
+             }
           } finally {
             setIsLoading(false);
           }
@@ -177,4 +179,3 @@ export default function ClientsPage() {
         </div>
     );
 }
-
