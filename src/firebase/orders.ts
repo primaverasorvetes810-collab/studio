@@ -188,11 +188,16 @@ export function useUserOrders(userId?: string) {
 
   const { data: ordersData, isLoading, error } = useCollection<OrderWithItems>(ordersQuery);
 
-  const sortedOrders = useMemo(() => {
-     if (!ordersData) return [];
-     return ordersData.sort((a, b) => b.orderDate.toDate().getTime() - a.orderDate.toDate().getTime());
+  // Add setOrders to allow local state updates
+  const [orders, setOrders] = useState<OrderWithItems[]>([]);
+
+  useEffect(() => {
+    if (ordersData) {
+        const sorted = [...ordersData].sort((a, b) => b.orderDate.toDate().getTime() - a.orderDate.toDate().getTime());
+        setOrders(sorted);
+    }
   }, [ordersData]);
 
 
-  return { orders: sortedOrders, isLoading, error };
+  return { orders, isLoading, error, setOrders };
 }
