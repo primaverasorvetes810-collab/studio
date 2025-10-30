@@ -28,6 +28,11 @@ const registerSchema = z.object({
   fullName: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
   password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres." }),
+  birthDate: z.string().min(1, { message: "A data de nascimento é obrigatória." }), // Can be refined with date validation
+  phone: z.string().min(1, { message: "O telefone é obrigatório." }),
+  address: z.string().min(1, { message: "O endereço é obrigatório." }),
+  neighborhood: z.string().min(1, { message: "O bairro é obrigatório." }),
+  city: z.string().min(1, { message: "A cidade é obrigatória." }),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -42,11 +47,16 @@ export default function RegisterPage() {
       fullName: "",
       email: "",
       password: "",
+      birthDate: "",
+      phone: "",
+      address: "",
+      neighborhood: "",
+      city: "",
     },
   });
 
   const onSubmit = (data: RegisterFormValues) => {
-    initiateEmailSignUp(auth, data.email, data.password, data.fullName);
+    initiateEmailSignUp(auth, data);
     // Note: We don't await here. The auth state is handled by the global onAuthStateChanged listener.
     // The FirebaseErrorListener will catch and display any auth errors.
     toast({
@@ -100,6 +110,71 @@ export default function RegisterPage() {
                   <FormLabel>Senha</FormLabel>
                   <FormControl>
                     <Input type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="birthDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data de Nascimento</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telefone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="(11) 99999-9999" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Endereço</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Rua das Flores, 123" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="neighborhood"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bairro</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Centro" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cidade</FormLabel>
+                  <FormControl>
+                    <Input placeholder="São Paulo" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

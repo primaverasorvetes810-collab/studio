@@ -10,15 +10,26 @@ import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
 
+interface SignUpData {
+  email: string;
+  password: string;
+  fullName: string;
+  birthDate: string;
+  phone: string;
+  address: string;
+  neighborhood: string;
+  city: string;
+}
+
 /** Inicia o login anônimo (sem bloqueio). */
 export function initiateAnonymousSignIn(authInstance: Auth): void {
   signInAnonymously(authInstance);
 }
 
 /** Inicia o cadastro por e-mail/senha (sem bloqueio). */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string, name: string): void {
+export function initiateEmailSignUp(authInstance: Auth, data: SignUpData): void {
   const { firestore } = getClientSdks();
-  createUserWithEmailAndPassword(authInstance, email, password)
+  createUserWithEmailAndPassword(authInstance, data.email, data.password)
     .then(userCredential => {
       // Usuário criado, agora cria um documento na coleção 'users'
       const user = userCredential.user;
@@ -27,9 +38,14 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
       // mas será tratado pelo Firestore em segundo plano.
       // Erros serão capturados pelo manipulador global se as regras falharem.
       const userData = {
-        name: name,
+        name: data.fullName,
         email: user.email,
         registerTime: serverTimestamp(),
+        birthDate: data.birthDate,
+        phone: data.phone,
+        address: data.address,
+        neighborhood: data.neighborhood,
+        city: data.city,
       };
       setDoc(userRef, userData).catch(error => {
         // Este é um failsafe. Se a criação do documento do usuário falhar devido

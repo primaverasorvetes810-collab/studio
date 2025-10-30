@@ -19,12 +19,43 @@
           "type": "string",
           "description": "Timestamp of when the user registered.",
           "format": "date-time"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "birthDate": {
+          "type": "string",
+          "description": "The user's date of birth.",
+          "format": "date"
+        },
+        "phone": {
+          "type": "string",
+          "description": "The user's phone number."
+        },
+        "address": {
+          "type": "string",
+          "description": "The user's street address."
+        },
+        "neighborhood": {
+          "type": "string",
+          "description": "The user's neighborhood."
+        },
+        "city": {
+          "type": "string",
+          "description": "The user's city."
         }
       },
       "required": [
         "id",
         "email",
-        "registerTime"
+        "registerTime",
+        "fullName",
+        "birthDate",
+        "phone",
+        "address",
+        "neighborhood",
+        "city"
       ]
     },
     "Product": {
