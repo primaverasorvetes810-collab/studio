@@ -10,6 +10,7 @@ import {
   ShoppingCart,
   LogOut,
   DollarSign,
+  Bike,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -99,6 +100,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Link href="/admin/clients">
                     <Users />
                     Clientes
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/admin/deliveries">
+                    <Bike />
+                    Entregas
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
