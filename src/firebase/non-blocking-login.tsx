@@ -38,7 +38,7 @@ export function initiateEmailSignUp(authInstance: Auth, data: SignUpData): void 
       // mas será tratado pelo Firestore em segundo plano.
       // Erros serão capturados pelo manipulador global se as regras falharem.
       const userData = {
-        name: data.fullName,
+        fullName: data.fullName,
         email: user.email,
         registerTime: serverTimestamp(),
         birthDate: data.birthDate,

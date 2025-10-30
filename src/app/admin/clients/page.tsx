@@ -30,9 +30,13 @@ import { collection, Timestamp } from "firebase/firestore";
 // Define a mais flexível para clientes, já que registerTime pode não ser sempre um objeto Timestamp inicialmente.
 type Client = {
     id: string;
+    fullName: string;
     email: string;
-    name?: string;
-    registerTime?: Timestamp; // Torna opcional ou permite diferentes tipos, se necessário
+    registerTime?: Timestamp;
+    phone?: string;
+    address?: string;
+    neighborhood?: string;
+    city?: string;
 };
 
 export default function ClientsPage() {
@@ -65,6 +69,8 @@ export default function ClientsPage() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Contato (E-mail)</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead>Endereço</TableHead>
                 <TableHead>Cliente Desde</TableHead>
                 <TableHead>
                   <span className="sr-only">Ações</span>
@@ -74,8 +80,12 @@ export default function ClientsPage() {
             <TableBody>
               {clients.map((client) => (
                 <TableRow key={client.id}>
-                  <TableCell className="font-medium">{client.name || 'Nome não fornecido'}</TableCell>
+                  <TableCell className="font-medium">{client.fullName || 'Nome não fornecido'}</TableCell>
                   <TableCell>{client.email}</TableCell>
+                  <TableCell>{client.phone || 'N/A'}</TableCell>
+                  <TableCell>
+                    {client.address ? `${client.address}, ${client.neighborhood}, ${client.city}` : 'N/A'}
+                  </TableCell>
                   <TableCell>{formatDate(client.registerTime)}</TableCell>
                   <TableCell>
                   <DropdownMenu>
