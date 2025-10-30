@@ -2,7 +2,7 @@
 
 import PageHeader from '@/components/page-header';
 import { ProductGrid } from '@/components/product-grid';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Product } from '@/lib/data/products';
 import { collection } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
@@ -11,12 +11,12 @@ import { useMemo } from 'react';
 export default function Home() {
   const firestore = useFirestore();
   
-  const productsQuery = useMemo(() => {
+  const productsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'products');
   }, [firestore]);
 
-  const { data: products, isLoading } = useCollection<Product>(productsQuery as any);
+  const { data: products, isLoading } = useCollection<Product>(productsQuery);
 
   return (
     <div className="container mx-auto px-4 py-8">

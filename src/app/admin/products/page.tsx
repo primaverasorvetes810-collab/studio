@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import PageHeader from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Product } from '@/lib/data/products';
 import { collection } from 'firebase/firestore';
 import { formatPrice } from '@/lib/utils';
@@ -48,7 +49,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 
 export default function ProductsPage() {
   const firestore = useFirestore();
-  const productsQuery = collection(firestore, 'products');
+
+  const productsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'products');
+  }, [firestore]);
+  
   const { data: products, isLoading } = useCollection<Product>(productsQuery);
 
   const [dialogOpen, setDialogOpen] = useState(false);
