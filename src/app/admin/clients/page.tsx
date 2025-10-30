@@ -61,7 +61,7 @@ export default function ClientsPage() {
               {clients.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell className="font-medium">{client.email}</TableCell>
-                  <TableCell>{client.registerTime ? new Date(client.registerTime.seconds * 1000).toLocaleDateString() : 'N/A'}</TableCell>
+                  <TableCell>{client.registerTime ? client.registerTime.toDate().toLocaleDateString() : 'N/A'}</TableCell>
                   <TableCell className="text-muted-foreground">{client.id}</TableCell>
                   <TableCell>
                   <DropdownMenu>
