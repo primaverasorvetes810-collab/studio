@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   LayoutDashboard,
@@ -8,7 +9,6 @@ import {
   ShoppingCart,
   LogOut,
   DollarSign,
-  ShieldCheck,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -21,8 +21,43 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import { PrimaveraLogo } from '@/components/icons';
+import AdminLoginPage from './login/page';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    const sessionAuth = sessionStorage.getItem('adminAuthenticated');
+    if (sessionAuth === 'true') {
+      setIsAuthenticated(true);
+    } else if (pathname !== '/admin/login') {
+        // Allow access to login page
+    }
+  }, [pathname, router]);
+
+  const handleLoginSuccess = () => {
+    sessionStorage.setItem('adminAuthenticated', 'true');
+    setIsAuthenticated(true);
+    router.push('/admin/dashboard');
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('adminAuthenticated');
+    setIsAuthenticated(false);
+    router.push('/admin/login');
+  };
+
+  if (pathname === '/admin/login') {
+    return <AdminLoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  if (!isAuthenticated) {
+    return <AdminLoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <SidebarProvider>
       <div className="flex h-full bg-muted/40">
@@ -80,7 +115,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <SidebarFooter>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton>
+                <SidebarMenuButton onClick={handleLogout}>
                   <LogOut />
                   Sair
                 </SidebarMenuButton>

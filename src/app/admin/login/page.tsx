@@ -1,8 +1,6 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -10,46 +8,44 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { PrimaveraLogo } from '@/components/icons';
-import { useAuth, initiateEmailSignIn } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
 
-const adminLoginSchema = z.object({
-  email: z.string().email({ message: 'Por favor, insira um e-mail válido.' }),
-  password: z.string().min(1, { message: 'A senha é obrigatória.' }),
-});
+const ADMIN_PASSWORD = '810Primaera*';
 
-type AdminLoginFormValues = z.infer<typeof adminLoginSchema>;
+interface AdminLoginPageProps {
+  onLoginSuccess: () => void;
+}
 
-export default function AdminLoginPage() {
-  const auth = useAuth();
+export default function AdminLoginPage({ onLoginSuccess }: AdminLoginPageProps) {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const form = useForm<AdminLoginFormValues>({
-    resolver: zodResolver(adminLoginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsSubmitting(true);
 
-  const onSubmit = (data: AdminLoginFormValues) => {
-    initiateEmailSignIn(auth, data.email, data.password);
-    toast({
-      title: 'Verificando...',
-      description: 'Tentando fazer login como administrador.',
-    });
-    // The redirect logic is handled by the useAdminAuth hook in the layout
+    if (password === ADMIN_PASSWORD) {
+      toast({
+        title: 'Acesso concedido!',
+        description: 'Bem-vindo(a) ao painel de administração.',
+      });
+      onLoginSuccess();
+    } else {
+      setError('Senha incorreta. Tente novamente.');
+      toast({
+        variant: 'destructive',
+        title: 'Acesso Negado',
+        description: 'A senha que você digitou está incorreta.',
+      });
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -59,45 +55,29 @@ export default function AdminLoginPage() {
           <div className="flex justify-center mb-4">
             <PrimaveraLogo className="h-10 w-10 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Acesso Administrativo</CardTitle>
+          <CardTitle className="text-2xl">Acesso ao Cofre</CardTitle>
           <CardDescription>
-            Use seu e-mail e senha para acessar o painel.
+            Digite a chave mestra para visualizar as informações.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>E-mail</FormLabel>
-                    <FormControl>
-                      <Input placeholder="admin@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <form onSubmit={handleSubmit} className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="password">Chave Mestra</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="********"
+                required
               />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Senha</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Entrando...' : 'Ir para o Painel'}
-              </Button>
-            </form>
-          </Form>
+              {error && <p className="text-xs text-destructive">{error}</p>}
+            </div>
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Verificando...' : 'Entrar no Painel'}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
