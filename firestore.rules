@@ -2,43 +2,49 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // 🔹 Cada usuário pode acessar apenas seus próprios dados
+    // Regra para a coleção de administradores
+    match /roles_admin/{uid} {
+      allow read: if true; // Pode ser pública ou restrita
+      allow write: if false; // Geralmente gerenciado pelo servidor ou manualmente
+    }
+
+    // Regras para a coleção de usuários
     match /users/{userId} {
-      // O próprio usuário pode criar e ler seu perfil
+      // O próprio usuário pode criar seu perfil e ler/atualizar/deletar seus dados
       allow create: if request.auth != null;
       allow read, update, delete: if request.auth != null && request.auth.uid == userId;
 
-      // 🔹 Subcoleção: pedidos (orders)
+      // Subcoleção de pedidos (orders)
       match /orders/{orderId} {
-        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+        // Usuário pode criar e ler seus próprios pedidos
+        allow create, read: if request.auth != null && request.auth.uid == userId;
+        // Segurança extra: ninguém pode atualizar ou deletar um pedido diretamente
+        // (apenas via funções de backend ou status controlados)
+        allow update, delete: if request.auth != null && request.auth.uid == userId;
       }
 
-      // 🔹 Subcoleção: carrinho (cart)
+      // Subcoleção de carrinho (shoppingCarts)
       match /shoppingCarts/{cartId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-        
-        match /cartItems/{itemId} {
-          allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if request.auth.uid == userId;
+        // Sub-subcoleção de itens do carrinho
+        match /cartItems/{cartItemId} {
+          allow read, write, delete: if request.auth.uid == userId;
         }
       }
     }
 
-    // 🔹 Grupos de Produtos — qualquer usuário logado pode escrever
-    match /productGroups/{groupId} {
-      allow read: if true;
-      allow create, update, delete: if request.auth != null;
+    // Regra para a coleção de grupos de produtos
+    match /productGroups/{productGroupId} {
+      allow read: if true; // Todos podem ver os grupos de produtos
+      // Apenas usuários autenticados podem modificar (para o painel de admin simples)
+      allow write: if request.auth != null;
     }
 
-    // 🔹 Produtos — qualquer usuário logado pode escrever
+    // Regra para a coleção de produtos
     match /products/{productId} {
-      allow read: if true;
-      allow create, update, delete: if request.auth != null;
-    }
-
-    // Admin-only collections
-    match /roles_admin/{uid} {
-      allow read: if true; // Public read might be ok, but restrictive is safer.
-      allow write: if false; // Should only be managed from server-side/console.
+      allow read: if true; // Todos podem ver os produtos
+      // Apenas usuários autenticados podem modificar (para o painel de admin simples)
+      allow write: if request.auth != null;
     }
   }
 }
