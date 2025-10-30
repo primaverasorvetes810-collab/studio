@@ -54,7 +54,7 @@ function useAllOrders() {
     const { data: users, isLoading: usersLoading } = useCollection<User>(usersQuery);
 
     useEffect(() => {
-        if (usersLoading) return;
+        if (usersLoading || !firestore) return;
         if (!users) {
             setIsLoading(false);
             return;
@@ -65,7 +65,8 @@ function useAllOrders() {
             try {
                 const allOrders: Order[] = [];
                 for (const user of users) {
-                    const ordersQuery = query(collection(firestore, `users/${user.id}/orders`));
+                    const ordersCollectionRef = collection(firestore, `users/${user.id}/orders`);
+                    const ordersQuery = query(ordersCollectionRef);
                     const ordersSnapshot = await getDocs(ordersQuery);
                     ordersSnapshot.forEach((doc) => {
                         allOrders.push({ id: doc.id, ...doc.data() } as Order);
