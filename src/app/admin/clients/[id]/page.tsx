@@ -1,6 +1,8 @@
 
 'use client';
 
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc, Timestamp } from 'firebase/firestore';
 import { notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import {
@@ -22,6 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { formatPrice, cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 import type { Order } from '@/firebase/orders';
+import { useUserOrders } from '@/firebase/orders';
 
 type Client = {
   id: string;
@@ -33,35 +36,6 @@ type Client = {
   neighborhood?: string;
   city?: string;
 };
-
-// Static Data
-const staticClient: Client = {
-  id: 'vera-123',
-  fullName: 'Vera',
-  email: 'primaverasorvetes810@gmail.com',
-  registerTime: { toDate: () => new Date('2023-10-30') },
-  phone: '15998154015',
-  address: 'Izolina Martins Telles, 29',
-  neighborhood: 'Jardim Vante',
-  city: 'Porto Feliz',
-};
-
-const staticOrders: Order[] = [
-  // This client has no orders yet, so this is empty.
-  // Example of what an order would look like:
-  // {
-  //   id: 'order-001',
-  //   userId: 'vera-123',
-  //   orderDate: { toDate: () => new Date('2024-05-10') },
-  //   totalAmount: 150.75,
-  //   status: 'Entregue',
-  //   paymentMethod: 'Cartão de Crédito ou Débito',
-  //   userName: 'Vera',
-  //   userEmail: 'primaverasorvetes810@gmail.com',
-  //   items: []
-  // }
-];
-
 
 const statusColors: Record<Order['status'], string> = {
   Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20',
@@ -77,10 +51,16 @@ export default function ClientDetailsPage({
 }: {
   params: { id: string };
 }) {
-  const client = staticClient;
-  const orders = staticOrders;
-  const isClientLoading = false;
-  const areOrdersLoading = false;
+  const firestore = useFirestore();
+  const clientId = params.id;
+
+  const clientRef = useMemoFirebase(
+    () => (firestore && clientId ? doc(firestore, 'users', clientId) : null),
+    [firestore, clientId]
+  );
+  const { data: client, isLoading: isClientLoading } = useDoc<Client>(clientRef);
+
+  const { orders, isLoading: areOrdersLoading } = useUserOrders(clientId);
 
   if (isClientLoading || areOrdersLoading) {
     return (

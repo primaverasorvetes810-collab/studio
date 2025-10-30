@@ -83,7 +83,7 @@ function useAllOrders() {
 
     }, [users, usersLoading, firestore]);
 
-    return { orders, isLoading, error };
+    return { orders, isLoading, error, users, usersLoading };
 }
 
 const statusColors: Record<Order["status"], string> = {
@@ -96,7 +96,7 @@ const statusColors: Record<Order["status"], string> = {
 };
 
 export default function DashboardPage() {
-  const { orders, isLoading: isLoadingOrders } = useAllOrders();
+  const { orders, isLoading: isLoadingOrders, users, usersLoading } = useAllOrders();
   const firestore = useFirestore();
 
   const productsQuery = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
@@ -113,6 +113,7 @@ export default function DashboardPage() {
 
   const recentOrders = orders.slice(0, 5);
   const totalRevenue = orders.reduce((acc, order) => acc + order.totalAmount, 0);
+  const totalClients = users ? users.length : 0;
 
   return (
     <div className="flex flex-col gap-8">
@@ -126,7 +127,7 @@ export default function DashboardPage() {
         />
         <AdminStatsCard
           title="Clientes"
-          value="+235"
+          value={usersLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : `+${totalClients}`}
           icon={Users}
           description="+18.1% do mês passado"
         />
