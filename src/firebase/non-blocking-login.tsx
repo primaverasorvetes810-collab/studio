@@ -16,7 +16,7 @@ export function initiateAnonymousSignIn(authInstance: Auth): void {
 }
 
 /** Inicia o cadastro por e-mail/senha (sem bloqueio). */
-export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): void {
+export function initiateEmailSignUp(authInstance: Auth, email: string, password: string, name: string): void {
   const { firestore } = getClientSdks();
   createUserWithEmailAndPassword(authInstance, email, password)
     .then(userCredential => {
@@ -27,6 +27,7 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
       // mas será tratado pelo Firestore em segundo plano.
       // Erros serão capturados pelo manipulador global se as regras falharem.
       const userData = {
+        name: name,
         email: user.email,
         registerTime: serverTimestamp(),
       };

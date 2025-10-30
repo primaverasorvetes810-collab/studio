@@ -46,7 +46,7 @@ export default function RegisterPage() {
   });
 
   const onSubmit = (data: RegisterFormValues) => {
-    initiateEmailSignUp(auth, data.email, data.password);
+    initiateEmailSignUp(auth, data.email, data.password, data.fullName);
     // Note: We don't await here. The auth state is handled by the global onAuthStateChanged listener.
     // The FirebaseErrorListener will catch and display any auth errors.
     toast({

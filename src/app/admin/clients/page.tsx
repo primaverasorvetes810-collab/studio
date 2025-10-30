@@ -31,6 +31,7 @@ import { collection, Timestamp } from "firebase/firestore";
 type Client = {
     id: string;
     email: string;
+    name?: string;
     registerTime?: Timestamp; // Torna opcional ou permite diferentes tipos, se necessário
 };
 
@@ -62,9 +63,9 @@ export default function ClientsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>E-mail</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Contato (E-mail)</TableHead>
                 <TableHead>Cliente Desde</TableHead>
-                <TableHead>UID do Usuário</TableHead>
                 <TableHead>
                   <span className="sr-only">Ações</span>
                 </TableHead>
@@ -73,9 +74,9 @@ export default function ClientsPage() {
             <TableBody>
               {clients.map((client) => (
                 <TableRow key={client.id}>
-                  <TableCell className="font-medium">{client.email}</TableCell>
+                  <TableCell className="font-medium">{client.name || 'Nome não fornecido'}</TableCell>
+                  <TableCell>{client.email}</TableCell>
                   <TableCell>{formatDate(client.registerTime)}</TableCell>
-                  <TableCell className="text-muted-foreground">{client.id}</TableCell>
                   <TableCell>
                   <DropdownMenu>
                       <DropdownMenuTrigger asChild>
