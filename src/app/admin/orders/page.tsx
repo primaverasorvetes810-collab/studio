@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { type Order, useAllOrders } from "@/firebase/orders";
+import { type Order, useUserOrders, type User } from "@/firebase/orders";
 import { formatPrice } from "@/lib/utils";
 import { MoreHorizontal, Loader2 } from "lucide-react";
 import {
@@ -27,11 +27,12 @@ import {
   } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useUser } from "@/firebase";
+import { useUser as useAuthUser, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { collection, query, getDocs } from "firebase/firestore";
 
 const statusColors: Record<Order["status"], string> = {
     Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
@@ -41,6 +42,56 @@ const statusColors: Record<Order["status"], string> = {
     Entregue: "bg-primary/20 text-primary border-primary/20",
     Cancelado: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
 };
+
+// Custom hook to fetch all orders from all users
+function useAllOrders() {
+    const firestore = useFirestore();
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
+
+    const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+    const { data: users, isLoading: usersLoading } = useCollection<User>(usersQuery);
+
+    useEffect(() => {
+        if (usersLoading) return;
+        if (!users) {
+            setIsLoading(false);
+            return;
+        }
+
+        const fetchOrders = async () => {
+            setIsLoading(true);
+            try {
+                const allOrders: Order[] = [];
+                for (const user of users) {
+                    const ordersQuery = query(collection(firestore, `users/${user.id}/orders`));
+                    const ordersSnapshot = await getDocs(ordersQuery);
+                    ordersSnapshot.forEach((doc) => {
+                        allOrders.push({ id: doc.id, ...doc.data() } as Order);
+                    });
+                }
+                // Sort orders by date, most recent first
+                allOrders.sort((a, b) => {
+                    const dateA = a.orderDate?.toDate()?.getTime() || 0;
+                    const dateB = b.orderDate?.toDate()?.getTime() || 0;
+                    return dateB - dateA;
+                });
+                setOrders(allOrders);
+            } catch (e) {
+                setError(e as Error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchOrders();
+
+    }, [users, usersLoading, firestore]);
+
+    return { orders, isLoading, error };
+}
+
 
 function OrdersAdminContent() {
     const { orders, isLoading, error } = useAllOrders();
@@ -119,7 +170,7 @@ function OrdersAdminContent() {
 }
 
 export default function OrdersAdminPage() {
-    const { user, isUserLoading } = useUser();
+    const { user, isUserLoading } = useAuthUser();
     const router = useRouter();
 
     useEffect(() => {

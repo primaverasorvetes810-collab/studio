@@ -19,8 +19,7 @@ import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
 import type { CartItemWithProduct } from './cart';
 import type { Product } from '@/lib/data/products';
-import { products as staticProducts } from '@/lib/data/products';
-import type { User } from 'firebase/auth';
+import type { User as AuthUser } from 'firebase/auth';
 
 export interface OrderItem {
   id: string;
@@ -32,6 +31,12 @@ export interface OrderItem {
 
 export interface OrderItemWithProduct extends OrderItem {
   product: Product;
+}
+
+export interface User {
+    id: string;
+    email: string;
+    registerTime: Timestamp;
 }
 
 export interface Order {
@@ -49,7 +54,7 @@ export interface Order {
 export interface OrderWithItems extends Order {}
 
 export async function createOrderFromCart(
-  user: User,
+  user: AuthUser,
   cartId: string,
   cartItems: CartItemWithProduct[],
   paymentMethod: string,
@@ -134,26 +139,4 @@ export function useUserOrders(userId?: string) {
 
 
   return { orders: sortedOrders, isLoading, error };
-}
-
-export function useAllOrders() {
-    const { firestore } = getClientSdks();
-  
-    const ordersQuery = useMemoFirebase(() => {
-      return collectionGroup(firestore, 'orders');
-    }, [firestore]);
-  
-    const { data: ordersData, isLoading, error } = useCollection<Order>(ordersQuery as any);
-  
-    const sortedOrders = useMemo(() => {
-      if (!ordersData) return [];
-      // Ordena os pedidos por data, do mais recente para o mais antigo
-      return [...ordersData].sort((a, b) => {
-        const dateA = a.orderDate?.toDate()?.getTime() || 0;
-        const dateB = b.orderDate?.toDate()?.getTime() || 0;
-        return dateB - dateA;
-      });
-    }, [ordersData]);
-  
-    return { orders: sortedOrders, isLoading, error };
 }
