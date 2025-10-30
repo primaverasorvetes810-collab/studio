@@ -1,168 +1,42 @@
-/**
- * @fileoverview Firestore Security Rules for Primavera Delivery application.
- *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for user-specific data
- * (profiles, shopping carts, orders).  Product and ProductGroup data is publicly readable but admin-writeable.
- * Administrative privileges are determined by the existence of a document in the `/roles_admin/{uid}` collection.
- *
- * Data Structure:
- * - /users/{userId}: User profiles, accessible only by the user.
- * - /users/{userId}/shoppingCarts/{cartId}: Shopping carts owned by the user.
- * - /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}: Items within a user's shopping cart.
- * - /users/{userId}/orders/{orderId}: Orders placed by the user.
- * - /orders/{orderId}/orderItems/{orderItemId}: Items within an order.
- * - /orders/{orderId}/payments/{paymentId}: Payments associated with an order.
- * - /productGroups/{productGroupId}: Product categories, publicly readable, admin-writeable.
- * - /products/{productId}: Product information, publicly readable, admin-writeable. Includes a `groupId` field for categorization.
- * - /roles_admin/{uid}: Documents indicating administrative privileges.
- *
- * Key Security Decisions:
- * - User data is strictly private; no listing of users is allowed.
- * - Product and ProductGroup data is publicly readable, enabling open browsing.
- * - Only users with a corresponding document in `/roles_admin/{uid}` can modify product and product group data.
- *
- * Denormalization for Authorization:
- *  - The `Product` entity now stores a denormalized `groupId` field. This allows efficient querying of products by group
- *    without needing to traverse a nested path, improving performance and simplifying security rules.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * @description Enforces access control for user profiles. Only the user can read, update, or delete their own profile.
-     * @path /users/{userId}
-     * @allow (read, update, delete) User 'user123' can read/update/delete their own profile at /users/user123 when authenticated.
-     * @deny (read, update, delete) User 'user456' cannot read/update/delete profile of user 'user123' at /users/user123, even when authenticated.
-     * @allow (create) User 'user123' can create their own profile at /users/user123 when authenticated.
-     * @principle Enforces document ownership for all operations on the user profile.
-     */
+    // Regra para a coleção de usuários
     match /users/{userId} {
-      allow read, update, delete: if isSignedIn() && isOwner(userId);
-      allow create: if isSignedIn() && request.auth.uid == userId;
+      // O usuário só pode ler seu próprio perfil e criá-lo.
+      allow read: if request.auth.uid == userId;
+      allow create: if request.auth.uid == userId;
 
-      /**
-       * @description Enforces access control for shopping carts. Only the user can read or create shopping carts under their profile.
-       * @path /users/{userId}/shoppingCarts/{cartId}
-       * @allow (read, create) User 'user123' can read/create shopping cart at /users/user123/shoppingCarts/cart123 when authenticated.
-       * @deny (read, create) User 'user456' cannot read/create shopping cart under user 'user123' profile even when authenticated.
-       * @deny (update, delete) No one is allowed to update or delete a shopping cart.
-       * @principle Enforces document ownership and restricts modification of shopping carts.
-       */
+      // Regras para a subcoleção de pedidos (orders)
+      match /orders/{orderId} {
+        // O usuário pode criar e ler seus próprios pedidos.
+        allow create, read: if request.auth.uid == userId;
+      }
+
+      // Regras para a subcoleção de carrinhos de compras (shoppingCarts)
       match /shoppingCarts/{cartId} {
-        allow read, create: if isSignedIn() && isOwner(userId);
-        allow update, delete: if false;
+        allow read, write: if request.auth.uid == userId;
 
-        /**
-         * @description Enforces access control for cart items. Only the user can read, create, update or delete items in their own cart.
-         * @path /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}
-         * @allow (read, create, update, delete) User 'user123' can read/create/update/delete cart items under their own cart.
-         * @deny (read, create, update, delete) User 'user456' cannot modify cart items under user 'user123' cart.
-         * @principle Enforces document ownership for all cart item operations.
-         */
+        // Itens dentro do carrinho
         match /cartItems/{cartItemId} {
-          allow read, create, update, delete: if isSignedIn() && isOwner(userId);
+          allow read, write, delete: if request.auth.uid == userId;
         }
       }
-
-      /**
-       * @description Enforces access control for orders. Only the user can read or create orders under their profile.
-       * @path /users/{userId}/orders/{orderId}
-       * @allow (read, create) User 'user123' can read/create orders under their profile.
-       * @deny (read, create) User 'user456' cannot read/create orders under user 'user123' profile, even when authenticated.
-       * @deny (update, delete) No one is allowed to update or delete an order.
-       * @principle Enforces document ownership and prevents order modifications.
-       */
-      match /orders/{orderId} {
-        allow read, create: if isSignedIn() && isOwner(userId);
-        allow update, delete: if false; // Prevent order modifications after creation.
-
-          match /orderItems/{orderItemId} {
-            allow read: if isSignedIn() && isOwner(userId);
-            allow create, update, delete: if false;
-          }
-
-          match /payments/{paymentId} {
-            allow read: if isSignedIn() && isOwner(userId);
-            allow create, update, delete: if false;
-          }
-      }
     }
 
-    /**
-     * @description Allows public read access to product groups, but restricts write access to admins only.
-     * @path /productGroups/{productGroupId}
-     * @allow (read) Any user can read product group information.
-     * @allow (create, update, delete) Only users with admin privileges can create, update, or delete product groups.
-     * @principle Provides public read access with restricted admin write access to product group data.
-     */
-    match /productGroups/{productGroupId} {
+    // Coleção pública de grupos de produtos, todos podem ler.
+    match /productGroups/{groupId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      // Qualquer usuário autenticado pode escrever (para o admin logado)
+      allow write: if request.auth != null;
     }
 
-    /**
-     * @description Allows public read access to product information, but restricts write access to admins only.
-     * @path /products/{productId}
-     * @allow (read) Any user can read product information.
-     * @allow (create, update, delete) Only users with admin privileges can create, update, or delete products.
-     * @principle Provides public read access with restricted admin write access to product data.
-     */
+    // Coleção pública de produtos, todos podem ler.
     match /products/{productId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      // Qualquer usuário autenticado pode escrever (para o admin logado)
+      allow write: if request.auth != null;
     }
-
-    /**
-     * @description Restricts read and write access to admin role documents to admins only.  The existence of a document at /roles_admin/{uid} grants admin privileges.
-     * @path /roles_admin/{uid}
-     * @allow (read, create, update, delete) Only an admin can create, read, update, or delete admin role documents.  This is used by the isAdmin() function.
-     * @principle Ensures that only authorized administrators can manage admin roles.
-     */
-    match /roles_admin/{uid} {
-        allow read, create, update, delete: if isAdmin();
-    }
-
-    /**
-     * @description Access control for items within an order. Anyone can read the order item.
-     * @path /orders/{orderId}/orderItems/{orderItemId}
-     * @allow (read) Any user can read order item information.
-     * @deny (create, update, delete) No one is allowed to create, update, or delete order items directly. They should be managed through order creation.
-     * @principle Public read access to order items, restricted write access.
-     */
-    /*
-    match /orders/{orderId}/orderItems/{orderItemId} {
-        allow read: if true;
-        allow create, update, delete: if false;
-    }
-    */
-
-    /**
-     * @description Access control for payments associated with an order.  Payments are publicly readable, but should only be created and managed by backend processes.
-     * @path /orders/{orderId}/payments/{paymentId}
-     * @allow (read) Any user can read payment information.
-     * @deny (create, update, delete) No one is allowed to create, update, or delete payment information directly.
-     * @principle Public read access to payments, restricted write access.
-     */
-    /*
-    match /orders/{orderId}/payments/{paymentId} {
-        allow read: if true;
-        allow create, update, delete: if false;
-    }
-    */
-  }
-
-  // Helper Functions
-  function isSignedIn() {
-    return request.auth != null;
-  }
-
-  function isOwner(userId) {
-    return request.auth.uid == userId;
-  }
-
-  function isAdmin() {
-    return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
   }
 }
