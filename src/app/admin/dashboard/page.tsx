@@ -90,8 +90,26 @@ export default function DashboardPage() {
   const { orders, isLoading: isLoadingOrders } = useAllOrders();
   const firestore = useFirestore();
 
-  const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
-  const { data: users, isLoading: usersLoading } = useCollection<User>(usersQuery);
+  const [totalClients, setTotalClients] = useState<number | null>(null);
+  const [isClientsLoading, setIsClientsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!firestore) return;
+    const fetchClientsCount = async () => {
+      setIsClientsLoading(true);
+      try {
+        const usersCollection = collection(firestore, 'users');
+        const usersSnapshot = await getDocs(usersCollection);
+        setTotalClients(usersSnapshot.size);
+      } catch (error) {
+        console.error("Failed to fetch clients count:", error);
+        setTotalClients(0);
+      } finally {
+        setIsClientsLoading(false);
+      }
+    };
+    fetchClientsCount();
+  }, [firestore]);
 
   const productsQuery = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
   const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
@@ -105,8 +123,7 @@ export default function DashboardPage() {
 
   const recentOrders = orders.slice(0, 5);
   const totalRevenue = orders.reduce((acc, order) => acc + order.totalAmount, 0);
-  const totalClients = users ? users.length : 0;
-
+  
   return (
     <div className="flex flex-col gap-8">
       <PageHeader title="Painel" description="Uma visão geral da sua loja." />
@@ -118,7 +135,7 @@ export default function DashboardPage() {
         />
         <AdminStatsCard
           title="Clientes"
-          value={usersLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : `+${totalClients}`}
+          value={isClientsLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : `+${totalClients ?? 0}`}
           icon={Users}
         />
         <AdminStatsCard
@@ -186,3 +203,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
