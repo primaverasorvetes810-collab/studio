@@ -12,6 +12,7 @@ import {
   where,
   Timestamp,
   collectionGroup,
+  getDoc,
 } from 'firebase/firestore';
 import { getClientSdks, useCollection, useMemoFirebase } from '@/firebase';
 import { errorEmitter } from './error-emitter';
@@ -19,6 +20,7 @@ import { FirestorePermissionError } from './errors';
 import type { CartItemWithProduct } from './cart';
 import type { Product } from '@/lib/data/products';
 import { products as staticProducts } from '@/lib/data/products';
+import type { User } from 'firebase/auth';
 
 export interface OrderItem {
   id: string;
@@ -35,24 +37,26 @@ export interface OrderItemWithProduct extends OrderItem {
 export interface Order {
   id: string;
   userId: string;
+  userName: string | null;
+  userEmail: string | null;
   orderDate: Timestamp;
   paymentMethod: string;
   totalAmount: number;
   status: 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Atrasado';
   items: OrderItemWithProduct[];
-  userName?: string;
 }
 
 export interface OrderWithItems extends Order {}
 
 export async function createOrderFromCart(
-  userId: string,
+  user: User,
   cartId: string,
   cartItems: CartItemWithProduct[],
   paymentMethod: string,
   totalAmount: number
 ) {
   const { firestore } = getClientSdks();
+  const userId = user.uid;
   try {
     await runTransaction(firestore, async (transaction) => {
       // 1. Create a new order document with items included
@@ -78,6 +82,8 @@ export async function createOrderFromCart(
 
       const newOrderData = {
         userId,
+        userName: user.displayName,
+        userEmail: user.email,
         orderDate: serverTimestamp(),
         paymentMethod,
         totalAmount,

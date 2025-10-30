@@ -73,10 +73,10 @@ function OrdersAdminContent() {
         <Table>
             <TableHeader>
             <TableRow>
-                <TableHead>ID do Pedido</TableHead>
+                <TableHead>Cliente</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Data</TableHead>
-                <TableHead>Cliente (ID)</TableHead>
+                <TableHead>ID do Pedido</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>
                 <span className="sr-only">Ações</span>
@@ -86,12 +86,15 @@ function OrdersAdminContent() {
             <TableBody>
             {orders.map((order) => (
                 <TableRow key={order.id}>
-                <TableCell className="font-medium">{order.id.substring(0, 7)}...</TableCell>
+                <TableCell>
+                  <div className="font-medium">{order.userName || 'Nome não disponível'}</div>
+                  <div className="text-sm text-muted-foreground">{order.userEmail}</div>
+                </TableCell>
                 <TableCell>
                     <Badge className={cn(statusColors[order.status])} variant="outline">{order.status}</Badge>
                 </TableCell>
                 <TableCell>{order.orderDate.toDate().toLocaleDateString()}</TableCell>
-                <TableCell>{order.userName || order.userId.substring(0,10)}...</TableCell>
+                <TableCell className="font-medium">{order.id.substring(0, 7)}...</TableCell>
                 <TableCell className="text-right">{formatPrice(order.totalAmount)}</TableCell>
                 <TableCell>
                 <DropdownMenu>
