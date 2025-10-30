@@ -81,7 +81,7 @@ export default function ClientDetailsPage({
         description={`Cliente desde ${client.registerTime?.toDate().toLocaleDateString() ?? 'data desconhecida'}`}
       />
       <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-        <Card className="md:col-span-1">
+        <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>Informações de Contato</CardTitle>
           </CardHeader>
@@ -100,7 +100,7 @@ export default function ClientDetailsPage({
             </div>
           </CardContent>
         </Card>
-        <Card className="md:col-span-2">
+        <Card className="md:col-span-1">
           <CardHeader>
             <CardTitle>Resumo Financeiro</CardTitle>
           </CardHeader>
