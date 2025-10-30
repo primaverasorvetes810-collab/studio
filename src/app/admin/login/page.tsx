@@ -14,7 +14,7 @@ import { PrimaveraLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 
-const ADMIN_PASSWORD = '810Primaera*';
+const ADMIN_PASSWORD = '810Primavera*';
 
 interface AdminLoginPageProps {
   onLoginSuccess: () => void;
