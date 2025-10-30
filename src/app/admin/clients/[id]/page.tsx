@@ -42,42 +42,51 @@ export default function ClientDetailPage() {
       setIsLoading(true);
       
       const ordersRef = collectionGroup(firestore, 'orders');
-      const q = query(ordersRef, where('userId', '==', userId));
       
-      const querySnapshot = await getDocs(q);
-      
-      if (querySnapshot.empty) {
+      try {
+        const querySnapshot = await getDocs(ordersRef);
+        
+        if (querySnapshot.empty) {
+          setIsLoading(false);
+          return;
+        }
+  
+        const allOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+        
+        const userOrders = allOrders.filter(order => order.userId === userId);
+
+        if (userOrders.length === 0) {
+            setIsLoading(false);
+            return;
+        }
+
+        // Sort orders to find the latest one for contact info
+        userOrders.sort((a, b) => b.orderDate.toDate().getTime() - a.orderDate.toDate().getTime());
+        
+        const latestOrder = userOrders[0];
+        const totalSpent = userOrders.reduce((acc, order) => acc + order.totalAmount, 0);
+        const lastOrderDate = latestOrder.orderDate.toDate();
+  
+        setClient({
+          id: userId as string,
+          name: latestOrder.userName || 'Não disponível',
+          email: latestOrder.userEmail || 'Não disponível',
+          phone: latestOrder.userPhone,
+          address: latestOrder.userAddress,
+          neighborhood: latestOrder.userNeighborhood,
+          city: latestOrder.userCity,
+          totalSpent,
+          orderCount: userOrders.length,
+          lastOrderDate,
+        });
+  
+        setClientOrders(userOrders);
+
+      } catch(e) {
+        console.error("Failed to fetch client data", e);
+      } finally {
         setIsLoading(false);
-        return;
       }
-
-      const orders: Order[] = [];
-      querySnapshot.forEach(doc => {
-        orders.push({ id: doc.id, ...doc.data() } as Order);
-      });
-
-      // Sort orders to find the latest one for contact info
-      orders.sort((a, b) => b.orderDate.toDate().getTime() - a.orderDate.toDate().getTime());
-      
-      const latestOrder = orders[0];
-      const totalSpent = orders.reduce((acc, order) => acc + order.totalAmount, 0);
-      const lastOrderDate = latestOrder.orderDate.toDate();
-
-      setClient({
-        id: userId as string,
-        name: latestOrder.userName || 'Não disponível',
-        email: latestOrder.userEmail || 'Não disponível',
-        phone: latestOrder.userPhone,
-        address: latestOrder.userAddress,
-        neighborhood: latestOrder.userNeighborhood,
-        city: latestOrder.userCity,
-        totalSpent,
-        orderCount: orders.length,
-        lastOrderDate,
-      });
-
-      setClientOrders(orders);
-      setIsLoading(false);
     };
 
     fetchClientData();
@@ -101,7 +110,7 @@ export default function ClientDetailPage() {
           <CardHeader>
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
-                <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
+                <AvatarFallback>{client.name ? client.name.charAt(0) : 'N'}</AvatarFallback>
               </Avatar>
               <div>
                 <CardTitle className="text-2xl">{client.name}</CardTitle>
@@ -154,22 +163,22 @@ export default function ClientDetailPage() {
         </CardHeader>
         <CardContent>
         <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-800">
                     <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID do Pedido</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID do Pedido</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Data</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total</th>
                     </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
                     {clientOrders.map(order => (
                         <tr key={order.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id.substring(0, 7)}...</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.orderDate.toDate().toLocaleDateString()}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.status}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">{formatPrice(order.totalAmount)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{order.id.substring(0, 7)}...</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{order.orderDate.toDate().toLocaleDateString()}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{order.status}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-300">{formatPrice(order.totalAmount)}</td>
                         </tr>
                     ))}
                 </tbody>
