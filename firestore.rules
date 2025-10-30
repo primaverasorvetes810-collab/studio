@@ -2,49 +2,59 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Regra para a coleção de administradores
-    match /roles_admin/{uid} {
-      allow read: if true; // Pode ser pública ou restrita
-      allow write: if false; // Geralmente gerenciado pelo servidor ou manualmente
-    }
-
-    // Regras para a coleção de usuários
+    // Regra para a coleção de usuários
     match /users/{userId} {
-      // O próprio usuário pode criar seu perfil e ler/atualizar/deletar seus dados
-      allow create: if request.auth != null;
-      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      // Permite que um usuário crie seu próprio documento e leia seu próprio perfil.
+      // A leitura é necessária para a transação do pedido.
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
 
       // Subcoleção de pedidos (orders)
       match /orders/{orderId} {
-        // Usuário pode criar e ler seus próprios pedidos
-        allow create, read: if request.auth != null && request.auth.uid == userId;
-        // Segurança extra: ninguém pode atualizar ou deletar um pedido diretamente
-        // (apenas via funções de backend ou status controlados)
-        allow update, delete: if request.auth != null && request.auth.uid == userId;
+        // Permite que um usuário crie e leia seus próprios pedidos.
+        // A atualização é permitida para que o usuário possa cancelar.
+        allow create, read, update: if request.auth != null && request.auth.uid == userId;
+        // Excluir pedidos é proibido para manter o histórico.
+        allow delete: if false;
       }
 
-      // Subcoleção de carrinho (shoppingCarts)
+      // Subcoleção de carrinhos (shoppingCarts)
       match /shoppingCarts/{cartId} {
-        allow read, write: if request.auth.uid == userId;
-        // Sub-subcoleção de itens do carrinho
+        // Permite que um usuário gerencie seu próprio documento de carrinho.
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // Subcoleção de itens do carrinho (cartItems)
         match /cartItems/{cartItemId} {
-          allow read, write, delete: if request.auth.uid == userId;
+          // Permite que o usuário adicione, leia, atualize e exclua itens do seu próprio carrinho.
+          // A exclusão é essencial para a transação de finalização do pedido.
+          allow read, write, delete: if request.auth != null && request.auth.uid == userId;
         }
       }
     }
 
-    // Regra para a coleção de grupos de produtos
-    match /productGroups/{productGroupId} {
-      allow read: if true; // Todos podem ver os grupos de produtos
-      // Apenas usuários autenticados podem modificar (para o painel de admin simples)
+    // Regra para a coleção de produtos
+    match /products/{productId} {
+      // Leitura de produtos é pública.
+      allow read: if true;
+      // Escrita (criação, atualização, exclusão) é permitida para qualquer usuário autenticado.
+      // Isso é necessário porque o painel de administração não usa 'admin claims'.
       allow write: if request.auth != null;
     }
 
-    // Regra para a coleção de produtos
-    match /products/{productId} {
-      allow read: if true; // Todos podem ver os produtos
-      // Apenas usuários autenticados podem modificar (para o painel de admin simples)
+    // Regra para a coleção de grupos de produtos
+    match /productGroups/{groupId} {
+      // Leitura é pública.
+      allow read: if true;
+      // Escrita é permitida para usuários autenticados (para o painel de admin).
       allow write: if request.auth != null;
+    }
+
+     // Regra de fallback para a coleção 'orders' (usada por collectionGroup)
+    match /orders/{orderId} {
+      // Esta regra é uma salvaguarda, mas as permissões são primariamente
+      // definidas sob /users/{userId}/orders.
+      // Permite leitura se o solicitante for o dono do pedido (verificando o campo userId).
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }
