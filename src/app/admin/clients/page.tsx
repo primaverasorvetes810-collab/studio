@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useFirestore } from "@/firebase";
+import { useFirestore, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { MoreHorizontal, Loader2 } from "lucide-react";
 import {
     DropdownMenu,
@@ -51,16 +51,22 @@ export default function ClientsPage() {
     async function fetchClients() {
       if (!firestore) return;
       setIsLoading(true);
-      try {
-        const usersCollection = collection(firestore, 'users');
-        const usersSnapshot = await getDocs(usersCollection);
-        const clientsList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
-        setClients(clientsList);
-      } catch (error) {
-        console.error("Error fetching clients: ", error);
-      } finally {
-        setIsLoading(false);
-      }
+      const usersCollection = collection(firestore, 'users');
+      getDocs(usersCollection)
+        .then(usersSnapshot => {
+            const clientsList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
+            setClients(clientsList);
+        })
+        .catch(serverError => {
+            const permissionError = new FirestorePermissionError({
+                path: 'users',
+                operation: 'list',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        })
+        .finally(() => {
+            setIsLoading(false);
+        });
     }
     fetchClients();
   }, [firestore]);
@@ -140,3 +146,5 @@ export default function ClientsPage() {
     </div>
   );
 }
+
+    

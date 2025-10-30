@@ -29,7 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { OverviewChart } from "@/components/overview-chart";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { collection, query, getDocs, collectionGroup } from 'firebase/firestore';
 import { useMemo, useState, useEffect } from "react";
 import type { Order, User } from "@/firebase/orders";
@@ -65,7 +65,16 @@ function useAllOrders() {
                 
                 setOrders(allOrders);
             } catch (e) {
-                setError(e as Error);
+                if (e instanceof Error && e.message.includes('permission-denied')) {
+                    const contextualError = new FirestorePermissionError({
+                        path: 'orders', // This is a collection group, path is not straightforward
+                        operation: 'list',
+                    });
+                    errorEmitter.emit('permission-error', contextualError);
+                    setError(contextualError);
+                } else {
+                    setError(e as Error);
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -97,16 +106,22 @@ export default function DashboardPage() {
     if (!firestore) return;
     const fetchClientsCount = async () => {
       setIsClientsLoading(true);
-      try {
-        const usersCollection = collection(firestore, 'users');
-        const usersSnapshot = await getDocs(usersCollection);
-        setTotalClients(usersSnapshot.size);
-      } catch (error) {
-        console.error("Failed to fetch clients count:", error);
-        setTotalClients(0);
-      } finally {
-        setIsClientsLoading(false);
-      }
+      const usersCollection = collection(firestore, 'users');
+      getDocs(usersCollection)
+        .then(usersSnapshot => {
+          setTotalClients(usersSnapshot.size);
+        })
+        .catch(serverError => {
+            const permissionError = new FirestorePermissionError({
+                path: 'users',
+                operation: 'list',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            setTotalClients(0);
+        })
+        .finally(() => {
+          setIsClientsLoading(false);
+        });
     };
     fetchClientsCount();
   }, [firestore]);
@@ -203,5 +218,7 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
 
     
