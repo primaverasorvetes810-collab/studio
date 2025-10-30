@@ -102,13 +102,13 @@ export default function DashboardPage() {
   const productsQuery = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
   const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
-  const { totalStock, activeProducts } = useMemo(() => {
+  const { totalProducts, activeProducts } = useMemo(() => {
     if (!products) {
-      return { totalStock: 0, activeProducts: 0 };
+      return { totalProducts: 0, activeProducts: 0 };
     }
-    const totalStock = products.reduce((acc, product) => acc + product.stock, 0);
+    const totalProducts = products.length;
     const activeProducts = products.filter(product => product.stock > 0).length;
-    return { totalStock, activeProducts };
+    return { totalProducts, activeProducts };
   }, [products]);
 
   const recentOrders = orders.slice(0, 5);
@@ -137,8 +137,8 @@ export default function DashboardPage() {
           description="+19% do mês passado"
         />
         <AdminStatsCard
-          title="Produtos em Estoque"
-          value={isLoadingProducts ? <Loader2 className="h-6 w-6 animate-spin" /> : totalStock.toString()}
+          title="Produtos Cadastrados"
+          value={isLoadingProducts ? <Loader2 className="h-6 w-6 animate-spin" /> : totalProducts.toString()}
           icon={Package}
           description={isLoadingProducts ? 'Calculando...' : `${activeProducts} ativos`}
         />
