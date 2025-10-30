@@ -23,27 +23,31 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
       // User created, now create a document in 'users' collection
       const user = userCredential.user;
       const userRef = doc(firestore, 'users', user.uid);
-      // Use setDoc to create the user document, it won't be awaited here
+      // Use setDoc to create the user document. It won't be awaited here
       // but will be handled by Firestore in the background.
       // Errors will be caught by the global handler if rules fail.
       setDoc(userRef, {
         email: user.email,
         registerTime: serverTimestamp(),
-        // Add other initial user data here if needed
       }).catch(error => {
+        // This is a failsafe. If creating the user document fails due
+        // to permissions, the global error handler will catch it.
         errorEmitter.emit(
           'permission-error',
           new FirestorePermissionError({
             path: `users/${user.uid}`,
             operation: 'create',
-            requestResourceData: { email: user.email },
+            requestResourceData: { 
+              email: user.email,
+              registerTime: 'serverTimestamp' 
+            },
           })
         );
       });
     })
     .catch(error => {
-      // Auth errors (like email-already-in-use) are handled by FirebaseErrorListener
-      // We don't need to emit them manually here as they will be thrown.
+      // Auth errors (like email-already-in-use) are already thrown by onAuthStateChanged
+      // and will be caught by the FirebaseErrorListener. We don't need to re-emit.
     });
 }
 
