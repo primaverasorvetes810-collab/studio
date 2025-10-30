@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  useDoc,
-  useFirestore,
-  useMemoFirebase,
-} from '@/firebase';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { useUserOrders } from '@/firebase/orders';
 import { doc, Timestamp } from 'firebase/firestore';
 import { notFound } from 'next/navigation';
@@ -55,12 +51,14 @@ export default function ClientDetailsPage({
   params: { id: string };
 }) {
   const firestore = useFirestore();
+  const clientId = params.id;
+
   const clientRef = useMemoFirebase(
-    () => doc(firestore, 'users', params.id),
-    [firestore, params.id]
+    () => (firestore && clientId ? doc(firestore, 'users', clientId) : null),
+    [firestore, clientId]
   );
   const { data: client, isLoading: isClientLoading } = useDoc<Client>(clientRef);
-  const { orders, isLoading: areOrdersLoading } = useUserOrders(params.id);
+  const { orders, isLoading: areOrdersLoading } = useUserOrders(clientId);
 
   if (isClientLoading || areOrdersLoading) {
     return (
