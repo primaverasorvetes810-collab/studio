@@ -38,6 +38,4 @@ if (!getApps().some((app) => app.name === 'admin')) {
 
 const firestoreAdmin = getFirestore(adminApp);
 
-export function getFirebaseAdmin() {
-  return { firestore: firestoreAdmin };
-}
+export { firestoreAdmin };

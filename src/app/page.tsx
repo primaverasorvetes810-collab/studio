@@ -1,14 +1,12 @@
 
 import PageHeader from '@/components/page-header';
 import { ProductGrid } from '@/components/product-grid';
-import { getFirebaseAdmin } from '@/firebase/admin';
+import { firestoreAdmin } from '@/firebase/admin';
 import { Product } from '@/lib/data/products';
 import { collection, getDocs } from 'firebase/firestore';
 
 async function getProducts() {
-  // Use the admin SDK on the server
-  const { firestore } = getFirebaseAdmin();
-  const productsCollection = collection(firestore, 'products');
+  const productsCollection = collection(firestoreAdmin, 'products');
   try {
     const snapshot = await getDocs(productsCollection);
     return snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })) as Product[];
