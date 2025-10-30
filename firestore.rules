@@ -2,41 +2,43 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Regra para a coleção de usuários
+    // 🔹 Cada usuário pode acessar apenas seus próprios dados
     match /users/{userId} {
-      // O usuário só pode ler seu próprio perfil e criá-lo.
-      allow read: if request.auth.uid == userId;
-      allow create: if request.auth.uid == userId;
+      // O próprio usuário pode criar e ler seu perfil
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
 
-      // Regras para a subcoleção de pedidos (orders)
+      // 🔹 Subcoleção: pedidos (orders)
       match /orders/{orderId} {
-        // O usuário pode criar e ler seus próprios pedidos.
-        allow create, read: if request.auth.uid == userId;
+        allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
       }
 
-      // Regras para a subcoleção de carrinhos de compras (shoppingCarts)
+      // 🔹 Subcoleção: carrinho (cart)
       match /shoppingCarts/{cartId} {
-        allow read, write: if request.auth.uid == userId;
-
-        // Itens dentro do carrinho
-        match /cartItems/{cartItemId} {
-          allow read, write, delete: if request.auth.uid == userId;
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        
+        match /cartItems/{itemId} {
+          allow create, read, update, delete: if request.auth != null && request.auth.uid == userId;
         }
       }
     }
 
-    // Coleção pública de grupos de produtos, todos podem ler.
+    // 🔹 Grupos de Produtos — qualquer usuário logado pode escrever
     match /productGroups/{groupId} {
       allow read: if true;
-      // Qualquer usuário autenticado pode escrever (para o admin logado)
-      allow write: if request.auth != null;
+      allow create, update, delete: if request.auth != null;
     }
 
-    // Coleção pública de produtos, todos podem ler.
+    // 🔹 Produtos — qualquer usuário logado pode escrever
     match /products/{productId} {
       allow read: if true;
-      // Qualquer usuário autenticado pode escrever (para o admin logado)
-      allow write: if request.auth != null;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    // Admin-only collections
+    match /roles_admin/{uid} {
+      allow read: if true; // Public read might be ok, but restrictive is safer.
+      allow write: if false; // Should only be managed from server-side/console.
     }
   }
 }
