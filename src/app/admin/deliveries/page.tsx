@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { collectionGroup, query, getDocs, onSnapshot, where, Unsubscribe } from 'firebase/firestore';
+import { collectionGroup, query, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { OrderWithItems } from '@/firebase/orders';
 import { updateOrderStatus } from '@/firebase/orders';
@@ -15,7 +15,7 @@ import { formatPrice } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { PrimaveraLogo } from '@/components/icons';
 
-// Custom hook to fetch all orders
+// Custom hook to fetch all orders and filter for paid ones on the client
 function useAllPaidOrders() {
   const firestore = useFirestore();
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
@@ -25,15 +25,19 @@ function useAllPaidOrders() {
   useEffect(() => {
     if (!firestore) return;
 
-    const q = query(collectionGroup(firestore, 'orders'), where('status', '==', 'Pago'));
+    // Query all orders from the collection group without server-side filtering
+    const q = query(collectionGroup(firestore, 'orders'));
     setIsLoading(true);
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const paidOrders = snapshot.docs.map(doc => ({
+      // Filter for "Pago" status on the client-side
+      const allOrders = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as OrderWithItems));
       
+      const paidOrders = allOrders.filter(order => order.status === 'Pago');
+
       paidOrders.sort((a, b) => {
         const dateA = a.orderDate?.toDate()?.getTime() || 0;
         const dateB = b.orderDate?.toDate()?.getTime() || 0;
