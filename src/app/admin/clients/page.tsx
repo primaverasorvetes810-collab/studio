@@ -27,11 +27,11 @@ import {
   } from "@/components/ui/dropdown-menu";
 import { collection, Timestamp } from "firebase/firestore";
 
-// Define a more flexible type for clients, as registerTime might not always be a Timestamp object initially.
+// Define a mais flexível para clientes, já que registerTime pode não ser sempre um objeto Timestamp inicialmente.
 type Client = {
     id: string;
     email: string;
-    registerTime?: Timestamp; // Make it optional or allow for different types if needed
+    registerTime?: Timestamp; // Torna opcional ou permite diferentes tipos, se necessário
 };
 
 export default function ClientsPage() {

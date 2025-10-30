@@ -10,29 +10,29 @@ import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
 
-/** Initiate anonymous sign-in (non-blocking). */
+/** Inicia o login anônimo (sem bloqueio). */
 export function initiateAnonymousSignIn(authInstance: Auth): void {
   signInAnonymously(authInstance);
 }
 
-/** Initiate email/password sign-up (non-blocking). */
+/** Inicia o cadastro por e-mail/senha (sem bloqueio). */
 export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): void {
   const { firestore } = getClientSdks();
   createUserWithEmailAndPassword(authInstance, email, password)
     .then(userCredential => {
-      // User created, now create a document in 'users' collection
+      // Usuário criado, agora cria um documento na coleção 'users'
       const user = userCredential.user;
       const userRef = doc(firestore, 'users', user.uid);
-      // Use setDoc to create the user document. It won't be awaited here
-      // but will be handled by Firestore in the background.
-      // Errors will be caught by the global handler if rules fail.
+      // Usa setDoc para criar o documento do usuário. Não será aguardado aqui
+      // mas será tratado pelo Firestore em segundo plano.
+      // Erros serão capturados pelo manipulador global se as regras falharem.
       const userData = {
         email: user.email,
         registerTime: serverTimestamp(),
       };
       setDoc(userRef, userData).catch(error => {
-        // This is a failsafe. If creating the user document fails due
-        // to permissions, the global error handler will catch it.
+        // Este é um failsafe. Se a criação do documento do usuário falhar devido
+        // a permissões, o manipulador de erro global irá capturá-lo.
         errorEmitter.emit(
           'permission-error',
           new FirestorePermissionError({
@@ -44,12 +44,12 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
       });
     })
     .catch(error => {
-      // Auth errors (like email-already-in-use) are already thrown by onAuthStateChanged
-      // and will be caught by the FirebaseErrorListener. We don't need to re-emit.
+      // Erros de autenticação (como email-already-in-use) já são lançados por onAuthStateChanged
+      // e serão capturados pelo FirebaseErrorListener. Não precisamos reemitir.
     });
 }
 
-/** Initiate email/password sign-in (non-blocking). */
+/** Inicia o login por e-mail/senha (sem bloqueio). */
 export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
   signInWithEmailAndPassword(authInstance, email, password);
 }
