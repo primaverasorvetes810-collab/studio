@@ -104,19 +104,39 @@ export default function DashboardPage() {
   const productsQuery = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
   const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
-  const { totalProducts, totalClients } = useMemo(() => {
+  const { totalProducts, totalClients, monthlyRevenue } = useMemo(() => {
     if (!products || !orders) {
-      return { totalProducts: 0, totalClients: 0 };
+      return { totalProducts: 0, totalClients: 0, monthlyRevenue: [] };
     }
     const uniqueClients = new Set(orders.map(order => order.userId));
+    
+    const revenueByMonth: { name: string; total: number }[] = Array.from({ length: 12 }, (_, i) => ({
+        name: new Date(0, i).toLocaleString('default', { month: 'short' }),
+        total: 0,
+      }));
+
+    for (const order of orders) {
+        if (order.status === 'Pago' || order.status === 'Entregue') {
+            const month = order.orderDate.toDate().getMonth();
+            revenueByMonth[month].total += order.totalAmount;
+        }
+    }
+
+
     return {
        totalProducts: products.length,
        totalClients: uniqueClients.size,
+       monthlyRevenue: revenueByMonth,
     };
   }, [products, orders]);
 
   const recentOrders = orders.slice(0, 5);
-  const totalRevenue = orders.reduce((acc, order) => acc + order.totalAmount, 0);
+  const totalRevenue = orders.reduce((acc, order) => {
+    if (order.status === 'Pago' || order.status === 'Entregue') {
+      return acc + order.totalAmount;
+    }
+    return acc;
+  }, 0);
   
   return (
     <div className="flex flex-col gap-8">
@@ -149,7 +169,7 @@ export default function DashboardPage() {
             <CardTitle>Visão Geral</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <OverviewChart />
+            <OverviewChart data={monthlyRevenue} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-3">
