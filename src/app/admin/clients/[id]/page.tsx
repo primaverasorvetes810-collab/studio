@@ -4,8 +4,8 @@ import {
   useDoc,
   useFirestore,
   useMemoFirebase,
-  useUserOrders,
 } from '@/firebase';
+import { useUserOrders } from '@/firebase/orders';
 import { doc, Timestamp } from 'firebase/firestore';
 import { notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
