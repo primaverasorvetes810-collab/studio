@@ -75,28 +75,42 @@ export async function createOrderFromCart(
 ) {
   const { firestore } = getClientSdks();
   const userId = user.uid;
+
+  // --- CORREÇÃO: Operações de leitura realizadas ANTES da transação ---
+  // 1. Obter os dados do usuário.
+  const userRef = doc(firestore, 'users', userId);
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) {
+     // Emite um erro se o documento do usuário não for encontrado.
+     errorEmitter.emit(
+        'permission-error',
+        new FirestorePermissionError({ path: userRef.path, operation: 'get' })
+      );
+    throw new Error("User document not found!");
+  }
+  const userData = userSnap.data() as User;
+
+  // 2. Obter as referências de todos os itens do carrinho que serão deletados.
+  const cartItemsCollectionRef = collection(
+    firestore,
+    `users/${userId}/shoppingCarts/${cartId}/cartItems`
+  );
+  const cartItemsSnapshot = await getDocs(query(cartItemsCollectionRef));
+  const cartItemRefsToDelete = cartItemsSnapshot.docs.map(doc => doc.ref);
+
+
+  // --- Transação apenas com operações de ESCRITA ---
   try {
     await runTransaction(firestore, async (transaction) => {
-      // 1. Get user details to embed in the order
-      const userRef = doc(firestore, 'users', userId);
-      const userSnap = await transaction.get(userRef);
-      if (!userSnap.exists()) {
-        throw new Error("User document not found!");
-      }
-      const userData = userSnap.data() as User;
+      // 1. Criar o novo documento de pedido.
+      const newOrderRef = doc(collection(firestore, `users/${userId}/orders`));
 
-
-      // 2. Create a new order document with items included
-      const ordersCollection = collection(firestore, `users/${userId}/orders`);
-      const newOrderRef = doc(ordersCollection);
-
-      // Prepare items to be embedded
       const orderItems = cartItems.map((cartItem) => ({
-        id: cartItem.id, // Using cart item id, or generate a new one
+        id: cartItem.id,
         productId: cartItem.productId,
         quantity: cartItem.quantity,
         itemPrice: cartItem.product.price,
-        product: { // Embed product details
+        product: {
           id: cartItem.product.id,
           name: cartItem.product.name,
           description: cartItem.product.description,
@@ -106,7 +120,6 @@ export async function createOrderFromCart(
           groupId: cartItem.product.groupId
         }
       }));
-
 
       const newOrderData = {
         userId,
@@ -122,40 +135,22 @@ export async function createOrderFromCart(
         status: 'Pendente' as const,
         items: orderItems,
       };
-      
+
       transaction.set(newOrderRef, newOrderData);
 
-      // 3. Delete all items from the user's cart
-      const cartItemsCollectionRef = collection(
-        firestore,
-        `users/${userId}/shoppingCarts/${cartId}/cartItems`
-      );
-      const cartItemsSnapshot = await getDocs(query(cartItemsCollectionRef));
-      for (const cartDoc of cartItemsSnapshot.docs) {
-        transaction.delete(cartDoc.ref);
-      }
+      // 2. Deletar todos os itens do carrinho usando as referências obtidas anteriormente.
+      cartItemRefsToDelete.forEach(ref => transaction.delete(ref));
     });
   } catch (error) {
-    // If the transaction failed to get user doc, it might be a permission error
-    if (error instanceof Error && error.message.includes('permission-denied')) {
-       errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({
-          path: `users/${userId}`,
-          operation: 'get',
-        })
-      );
-    } else {
-        errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({
-            path: `users/${userId}/orders`,
-            operation: 'write',
-            requestResourceData: { paymentMethod, totalAmount },
-        })
-        );
-    }
-    // Re-throw the original error if it's not a permission error or for other logging
+    // Se a transação falhar, agora o erro será mais provável de ser uma permissão real de escrita.
+    errorEmitter.emit(
+      'permission-error',
+      new FirestorePermissionError({
+        path: `users/${userId}/orders`, // O caminho principal da operação de escrita
+        operation: 'write',
+        requestResourceData: { paymentMethod, totalAmount },
+      })
+    );
     throw error;
   }
 }
