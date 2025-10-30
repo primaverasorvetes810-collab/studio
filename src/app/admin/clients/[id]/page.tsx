@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, Timestamp } from 'firebase/firestore';
+import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, Timestamp, collection, query, where } from 'firebase/firestore';
 import { notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import {
@@ -24,7 +24,6 @@ import { Badge } from '@/components/ui/badge';
 import { formatPrice, cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 import type { Order } from '@/firebase/orders';
-import { useUserOrders } from '@/firebase/orders';
 
 type Client = {
   id: string;
@@ -36,6 +35,32 @@ type Client = {
   neighborhood?: string;
   city?: string;
 };
+
+// Custom hook to fetch orders for a specific user
+function useUserOrders(userId?: string) {
+    const firestore = useFirestore();
+
+    const ordersQuery = useMemoFirebase(() => {
+        if (!firestore || !userId) return null;
+        return query(
+            collection(firestore, `users/${userId}/orders`)
+        );
+    }, [firestore, userId]);
+    
+    const { data: orders, isLoading, error } = useCollection<Order>(ordersQuery);
+
+    const sortedOrders = useMemo(() => {
+        if (!orders) return [];
+        return orders.sort((a, b) => {
+            const dateA = a.orderDate?.toDate?.()?.getTime() || 0;
+            const dateB = b.orderDate?.toDate?.()?.getTime() || 0;
+            return dateB - dateA;
+        });
+    }, [orders]);
+
+    return { orders: sortedOrders, isLoading, error };
+}
+
 
 const statusColors: Record<Order['status'], string> = {
   Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20',

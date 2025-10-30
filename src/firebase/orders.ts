@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -81,18 +82,19 @@ export async function createOrderFromCart(
           price: cartItem.product.price,
           image: cartItem.product.image,
           stock: cartItem.product.stock,
+          groupId: cartItem.product.groupId
         }
       }));
 
 
       const newOrderData = {
         userId,
-        userName: user.displayName,
+        userName: user.displayName || user.email,
         userEmail: user.email,
         orderDate: serverTimestamp(),
         paymentMethod,
         totalAmount,
-        status: 'Pendente',
+        status: 'Pendente' as const,
         items: orderItems,
       };
       
