@@ -20,20 +20,12 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import { PrimaveraLogo } from '@/components/icons';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-
-  const getInitials = (email: string | null | undefined) => {
-    if (!email) return 'A';
-    return email[0].toUpperCase();
-  };
-
-
   return (
     <SidebarProvider>
       <div className="flex h-full bg-muted/40">
-        <Sidebar className="hidden md:flex md:flex-col md:w-64 border-r">
+        <Sidebar className="hidden md:flex md:flex-col md:w-64 border-r bg-sidebar text-sidebar-foreground">
           <SidebarHeader>
             <div className="flex items-center gap-2">
               <PrimaveraLogo className="w-6 h-6 text-primary" />
