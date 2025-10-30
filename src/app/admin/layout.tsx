@@ -32,7 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <SidebarProvider>
-      <div className="flex h-full">
+      <div className="flex h-full bg-muted/40">
         <Sidebar className="hidden md:flex md:flex-col md:w-64 border-r">
           <SidebarHeader>
             <div className="flex items-center gap-2">
@@ -96,16 +96,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </SidebarFooter>
         </Sidebar>
         <div className="flex-1 flex flex-col">
-          <header className="flex h-14 items-center gap-4 border-b bg-background/50 px-6 backdrop-blur-sm sticky top-0 z-30">
-            {/* A trigger for mobile could be added here if needed */}
-            <div className="flex-1">
-              {/* Search or other header content can go here */}
-            </div>
-            <Avatar>
-              <AvatarImage src={`https://picsum.photos/seed/admin/40/40`} />
-              <AvatarFallback>{getInitials("Admin")}</AvatarFallback>
-            </Avatar>
-          </header>
           <main className="flex-1 p-6">{children}</main>
         </div>
       </div>
