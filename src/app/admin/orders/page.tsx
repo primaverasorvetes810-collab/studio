@@ -23,15 +23,8 @@ import { useFirestore } from "@/firebase";
 import { useEffect, useState } from "react";
 import { collectionGroup, getDocs, query } from "firebase/firestore";
 import { Separator } from "@/components/ui/separator";
+import { OrderStatusSelector } from "@/components/order-status-selector";
 
-const statusColors: Record<Order["status"], string> = {
-    Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
-    Pago: "bg-green-500/20 text-green-500 border-green-500/20",
-    Atrasado: "bg-red-500/20 text-red-500 border-red-500/20",
-    Enviado: "bg-blue-500/20 text-blue-500 border-blue-500/20",
-    Entregue: "bg-primary/20 text-primary border-primary/20",
-    Cancelado: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
-};
 
 // Custom hook to fetch all orders from all users
 function useAllOrders() {
@@ -71,12 +64,26 @@ function useAllOrders() {
         fetchOrders();
     }, [firestore]);
 
-    return { orders, isLoading, error };
+    return { orders, isLoading, error, setOrders };
 }
 
 
 export default function OrdersAdminPage() {
-    const { orders, isLoading, error } = useAllOrders();
+    const { orders, isLoading, error, setOrders } = useAllOrders();
+    const [_, setTicker] = useState(0); // Used to force re-renders for time-based updates
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+          setTicker(prev => prev + 1);
+        }, 60000); // Update every minute
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
+        setOrders(prevOrders => prevOrders.map(order => 
+            order.id === orderId ? { ...order, status: newStatus } : order
+        ));
+    };
 
     return (
         <div className="flex flex-col gap-8">
@@ -110,9 +117,7 @@ export default function OrdersAdminPage() {
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <span className="font-bold text-primary">{formatPrice(order.totalAmount)}</span>
-                                        <Badge className={cn("whitespace-nowrap", statusColors[order.status])} variant="outline">
-                                            {order.status}
-                                        </Badge>
+                                        <OrderStatusSelector order={order} onStatusChange={handleStatusChange} />
                                     </div>
                                 </div>
                             </AccordionTrigger>

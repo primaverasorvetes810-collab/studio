@@ -14,6 +14,7 @@ import {
   Timestamp,
   collectionGroup,
   getDoc,
+  updateDoc,
 } from 'firebase/firestore';
 import { getClientSdks, useCollection, useMemoFirebase } from '@/firebase';
 import { errorEmitter } from './error-emitter';
@@ -21,6 +22,8 @@ import { FirestorePermissionError } from './errors';
 import type { CartItemWithProduct } from './cart';
 import type { Product } from '@/lib/data/products';
 import type { User as AuthUser } from 'firebase/auth';
+
+export type OrderStatus = 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Atrasado';
 
 export interface OrderItem {
   id: string;
@@ -57,7 +60,7 @@ export interface Order {
   orderDate: Timestamp;
   paymentMethod: string;
   totalAmount: number;
-  status: 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Atrasado';
+  status: OrderStatus;
   items: OrderItemWithProduct[];
 }
 
@@ -154,6 +157,24 @@ export async function createOrderFromCart(
     }
     // Re-throw the original error if it's not a permission error or for other logging
     throw error;
+  }
+}
+
+export async function updateOrderStatus(userId: string, orderId: string, status: OrderStatus) {
+  const { firestore } = getClientSdks();
+  const orderRef = doc(firestore, `users/${userId}/orders`, orderId);
+  try {
+    await updateDoc(orderRef, { status });
+  } catch (e: any) {
+     errorEmitter.emit(
+      'permission-error',
+      new FirestorePermissionError({
+        path: orderRef.path,
+        operation: 'update',
+        requestResourceData: { status },
+      })
+    );
+    throw e;
   }
 }
 
