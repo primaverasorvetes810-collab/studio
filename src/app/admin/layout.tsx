@@ -69,14 +69,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/admin/admins">
-                    <ShieldCheck />
-                    Administradores
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
                   <Link href="#">
                     <DollarSign />
                     Receita
