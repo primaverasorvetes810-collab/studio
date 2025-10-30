@@ -11,6 +11,7 @@ import {
   getDocs,
   where,
   Timestamp,
+  collectionGroup,
 } from 'firebase/firestore';
 import { getClientSdks, useCollection, useMemoFirebase } from '@/firebase';
 import { errorEmitter } from './error-emitter';
@@ -39,6 +40,7 @@ export interface Order {
   totalAmount: number;
   status: 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Atrasado';
   items: OrderItemWithProduct[];
+  userName?: string;
 }
 
 export interface OrderWithItems extends Order {}
@@ -126,4 +128,26 @@ export function useUserOrders(userId?: string) {
 
 
   return { orders: sortedOrders, isLoading, error };
+}
+
+export function useAllOrders() {
+    const { firestore } = getClientSdks();
+  
+    const ordersQuery = useMemoFirebase(() => {
+      return collectionGroup(firestore, 'orders');
+    }, [firestore]);
+  
+    const { data: ordersData, isLoading, error } = useCollection<Order>(ordersQuery as any);
+  
+    const sortedOrders = useMemo(() => {
+      if (!ordersData) return [];
+      // Ordena os pedidos por data, do mais recente para o mais antigo
+      return [...ordersData].sort((a, b) => {
+        const dateA = a.orderDate?.toDate()?.getTime() || 0;
+        const dateB = b.orderDate?.toDate()?.getTime() || 0;
+        return dateB - dateA;
+      });
+    }, [ordersData]);
+  
+    return { orders: sortedOrders, isLoading, error };
 }
