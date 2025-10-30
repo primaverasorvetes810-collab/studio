@@ -1,3 +1,4 @@
+
 import PageHeader from '@/components/page-header';
 import { ProductGrid } from '@/components/product-grid';
 import { getFirebaseAdmin } from '@/firebase/admin';
