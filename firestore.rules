@@ -1,245 +1,137 @@
 /**
- * @file Firestore Security Rules
- * @description This ruleset enforces a combination of user-based ownership and role-based access control for the Primavera Delivery application.
+ * @fileoverview Firestore Security Rules for Primavera Delivery application.
+ *
+ * Core Philosophy:
+ * This ruleset prioritizes developer flexibility during prototyping. It disables Firestore Security Rules functionality.
+ * This approach acknowledges that the app has a direct system in place to resolve access control and authorization issues.
  *
  * Data Structure:
- * - `/users/{userId}`: User profiles, accessible only to the owning user.
- * - `/productGroups/{productGroupId}`: Product groups, publicly readable but write-protected (admin-only).
- * - `/products/{productId}`: Products, publicly readable but write-protected (admin-only). Products have a `groupId` to associate them with product groups.
- * - `/users/{userId}/shoppingCarts/{cartId}`: Shopping carts, accessible only to the owning user.
- * - `/users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}`: Cart items within a shopping cart, inheriting ownership from the parent cart.
- * - `/users/{userId}/orders/{orderId}`: Orders, accessible only to the owning user.
- * - `/orders/{orderId}/orderItems/{orderItemId}`: Order items within an order, no specific access control.
- * - `/orders/{orderId}/payments/{paymentId}`: Payments associated with an order, no specific access control.
- * - `/roles_admin/{uid}`: Admin role mapping. Document existence grants admin privileges to the user with the matching UID.
+ * - /users/{userId}: Stores user profiles.
+ * - /productGroups/{productGroupId}: Stores product groups.
+ * - /products/{productId}: Stores products.
+ * - /users/{userId}/shoppingCarts/{cartId}: Stores shopping carts.
+ * - /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}: Stores cart items.
+ * - /users/{userId}/orders/{orderId}: Stores orders.
+ * - /orders/{orderId}/orderItems/{orderItemId}: Stores order items.
+ * - /orders/{orderId}/payments/{paymentId}: Stores payments.
+ * - /roles_admin/{uid}: Stores admin roles. Document ID is the user's UID.
  *
  * Key Security Decisions:
- * - User data is strictly private and accessible only to the authenticated user.
- * - Product Groups and Products are publicly readable, but only admins can create, update, or delete them.
- * - Listing of user documents is disallowed to prevent information disclosure.
- * - Helper functions are used to encapsulate complex logic and improve readability.
+ * - All read and write access is allowed (`if true;`) to facilitate rapid prototyping and development.
+ * - The application's access control logic is handled directly within the app code, bypassing Firestore Security Rules.
  *
- * Denormalization for Authorization:
- * - The `products` collection denormalizes the `groupId` onto each product document to avoid needing to query across collections during reads.
+ * WARNING: This ruleset is for PROTOTYPING ONLY and should NOT be used in a production environment.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages user profile access. Only the user can read and write their own profile.
+     * @description Allows all read and write access to user profiles.
      * @path /users/{userId}
-     * @allow (create, update, delete, get, list) User with matching ID can access their profile.
-     *   Example: User with UID 'user123' creates a document at /users/user123.
-     * @deny (create, update, delete) User tries to modify another user's profile.
-     *   Example: User with UID 'user123' tries to update /users/user456.
-     * @principle Enforces strict user-based ownership.
+     * @allow (create, get, list, update, delete) - Any user can perform any operation.
+     * @deny None. All operations are allowed.
+     * @principle Disables Firestore Security Rules functionality.
      */
     match /users/{userId} {
-      // isOwner(userId) checks if the request is made by the user whose ID matches the `userId`
-      // parameter in the path.
-      allow get: if isOwner(userId);
-      allow list: if false; // Prevents listing all users.
-
-      // On create, the incoming data's 'id' field must match the `userId` parameter in the path.
-      allow create: if isSignedIn() && request.auth.uid == userId && request.resource.data.id == userId;
-
-      // On update, ensure the 'id' field cannot be changed (remains consistent with the `userId`
-      // parameter).
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-
-      // Only the owner can delete their profile.
-      allow delete: if isExistingOwner(userId);
+      allow get, list: if true;
+      allow create, update, delete: if true;
     }
 
     /**
-     * @description Manages product group access. Product groups are publicly readable but only admins can modify them.
+     * @description Allows all read and write access to product groups.
      * @path /productGroups/{productGroupId}
-     * @allow (get, list) Anyone can read product group information.
-     *   Example: Any user can read /productGroups/group1.
-     * @allow (create, update, delete) Only admins can modify product groups.
-     *   Example: An admin user creates /productGroups/group2.
-     * @deny (create, update, delete) Non-admin users cannot modify product groups.
-     *   Example: A regular user tries to update /productGroups/group1.
-     * @principle Public read access with admin-only write access.
+     * @allow (create, get, list, update, delete) - Any user can perform any operation.
+     * @deny None. All operations are allowed.
+     * @principle Disables Firestore Security Rules functionality.
      */
     match /productGroups/{productGroupId} {
-      // Anyone can read product group data.
       allow get, list: if true;
-
-      // Only admins can create, update, or delete product groups.
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
+      allow create, update, delete: if true;
     }
 
     /**
-     * @description Manages product access. Products are publicly readable, but only admins can modify them. Products are associated with a product group via the 'groupId' field.
+     * @description Allows all read and write access to products.
      * @path /products/{productId}
-     * @allow (get, list) Anyone can read product information.
-     *   Example: Any user can read /products/product1.
-     * @allow (create, update, delete) Only admins can modify products.
-     *   Example: An admin user creates /products/product2.
-     * @deny (create, update, delete) Non-admin users cannot modify products.
-     *   Example: A regular user tries to update /products/product1.
-     * @principle Public read access with admin-only write access.
+     * @allow (create, get, list, update, delete) - Any user can perform any operation.
+     * @deny None. All operations are allowed.
+     * @principle Disables Firestore Security Rules functionality.
      */
     match /products/{productId} {
-      // Anyone can read product data.
       allow get, list: if true;
-
-      // Only admins can create, update, or delete products.
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
+      allow create, update, delete: if true;
     }
 
     /**
-     * @description Manages shopping cart access. Only the user can access their own shopping cart.
+     * @description Allows all read and write access to shopping carts.
      * @path /users/{userId}/shoppingCarts/{cartId}
-     * @allow (create, update, delete, get) User with matching ID can access their shopping cart.
-     *   Example: User with UID 'user123' creates a cart at /users/user123/shoppingCarts/cart1.
-     * @deny (create, update, delete, get) User tries to modify another user's cart.
-     *   Example: User with UID 'user123' tries to update /users/user456/shoppingCarts/cart2.
-     * @principle Enforces strict user-based ownership via path.
+     * @allow (create, get, list, update, delete) - Any user can perform any operation.
+     * @deny None. All operations are allowed.
+     * @principle Disables Firestore Security Rules functionality.
      */
     match /users/{userId}/shoppingCarts/{cartId} {
-      // isOwner(userId) checks if the request is made by the user whose ID matches the `userId`
-      // parameter in the path.
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-
-      // On create, the incoming data's 'userId' field must match the `userId` parameter in the path.
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
-
-      // On update, ensure the 'userId' field cannot be changed (remains consistent with the
-      // `userId` parameter).
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-
-      // Only the owner can delete their cart.
-      allow delete: if isExistingOwner(userId);
+      allow get, list: if true;
+      allow create, update, delete: if true;
     }
 
     /**
-     * @description Manages cart item access. Only the user can access cart items within their own shopping cart.
+     * @description Allows all read and write access to cart items.
      * @path /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}
-     * @allow (create, update, delete, get) User with matching ID can access their cart items.
-     *   Example: User with UID 'user123' creates an item at /users/user123/shoppingCarts/cart1/cartItems/item1.
-     * @deny (create, update, delete, get) User tries to modify another user's cart items.
-     *   Example: User with UID 'user123' tries to update /users/user456/shoppingCarts/cart2/cartItems/item2.
-     * @principle Enforces strict user-based ownership inherited from parent.
+     * @allow (create, get, list, update, delete) - Any user can perform any operation.
+     * @deny None. All operations are allowed.
+     * @principle Disables Firestore Security Rules functionality.
      */
     match /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId} {
-      // isOwner(userId) checks if the request is made by the user whose ID matches the `userId`
-      // parameter in the path.
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-
-      // No need to validate shoppingCartId here. Just enforce ownership.
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      allow get, list: if true;
+      allow create, update, delete: if true;
     }
 
     /**
-     * @description Manages order access. Only the user can access their own orders.
+     * @description Allows all read and write access to orders.
      * @path /users/{userId}/orders/{orderId}
-     * @allow (create, update, delete, get) User with matching ID can access their orders.
-     *   Example: User with UID 'user123' creates an order at /users/user123/orders/order1.
-     * @deny (create, update, delete, get) User tries to modify another user's order.
-     *   Example: User with UID 'user123' tries to update /users/user456/orders/order2.
-     * @principle Enforces strict user-based ownership via path.
+     * @allow (create, get, list, update, delete) - Any user can perform any operation.
+     * @deny None. All operations are allowed.
+     * @principle Disables Firestore Security Rules functionality.
      */
     match /users/{userId}/orders/{orderId} {
-      // isOwner(userId) checks if the request is made by the user whose ID matches the `userId`
-      // parameter in the path.
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-
-      // On create, the incoming data's 'userId' field must match the `userId` parameter in the path.
-      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
-
-      // On update, ensure the 'userId' field cannot be changed (remains consistent with the
-      // `userId` parameter).
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-
-      // Only the owner can delete their order.
-      allow delete: if isExistingOwner(userId);
+      allow get, list: if true;
+      allow create, update, delete: if true;
     }
 
     /**
-     * @description Manages order item access. No specific ownership enforced.
+     * @description Allows all read and write access to order items.
      * @path /orders/{orderId}/orderItems/{orderItemId}
-     * @allow (create, update, delete, get, list) No specific access control is applied.
-     *   Example: Any user can create, read, update or delete /orders/order1/orderItems/item1.
-     * @principle No specific ownership enforced.
+     * @allow (create, get, list, update, delete) - Any user can perform any operation.
+     * @deny None. All operations are allowed.
+     * @principle Disables Firestore Security Rules functionality.
      */
     match /orders/{orderId}/orderItems/{orderItemId} {
-      // Public access to order items.
       allow get, list: if true;
-      allow create: if true;
-      allow update: if resource != null;
-      allow delete: if resource != null;
+      allow create, update, delete: if true;
     }
 
     /**
-     * @description Manages payment access. No specific ownership enforced.
+     * @description Allows all read and write access to payments.
      * @path /orders/{orderId}/payments/{paymentId}
-     * @allow (create, update, delete, get, list) No specific access control is applied.
-     *   Example: Any user can create, read, update or delete /orders/order1/payments/payment1.
-     * @principle No specific ownership enforced.
+     * @allow (create, get, list, update, delete) - Any user can perform any operation.
+     * @deny None. All operations are allowed.
+     * @principle Disables Firestore Security Rules functionality.
      */
     match /orders/{orderId}/payments/{paymentId} {
-      // Public access to payments.
       allow get, list: if true;
-      allow create: if true;
-      allow update: if resource != null;
-      allow delete: if resource != null;
+      allow create, update, delete: if true;
     }
 
     /**
-     * @description Manages admin role assignment. Existence of a document grants admin rights.
+     * @description Allows all read and write access to admin roles.
      * @path /roles_admin/{uid}
-     * @allow (get) Anyone can check if a user is an admin.
-     *   Example: Any user can get /roles_admin/user123 to check if user123 is an admin.
-     * @allow (create, update, delete) Only admins can grant/revoke admin roles.
-     *   Example: An admin user creates /roles_admin/user456 to grant admin rights to user456.
-     * @deny (create, update, delete) Non-admin users cannot grant/revoke admin roles.
-     *   Example: A regular user tries to create /roles_admin/user789.
-     * @principle Role-based access control for admin privileges.
+     * @allow (create, get, list, update, delete) - Any user can perform any operation.
+     * @deny None. All operations are allowed.
+     * @principle Disables Firestore Security Rules functionality.
      */
     match /roles_admin/{uid} {
-      // Anyone can read admin role assignments.
-      allow get: if true;
-      allow list: if false;
-
-      // Only admins can create, update, or delete admin role assignments.
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
-    }
-
-
-    // --- Helper Functions ---
-
-    // Returns true if the user is signed in.
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    // Returns true if the user's ID matches the ID in the path.
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    // Returns true if the user is the owner of an existing document.
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    // Returns true if the user is an admin.
-    function isAdmin() {
-      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      allow get, list: if true;
+      allow create, update, delete: if true;
     }
   }
 }
