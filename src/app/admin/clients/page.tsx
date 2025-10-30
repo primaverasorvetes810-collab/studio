@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import PageHeader from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,61 +27,98 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu";
-import { collection, Timestamp, getDocs } from "firebase/firestore";
+import { collection, Timestamp, getDocs, query, collectionGroup } from "firebase/firestore";
 import Link from "next/link";
+import { Order } from '@/firebase/orders';
 
-// Define a mais flexível para clientes, já que registerTime pode não ser sempre um objeto Timestamp inicialmente.
-type Client = {
-    id: string;
+
+type ClientFromOrder = {
+    id: string; // userId
     fullName: string;
     email: string;
-    registerTime?: Timestamp;
     phone?: string;
     address?: string;
     neighborhood?: string;
     city?: string;
-};
+    lastOrderId: string; // To link to details page
+    lastOrderDate: Date;
+    totalOrders: number;
+    totalSpent: number;
+}
+
 
 export default function ClientsPage() {
   const firestore = useFirestore();
-  const [clients, setClients] = useState<Client[]>([]);
+  const [clients, setClients] = useState<ClientFromOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchClients() {
+    async function fetchClientsFromOrders() {
       if (!firestore) return;
       setIsLoading(true);
-      const usersCollection = collection(firestore, 'users');
-      getDocs(usersCollection)
-        .then(usersSnapshot => {
-            const clientsList = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Client));
-            setClients(clientsList);
-        })
-        .catch(serverError => {
-            const permissionError = new FirestorePermissionError({
-                path: 'users',
-                operation: 'list',
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        })
-        .finally(() => {
-            setIsLoading(false);
-        });
+      
+      const ordersQuery = query(collectionGroup(firestore, 'orders'));
+
+      try {
+        const ordersSnapshot = await getDocs(ordersQuery);
+        const orders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+
+        // Aggregate client data from orders
+        const clientsMap = new Map<string, ClientFromOrder>();
+        
+        for (const order of orders) {
+            if (!order.userId || !order.userName || !order.userEmail) continue;
+
+            const existingClient = clientsMap.get(order.userId);
+            const orderDate = order.orderDate.toDate();
+
+            if (existingClient) {
+                existingClient.totalOrders += 1;
+                existingClient.totalSpent += order.totalAmount;
+                if (orderDate > existingClient.lastOrderDate) {
+                    existingClient.lastOrderDate = orderDate;
+                    existingClient.lastOrderId = order.id;
+                }
+            } else {
+                clientsMap.set(order.userId, {
+                    id: order.userId,
+                    fullName: order.userName,
+                    email: order.userEmail,
+                    phone: order.userPhone,
+                    address: order.userAddress,
+                    neighborhood: order.userNeighborhood,
+                    city: order.userCity,
+                    lastOrderId: order.id,
+                    lastOrderDate: orderDate,
+                    totalOrders: 1,
+                    totalSpent: order.totalAmount
+                });
+            }
+        }
+        
+        const clientsList = Array.from(clientsMap.values()).sort((a, b) => b.lastOrderDate.getTime() - a.lastOrderDate.getTime());
+        setClients(clientsList);
+
+      } catch (e) {
+         errorEmitter.emit('permission-error', new FirestorePermissionError({
+             path: 'orders', // This is now a collection group query
+             operation: 'list'
+         }));
+      } finally {
+        setIsLoading(false);
+      }
     }
-    fetchClients();
+    fetchClientsFromOrders();
   }, [firestore]);
 
 
-  const formatDate = (timestamp: any) => {
-    if (timestamp && typeof timestamp.toDate === 'function') {
-      return timestamp.toDate().toLocaleDateString();
-    }
-    return 'N/A';
+  const formatDate = (date: Date) => {
+    return date ? date.toLocaleDateString() : 'N/A';
   }
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader title="Clientes" description="Gerencie seus clientes." />
+      <PageHeader title="Clientes" description="Gerencie seus clientes com base em seus pedidos." />
       <Card>
         <CardHeader>
             <CardTitle>Lista de Clientes</CardTitle>
@@ -99,7 +136,7 @@ export default function ClientsPage() {
                 <TableHead>Contato (E-mail)</TableHead>
                 <TableHead>Telefone</TableHead>
                 <TableHead>Endereço</TableHead>
-                <TableHead>Cliente Desde</TableHead>
+                <TableHead>Último Pedido</TableHead>
                 <TableHead>
                   <span className="sr-only">Ações</span>
                 </TableHead>
@@ -114,7 +151,7 @@ export default function ClientsPage() {
                   <TableCell>
                     {client.address ? `${client.address}, ${client.neighborhood}, ${client.city}` : 'N/A'}
                   </TableCell>
-                  <TableCell>{formatDate(client.registerTime)}</TableCell>
+                  <TableCell>{formatDate(client.lastOrderDate)}</TableCell>
                   <TableCell>
                   <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -126,7 +163,8 @@ export default function ClientsPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
                         <DropdownMenuItem asChild>
-                            <Link href={`/admin/clients/${client.id}`}>Ver Detalhes</Link>
+                            {/* Link to order details which contains client info */}
+                            <Link href={`/admin/clients/${client.lastOrderId}`}>Ver Detalhes</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem disabled>Editar</DropdownMenuItem>
                       </DropdownMenuContent>
@@ -138,7 +176,7 @@ export default function ClientsPage() {
           </Table>
            ) : (
             <div className="text-center text-muted-foreground py-8">
-              Nenhum cliente encontrado.
+              Nenhum cliente com pedidos encontrado.
             </div>
           )}
         </CardContent>

@@ -38,6 +38,11 @@ export interface User {
     id: string;
     email: string;
     registerTime: Timestamp;
+    fullName: string;
+    phone?: string;
+    address?: string;
+    neighborhood?: string;
+    city?: string;
 }
 
 export interface Order {
@@ -45,6 +50,10 @@ export interface Order {
   userId: string;
   userName: string | null;
   userEmail: string | null;
+  userPhone?: string;
+  userAddress?: string;
+  userNeighborhood?: string;
+  userCity?: string;
   orderDate: Timestamp;
   paymentMethod: string;
   totalAmount: number;
@@ -65,7 +74,16 @@ export async function createOrderFromCart(
   const userId = user.uid;
   try {
     await runTransaction(firestore, async (transaction) => {
-      // 1. Create a new order document with items included
+      // 1. Get user details to embed in the order
+      const userRef = doc(firestore, 'users', userId);
+      const userSnap = await transaction.get(userRef);
+      if (!userSnap.exists()) {
+        throw new Error("User document not found!");
+      }
+      const userData = userSnap.data() as User;
+
+
+      // 2. Create a new order document with items included
       const ordersCollection = collection(firestore, `users/${userId}/orders`);
       const newOrderRef = doc(ordersCollection);
 
@@ -89,8 +107,12 @@ export async function createOrderFromCart(
 
       const newOrderData = {
         userId,
-        userName: user.displayName || user.email,
-        userEmail: user.email,
+        userName: userData.fullName || user.displayName,
+        userEmail: userData.email,
+        userPhone: userData.phone,
+        userAddress: userData.address,
+        userNeighborhood: userData.neighborhood,
+        userCity: userData.city,
         orderDate: serverTimestamp(),
         paymentMethod,
         totalAmount,
@@ -100,7 +122,7 @@ export async function createOrderFromCart(
       
       transaction.set(newOrderRef, newOrderData);
 
-      // 2. Delete all items from the user's cart
+      // 3. Delete all items from the user's cart
       const cartItemsCollectionRef = collection(
         firestore,
         `users/${userId}/shoppingCarts/${cartId}/cartItems`
@@ -111,14 +133,25 @@ export async function createOrderFromCart(
       }
     });
   } catch (error) {
-    errorEmitter.emit(
-      'permission-error',
-      new FirestorePermissionError({
-        path: `users/${userId}/orders`,
-        operation: 'write',
-        requestResourceData: { paymentMethod, totalAmount },
-      })
-    );
+    // If the transaction failed to get user doc, it might be a permission error
+    if (error instanceof Error && error.message.includes('permission-denied')) {
+       errorEmitter.emit(
+        'permission-error',
+        new FirestorePermissionError({
+          path: `users/${userId}`,
+          operation: 'get',
+        })
+      );
+    } else {
+        errorEmitter.emit(
+        'permission-error',
+        new FirestorePermissionError({
+            path: `users/${userId}/orders`,
+            operation: 'write',
+            requestResourceData: { paymentMethod, totalAmount },
+        })
+        );
+    }
     // Re-throw the original error if it's not a permission error or for other logging
     throw error;
   }
