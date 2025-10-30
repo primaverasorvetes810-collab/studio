@@ -109,18 +109,18 @@ export default function OrdersAdminPage() {
                     <Accordion type="single" collapsible className="w-full">
                         {orders.map((order) => (
                         <AccordionItem value={order.id} key={order.id} className="border-b">
-                            <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-2 text-left">
+                             <div className="flex items-center justify-between w-full px-6 py-4">
+                                <AccordionTrigger className="p-0 flex-1 text-left hover:no-underline">
                                     <div className="flex flex-col items-start">
                                         <span className="font-bold text-base">{order.userName}</span>
                                         <span className="text-sm text-muted-foreground">Pedido #{order.id.substring(0, 7)}...</span>
                                     </div>
-                                    <div className="flex items-center gap-4" onClick={(e) => e.stopPropagation()}>
-                                        <span className="font-bold text-primary">{formatPrice(order.totalAmount)}</span>
-                                        <OrderStatusSelector order={order} onStatusChange={handleStatusChange} />
-                                    </div>
+                                </AccordionTrigger>
+                                <div className="flex items-center gap-4 ml-4">
+                                    <span className="font-bold text-primary">{formatPrice(order.totalAmount)}</span>
+                                    <OrderStatusSelector order={order} onStatusChange={handleStatusChange} />
                                 </div>
-                            </AccordionTrigger>
+                            </div>
                              <AccordionContent className="px-6 pb-4 bg-muted/50">
                                 <div className="space-y-4 pt-4">
                                     <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4'>
