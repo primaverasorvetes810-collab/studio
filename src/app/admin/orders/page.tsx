@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from "react";
 import PageHeader from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,17 +46,18 @@ export default function OrdersAdminPage() {
     const { isAdmin, isLoading: isAdminLoading } = useAdminAuth();
     const router = useRouter();
 
-    if (isAdminLoading) {
+    useEffect(() => {
+        if (!isAdminLoading && !isAdmin) {
+            router.push('/admin/login');
+        }
+    }, [isAdmin, isAdminLoading, router]);
+
+    if (isAdminLoading || !isAdmin) {
         return (
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         );
-    }
-    
-    if (!isAdmin) {
-        router.push('/admin/login');
-        return null;
     }
 
   return (
