@@ -42,12 +42,10 @@ export default function CartPage() {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
-  const subtotal = cartItems.reduce(
+  const total = cartItems.reduce(
     (acc, item) => acc + item.product.price * item.quantity,
     0
   );
-  const shippingFee = 5;
-  const total = subtotal + shippingFee;
 
   const handleRemoveItem = (cartItemId: string) => {
     if (!user || !cartId) return;
@@ -189,14 +187,6 @@ export default function CartPage() {
               <CardTitle>Resumo do Pedido</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>{formatPrice(subtotal)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Frete</span>
-                <span>{formatPrice(shippingFee)}</span>
-              </div>
               <Separator />
               <div className="flex justify-between font-bold">
                 <span>Total</span>
