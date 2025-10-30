@@ -41,91 +41,110 @@ const statusColors: Record<Order["status"], string> = {
     Cancelado: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
 };
 
-export default function OrdersAdminPage() {
+function OrdersAdminContent() {
     const { orders, isLoading, error } = useAllOrders();
-    const { isAdmin, isLoading: isAdminLoading } = useAdminAuth();
-    const router = useRouter();
 
-    useEffect(() => {
-        if (!isAdminLoading && !isAdmin) {
-            router.push('/admin/login');
-        }
-    }, [isAdmin, isAdminLoading, router]);
-
-    if (isAdminLoading || !isAdmin) {
+    if (isLoading) {
         return (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
+            <div className="flex justify-center items-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+    
+    if (error) {
+        return (
+            <div className="text-center text-red-500 py-8">
+                Ocorreu um erro ao carregar os pedidos.
+            </div>
         );
     }
 
-  return (
-    <div className="flex flex-col gap-8">
-      <PageHeader title="Pedidos" description="Gerencie os pedidos dos clientes." />
-      <Card>
-        <CardHeader>
-            <CardTitle>Histórico de Pedidos</CardTitle>
-        </CardHeader>
-        <CardContent>
-            {isLoading ? (
-                 <div className="flex justify-center items-center h-64">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                </div>
-            ) : error ? (
-                <div className="text-center text-red-500 py-8">
-                    Ocorreu um erro ao carregar os pedidos.
-                </div>
-            ) : orders.length === 0 ? (
-                <div className="text-center text-muted-foreground py-8">
-                    Nenhum pedido encontrado.
-                </div>
-            ) : (
-                <Table>
-                    <TableHeader>
-                    <TableRow>
-                        <TableHead>ID do Pedido</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Cliente (ID)</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                        <TableHead>
-                        <span className="sr-only">Ações</span>
-                        </TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {orders.map((order) => (
-                        <TableRow key={order.id}>
-                        <TableCell className="font-medium">{order.id.substring(0, 7)}...</TableCell>
-                        <TableCell>
-                            <Badge className={cn(statusColors[order.status])} variant="outline">{order.status}</Badge>
-                        </TableCell>
-                        <TableCell>{order.orderDate.toDate().toLocaleDateString()}</TableCell>
-                        <TableCell>{order.userName || order.userId.substring(0,10)}...</TableCell>
-                        <TableCell className="text-right">{formatPrice(order.totalAmount)}</TableCell>
-                        <TableCell>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button aria-haspopup="true" size="icon" variant="ghost">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Alternar menu</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
-                                <DropdownMenuItem>Atualizar Status</DropdownMenuItem>
-                            </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                        </TableRow>
-                    ))}
-                    </TableBody>
-                </Table>
-            )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+    if (orders.length === 0) {
+        return (
+            <div className="text-center text-muted-foreground py-8">
+                Nenhum pedido encontrado.
+            </div>
+        );
+    }
+
+    return (
+        <Table>
+            <TableHeader>
+            <TableRow>
+                <TableHead>ID do Pedido</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Cliente (ID)</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+                <TableHead>
+                <span className="sr-only">Ações</span>
+                </TableHead>
+            </TableRow>
+            </TableHeader>
+            <TableBody>
+            {orders.map((order) => (
+                <TableRow key={order.id}>
+                <TableCell className="font-medium">{order.id.substring(0, 7)}...</TableCell>
+                <TableCell>
+                    <Badge className={cn(statusColors[order.status])} variant="outline">{order.status}</Badge>
+                </TableCell>
+                <TableCell>{order.orderDate.toDate().toLocaleDateString()}</TableCell>
+                <TableCell>{order.userName || order.userId.substring(0,10)}...</TableCell>
+                <TableCell className="text-right">{formatPrice(order.totalAmount)}</TableCell>
+                <TableCell>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                        <MoreHorizontal className="h-4 w-4" />
+                        <span className="sr-only">Alternar menu</span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
+                        <DropdownMenuItem>Atualizar Status</DropdownMenuItem>
+                    </DropdownMenuContent>
+                    </DropdownMenu>
+                </TableCell>
+                </TableRow>
+            ))}
+            </TableBody>
+        </Table>
+    );
+}
+
+export default function OrdersAdminPage() {
+    const { isAdmin, isLoading } = useAdminAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!isLoading && !isAdmin) {
+            router.push('/admin/login');
+        }
+    }, [isAdmin, isLoading, router]);
+
+    return (
+        <div className="flex flex-col gap-8">
+          <PageHeader title="Pedidos" description="Gerencie os pedidos dos clientes." />
+          <Card>
+            <CardHeader>
+                <CardTitle>Histórico de Pedidos</CardTitle>
+            </CardHeader>
+            <CardContent>
+                {isLoading ? (
+                     <div className="flex justify-center items-center h-64">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                ) : isAdmin ? (
+                    <OrdersAdminContent />
+                ) : (
+                    <div className="text-center text-muted-foreground py-8">
+                        Você não tem permissão para ver esta página.
+                    </div>
+                )}
+            </CardContent>
+          </Card>
+        </div>
+      );
 }
