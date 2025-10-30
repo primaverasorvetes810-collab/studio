@@ -1,56 +1,48 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Regras para a coleção de usuários
+
+    // Regra para a coleção de usuários
     match /users/{userId} {
-      // PERMISSÃO CRÍTICA: Permite que um usuário leia seu próprio perfil.
-      // Isso é necessário para que a transação de criação de pedido possa obter
-      // o nome e o endereço do cliente.
+      // Usuários autenticados podem ler seus próprios perfis e criar seu próprio documento
       allow read: if request.auth != null && request.auth.uid == userId;
-
-      // Permite que um novo usuário crie seu próprio documento de perfil durante o cadastro.
       allow create: if request.auth != null && request.auth.uid == userId;
-
-      // Subcoleção de Pedidos (Orders)
-      match /orders/{orderId} {
-        // Permite que um usuário crie e leia seus próprios pedidos.
-        allow create, read: if request.auth != null && request.auth.uid == userId;
-        
-        // Permite que um usuário cancele seu pedido (atualizando o status).
-        // E permite que um admin (qualquer usuário autenticado, neste caso) atualize o status.
-        allow update: if request.auth != null;
-
-        // Segurança extra: ninguém pode apagar pedidos.
-        allow delete: if false;
-      }
-
-      // Subcoleção de Carrinho de Compras (ShoppingCarts)
+      
+      // Permite que um usuário gerencie seu próprio carrinho de compras
       match /shoppingCarts/{cartId} {
-        // Permite que o usuário acesse e modifique seu próprio carrinho.
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-        
-        // Itens dentro do carrinho
+        allow read, write: if request.auth.uid == userId;
+
         match /cartItems/{cartItemId} {
-          // Permite que o usuário adicione, modifique e exclua itens de seu próprio carrinho.
-          // A permissão de exclusão (delete) é essencial para limpar o carrinho após a compra.
-          allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+          allow read, write, delete: if request.auth.uid == userId;
         }
       }
+
+      // Permite que um usuário crie e leia seus próprios pedidos
+      match /orders/{orderId} {
+        allow create, read: if request.auth.uid == userId;
+        // Ninguém pode atualizar ou excluir um pedido diretamente
+        allow update, delete: if false; 
+      }
+    }
+    
+    // Regra para o grupo de coleções de pedidos
+    match /{path=**}/orders/{orderId} {
+      // Permite que qualquer usuário autenticado leia todos os pedidos (para o painel de admin)
+      allow read: if request.auth != null;
     }
 
-    // Regras para coleções públicas/de administração
-    match /productGroups/{groupId} {
-      // Qualquer um pode ver os grupos de produtos.
+    // Coleções de nível raiz para produtos e grupos de produtos
+    match /products/{productId} {
+      // Qualquer pessoa pode ler os produtos
       allow read: if true;
-      // Apenas usuários autenticados podem gerenciar grupos (através do painel admin).
+      // Apenas usuários autenticados podem modificar produtos (protegido pela senha do admin na UI)
       allow write: if request.auth != null;
     }
 
-    match /products/{productId} {
-      // Qualquer um pode ver os produtos.
+    match /productGroups/{groupId} {
+      // Qualquer pessoa pode ler os grupos de produtos
       allow read: if true;
-      // Apenas usuários autenticados podem gerenciar produtos (através do painel admin).
+      // Apenas usuários autenticados podem modificar grupos (protegido pela senha do admin na UI)
       allow write: if request.auth != null;
     }
   }
