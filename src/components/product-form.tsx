@@ -50,8 +50,8 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
     defaultValues: {
       name: product?.name ?? '',
       description: product?.description ?? '',
-      price: product?.price ?? 0,
-      stock: product?.stock ?? 0,
+      price: product?.price,
+      stock: product?.stock,
       image: product?.image ?? '',
     },
   });
