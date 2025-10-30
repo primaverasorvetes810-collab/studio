@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
@@ -84,16 +85,16 @@ export default function ClientDetailsPage({
           <CardHeader>
             <CardTitle>Informações de Contato</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-2 text-sm">
-            <div className="grid grid-cols-2 gap-2">
+          <CardContent className="grid gap-4 text-sm">
+            <div className="grid gap-1">
               <span className="font-semibold">E-mail:</span>
               <span>{client.email}</span>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-1">
               <span className="font-semibold">Telefone:</span>
               <span>{client.phone || 'N/A'}</span>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid gap-1">
               <span className="font-semibold">Endereço:</span>
               <span>{`${client.address || ''}, ${client.neighborhood || ''}, ${client.city || ''}`}</span>
             </div>
