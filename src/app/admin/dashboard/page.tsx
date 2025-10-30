@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -5,6 +6,7 @@ import {
   Users,
   ShoppingCart,
   Package,
+  Loader2,
 } from "lucide-react";
 import PageHeader from "@/components/page-header";
 import { AdminStatsCard } from "@/components/admin-stats-card";
@@ -24,10 +26,65 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { orders, type Order } from "@/lib/data/orders";
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { OverviewChart } from "@/components/overview-chart";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, query, getDocs } from 'firebase/firestore';
+import { useMemo, useState, useEffect } from "react";
+import type { Order, User } from "@/firebase/orders";
+import type { Product } from "@/lib/data/products";
+
+
+// Custom hook to fetch all orders from all users
+function useAllOrders() {
+    const firestore = useFirestore();
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
+
+    const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+    const { data: users, isLoading: usersLoading } = useCollection<User>(usersQuery);
+
+    useEffect(() => {
+        if (usersLoading || !firestore) return;
+        if (!users) {
+            setIsLoading(false);
+            return;
+        }
+
+        const fetchOrders = async () => {
+            setIsLoading(true);
+            try {
+                const allOrders: Order[] = [];
+                for (const user of users) {
+                    const ordersCollectionRef = collection(firestore, `users/${user.id}/orders`);
+                    const ordersQuery = query(ordersCollectionRef);
+                    const ordersSnapshot = await getDocs(ordersQuery);
+                    ordersSnapshot.forEach((doc) => {
+                        allOrders.push({ id: doc.id, ...doc.data() } as Order);
+                    });
+                }
+                // Sort orders by date, most recent first
+                allOrders.sort((a, b) => {
+                    const dateA = a.orderDate?.toDate()?.getTime() || 0;
+                    const dateB = b.orderDate?.toDate()?.getTime() || 0;
+                    return dateB - dateA;
+                });
+                setOrders(allOrders);
+            } catch (e) {
+                setError(e as Error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchOrders();
+
+    }, [users, usersLoading, firestore]);
+
+    return { orders, isLoading, error };
+}
 
 const statusColors: Record<Order["status"], string> = {
   Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
@@ -39,14 +96,31 @@ const statusColors: Record<Order["status"], string> = {
 };
 
 export default function DashboardPage() {
+  const { orders, isLoading: isLoadingOrders } = useAllOrders();
+  const firestore = useFirestore();
+
+  const productsQuery = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
+  const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
+
+  const { totalStock, activeProducts } = useMemo(() => {
+    if (!products) {
+      return { totalStock: 0, activeProducts: 0 };
+    }
+    const totalStock = products.reduce((acc, product) => acc + product.stock, 0);
+    const activeProducts = products.filter(product => product.stock > 0).length;
+    return { totalStock, activeProducts };
+  }, [products]);
+
   const recentOrders = orders.slice(0, 5);
+  const totalRevenue = orders.reduce((acc, order) => acc + order.totalAmount, 0);
+
   return (
     <div className="flex flex-col gap-8">
       <PageHeader title="Painel" description="Uma visão geral da sua loja." />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <AdminStatsCard
           title="Receita Total"
-          value={formatPrice(54231.89)}
+          value={formatPrice(totalRevenue)}
           icon={DollarSign}
           description="+20.1% do mês passado"
         />
@@ -58,15 +132,15 @@ export default function DashboardPage() {
         />
         <AdminStatsCard
           title="Pedidos"
-          value="+12,234"
+          value={`+${orders.length}`}
           icon={ShoppingCart}
           description="+19% do mês passado"
         />
         <AdminStatsCard
           title="Produtos em Estoque"
-          value="573"
+          value={isLoadingProducts ? <Loader2 className="h-6 w-6 animate-spin" /> : totalStock.toString()}
           icon={Package}
-          description="201 ativos"
+          description={isLoadingProducts ? 'Calculando...' : `${activeProducts} ativos`}
         />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
@@ -86,6 +160,11 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {isLoadingOrders ? (
+              <div className="flex justify-center items-center h-40">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -98,18 +177,19 @@ export default function DashboardPage() {
                 {recentOrders.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell>
-                      <div className="font-medium">{order.id}</div>
+                      <div className="font-medium">{order.id.substring(0,7)}</div>
                     </TableCell>
                     <TableCell>
                        <Badge className={cn("whitespace-nowrap", statusColors[order.status])} variant="outline">
                          {order.status}
                        </Badge>
                     </TableCell>
-                    <TableCell className="text-right">{formatPrice(order.total)}</TableCell>
+                    <TableCell className="text-right">{formatPrice(order.totalAmount)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            )}
           </CardContent>
         </Card>
       </div>

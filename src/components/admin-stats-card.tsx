@@ -3,7 +3,7 @@ import type { LucideIcon } from "lucide-react";
 
 type AdminStatsCardProps = {
   title: string;
-  value: string;
+  value: string | React.ReactNode;
   icon: LucideIcon;
   description?: string;
 };
