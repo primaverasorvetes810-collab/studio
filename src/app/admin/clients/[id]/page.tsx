@@ -1,9 +1,6 @@
 
 'use client';
 
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { useUserOrders } from '@/firebase/orders';
-import { doc, Timestamp } from 'firebase/firestore';
 import { notFound } from 'next/navigation';
 import PageHeader from '@/components/page-header';
 import {
@@ -30,12 +27,41 @@ type Client = {
   id: string;
   fullName: string;
   email: string;
-  registerTime?: Timestamp;
+  registerTime?: { toDate: () => Date };
   phone?: string;
   address?: string;
   neighborhood?: string;
   city?: string;
 };
+
+// Static Data
+const staticClient: Client = {
+  id: 'vera-123',
+  fullName: 'Vera',
+  email: 'primaverasorvetes810@gmail.com',
+  registerTime: { toDate: () => new Date('2023-10-30') },
+  phone: '15998154015',
+  address: 'Izolina Martins Telles, 29',
+  neighborhood: 'Jardim Vante',
+  city: 'Porto Feliz',
+};
+
+const staticOrders: Order[] = [
+  // This client has no orders yet, so this is empty.
+  // Example of what an order would look like:
+  // {
+  //   id: 'order-001',
+  //   userId: 'vera-123',
+  //   orderDate: { toDate: () => new Date('2024-05-10') },
+  //   totalAmount: 150.75,
+  //   status: 'Entregue',
+  //   paymentMethod: 'Cartão de Crédito ou Débito',
+  //   userName: 'Vera',
+  //   userEmail: 'primaverasorvetes810@gmail.com',
+  //   items: []
+  // }
+];
+
 
 const statusColors: Record<Order['status'], string> = {
   Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20',
@@ -51,14 +77,10 @@ export default function ClientDetailsPage({
 }: {
   params: { id: string };
 }) {
-  const firestore = useFirestore();
-
-  const clientRef = useMemoFirebase(
-    () => (firestore && params.id ? doc(firestore, 'users', params.id) : null),
-    [firestore, params.id]
-  );
-  const { data: client, isLoading: isClientLoading } = useDoc<Client>(clientRef);
-  const { orders, isLoading: areOrdersLoading } = useUserOrders(params.id);
+  const client = staticClient;
+  const orders = staticOrders;
+  const isClientLoading = false;
+  const areOrdersLoading = false;
 
   if (isClientLoading || areOrdersLoading) {
     return (
