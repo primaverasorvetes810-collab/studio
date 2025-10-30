@@ -1,29 +1,53 @@
 'use client';
 import {
-  Auth, // Import Auth type for type hinting
+  Auth,
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  // Assume getAuth and app are initialized elsewhere
 } from 'firebase/auth';
+import { getClientSdks } from '@/firebase';
+import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { errorEmitter } from './error-emitter';
+import { FirestorePermissionError } from './errors';
 
 /** Initiate anonymous sign-in (non-blocking). */
 export function initiateAnonymousSignIn(authInstance: Auth): void {
-  // CRITICAL: Call signInAnonymously directly. Do NOT use 'await signInAnonymously(...)'.
   signInAnonymously(authInstance);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }
 
 /** Initiate email/password sign-up (non-blocking). */
 export function initiateEmailSignUp(authInstance: Auth, email: string, password: string): void {
-  // CRITICAL: Call createUserWithEmailAndPassword directly. Do NOT use 'await createUserWithEmailAndPassword(...)'.
-  createUserWithEmailAndPassword(authInstance, email, password);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
+  const { firestore } = getClientSdks();
+  createUserWithEmailAndPassword(authInstance, email, password)
+    .then(userCredential => {
+      // User created, now create a document in 'users' collection
+      const user = userCredential.user;
+      const userRef = doc(firestore, 'users', user.uid);
+      // Use setDoc to create the user document, it won't be awaited here
+      // but will be handled by Firestore in the background.
+      // Errors will be caught by the global handler if rules fail.
+      setDoc(userRef, {
+        email: user.email,
+        registerTime: serverTimestamp(),
+        // Add other initial user data here if needed
+      }).catch(error => {
+        errorEmitter.emit(
+          'permission-error',
+          new FirestorePermissionError({
+            path: `users/${user.uid}`,
+            operation: 'create',
+            requestResourceData: { email: user.email },
+          })
+        );
+      });
+    })
+    .catch(error => {
+      // Auth errors (like email-already-in-use) are handled by FirebaseErrorListener
+      // We don't need to emit them manually here as they will be thrown.
+    });
 }
 
 /** Initiate email/password sign-in (non-blocking). */
 export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
-  // CRITICAL: Call signInWithEmailAndPassword directly. Do NOT use 'await signInWithEmailAndPassword(...)'.
   signInWithEmailAndPassword(authInstance, email, password);
-  // Code continues immediately. Auth state change is handled by onAuthStateChanged listener.
 }

@@ -1,3 +1,5 @@
+'use client';
+
 import PageHeader from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,9 +16,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { clients } from "@/lib/data/clients";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import type { User } from "@/firebase/orders"; // Reusing User type
 import { formatPrice } from "@/lib/utils";
-import { MoreHorizontal, PlusCircle } from "lucide-react";
+import { MoreHorizontal, Loader2 } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -25,29 +28,36 @@ import {
     DropdownMenuTrigger,
   } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { collection } from "firebase/firestore";
+
+// Note: This page shows basic user info. A real implementation would need
+// to aggregate order data to show 'Total Gasto', 'Valor Devido', etc.
+// This is out of scope for the current fix.
 
 export default function ClientsPage() {
+  const firestore = useFirestore();
+  const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+  const { data: clients, isLoading } = useCollection<User>(usersQuery);
+
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader title="Clientes" description="Gerencie seus clientes.">
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Cliente
-        </Button>
-      </PageHeader>
+      <PageHeader title="Clientes" description="Gerencie seus clientes." />
       <Card>
         <CardHeader>
             <CardTitle>Lista de Clientes</CardTitle>
         </CardHeader>
         <CardContent>
+          {isLoading ? (
+             <div className="flex justify-center items-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : clients && clients.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nome</TableHead>
                 <TableHead>E-mail</TableHead>
-                <TableHead>Total de Pedidos</TableHead>
-                <TableHead>Total Gasto</TableHead>
-                <TableHead>Valor Devido</TableHead>
+                <TableHead>Cliente Desde</TableHead>
+                <TableHead>UID do Usuário</TableHead>
                 <TableHead>
                   <span className="sr-only">Ações</span>
                 </TableHead>
@@ -56,17 +66,9 @@ export default function ClientsPage() {
             <TableBody>
               {clients.map((client) => (
                 <TableRow key={client.id}>
-                  <TableCell className="font-medium">{client.name}</TableCell>
-                  <TableCell>{client.email}</TableCell>
-                  <TableCell>{client.totalOrders}</TableCell>
-                  <TableCell>{formatPrice(client.totalSpent)}</TableCell>
-                  <TableCell>
-                    {client.dueAmount > 0 ? (
-                       <Badge variant="destructive">{formatPrice(client.dueAmount)}</Badge>
-                    ) : (
-                        <Badge variant="secondary">{formatPrice(0)}</Badge>
-                    )}
-                  </TableCell>
+                  <TableCell className="font-medium">{client.email}</TableCell>
+                  <TableCell>{client.registerTime ? client.registerTime.toDate().toLocaleDateString() : 'N/A'}</TableCell>
+                  <TableCell className="text-muted-foreground">{client.id}</TableCell>
                   <TableCell>
                   <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -78,8 +80,7 @@ export default function ClientsPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
                         <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
-                        <DropdownMenuItem>Editar</DropdownMenuItem>
-                        <DropdownMenuItem>Excluir</DropdownMenuItem>
+                        <DropdownMenuItem disabled>Editar</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -87,6 +88,11 @@ export default function ClientsPage() {
               ))}
             </TableBody>
           </Table>
+           ) : (
+            <div className="text-center text-muted-foreground py-8">
+              Nenhum cliente encontrado.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
