@@ -10,17 +10,10 @@ export function PrimaveraLogo(props: SVGProps<SVGSVGElement>) {
       height="75"
       {...props}
     >
-      <style>
-        {`
-          .primavera-font { font-family: 'Lilita One', cursive; }
-          .sorvetes-font { font-family: 'Poppins', sans-serif; }
-        `}
-      </style>
-      
       <text
         x="10"
         y="55"
-        className="primavera-font"
+        style={{ fontFamily: "'Lilita One', cursive" }}
         fontSize="50"
         fill="hsl(var(--primary))"
         stroke="hsl(var(--primary-foreground))"
@@ -33,7 +26,7 @@ export function PrimaveraLogo(props: SVGProps<SVGSVGElement>) {
       <text
         x="160"
         y="70"
-        className="sorvetes-font"
+        style={{ fontFamily: "'Poppins', sans-serif" }}
         fontSize="18"
         fontWeight="600"
         fill="hsl(var(--secondary-foreground))"
