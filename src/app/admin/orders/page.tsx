@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect } from "react";
 import PageHeader from "@/components/page-header";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -29,8 +27,11 @@ import {
   } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useAdminAuth } from "@/hooks/use-admin-auth";
+import { useUser } from "@/firebase";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const statusColors: Record<Order["status"], string> = {
     Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
@@ -115,14 +116,14 @@ function OrdersAdminContent() {
 }
 
 export default function OrdersAdminPage() {
-    const { isAdmin, isLoading } = useAdminAuth();
+    const { user, isUserLoading } = useUser();
     const router = useRouter();
 
     useEffect(() => {
-        if (!isLoading && !isAdmin) {
+        if (!isUserLoading && !user) {
             router.push('/admin/login');
         }
-    }, [isAdmin, isLoading, router]);
+    }, [user, isUserLoading, router]);
 
     return (
         <div className="flex flex-col gap-8">
@@ -132,15 +133,18 @@ export default function OrdersAdminPage() {
                 <CardTitle>Histórico de Pedidos</CardTitle>
             </CardHeader>
             <CardContent>
-                {isLoading ? (
+                {isUserLoading ? (
                      <div className="flex justify-center items-center h-64">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
-                ) : isAdmin ? (
+                ) : user ? (
                     <OrdersAdminContent />
                 ) : (
                     <div className="text-center text-muted-foreground py-8">
-                        Você não tem permissão para ver esta página.
+                        Você precisa estar logado para ver esta página.
+                        <Button asChild variant="link">
+                            <Link href="/admin/login">Fazer Login</Link>
+                        </Button>
                     </div>
                 )}
             </CardContent>

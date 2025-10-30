@@ -1,201 +1,124 @@
 /**
- * @file Firebase Security Rules for Primavera Delivery
- * @version Prototyping
+ * @file Firestore Security Rules
+ * @description This ruleset is configured to allow public read access to all data, and write access for any authenticated user.
  *
- * @description This ruleset enforces a strict user-ownership model for user-specific data,
- * while allowing public read access to product information. Administrative privileges
- * are granted based on the existence of a document in the /roles_admin/{uid} collection.
- * All write operations are secured with authorization checks. Data validation is minimal
- * during the prototyping phase, focusing only on ownership and relational integrity.
- *
- * Data Structure:
- * - /users/{userId}: User profiles (owner-only access).
- * - /products/{productId}: Product information (public read, admin-only write).
- * - /users/{userId}/shoppingCarts/{cartId}: Shopping carts (owner-only access).
- * - /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}: Cart items (owner-only access).
- * - /users/{userId}/orders/{orderId}: Orders (owner-only access).
- * - /orders/{orderId}/orderItems/{orderItemId}: Order items (no specific access rules, assumed owner-only via parent).
- * - /orders/{orderId}/payments/{paymentId}: Payments (no specific access rules, assumed owner-only via parent).
- * - /roles_admin/{uid}: Admin role assignments (admin-only access).
- *
- * Key Security Decisions:
- * - User data is strictly controlled by the owning user.
- * - Product data is publicly readable but only writable by admins.
- * - List operations are generally allowed for owners of user-scoped collections.
- * - Schema validation is relaxed during prototyping, except for ownership checks.
- *
- * Denormalization for Authorization:
- * - User ownership is enforced via path-based rules (e.g., /users/{userId}), eliminating the need for document reads to verify ownership.
+ * Core Philosophy: All data is publicly readable, and write access is granted to any authenticated user, effectively disabling any security restrictions based on roles or ownership. This is intended for rapid prototyping and should NOT be used in a production environment.
+ * Data Structure: Data is organized into collections representing users, products, shopping carts, orders, and related items.
+ * Key Security Decisions: Authentication is required for writes, but no authorization checks are performed. This allows any logged-in user to modify any data.
+ * Denormalization for Authorization: Not applicable, as all users have write access.
+ * Structural Segregation: Not applicable, as access is uniform across all collections.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Manages user profiles. Only the user can access their data.
+     * @description Allows any authenticated user to read and write user profiles.
      * @path /users/{userId}
-     * @allow (create) User(LfaT495EQeabUDWcQneLlM2R3b72) can create their profile
-     * @deny (create) User(otherUserId) cannot create a profile using someone else's ID.
-     * @allow (get, list) User(LfaT495EQeabUDWcQneLlM2R3b72) can read their profile
-     * @deny (get, list) User(otherUserId) cannot read other's profile
-     * @allow (update, delete) User(LfaT495EQeabUDWcQneLlM2R3b72) can update their profile
-     * @deny (update, delete) User(otherUserId) cannot update or delete other's profile
-     * @principle Enforces document ownership for all operations on user profiles.
+     * @allow (get, list) Any user can read user profiles.
+     * @allow (create, update, delete) Any authenticated user can create, update, or delete user profiles.
+     * @deny none
+     * @principle Allows unrestricted access to user profiles for rapid prototyping.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId) && request.auth.uid == userId;
-      allow update: if isOwner(userId) && isExistingDocument();
-      allow delete: if isOwner(userId) && isExistingDocument();
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn();
     }
 
     /**
-     * @description Manages product information. Publicly accessible for reading, write access is restricted to admins.
+     * @description Allows any authenticated user to read and write product information.
      * @path /products/{productId}
-     * @allow (get, list) Any user can read product
-     * @deny (create, update, delete) Not admin user cannot create, update or delete product
-     * @allow (create, update, delete) Admin user can create, update or delete product
-     * @principle Public read access with admin-only write access for product information.
+     * @allow (get, list) Any user can read product information.
+     * @allow (create, update, delete) Any authenticated user can create, update, or delete product information.
+     * @deny none
+     * @principle Allows unrestricted access to product information for rapid prototyping.
      */
     match /products/{productId} {
       allow get, list: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin() && isExistingDocument();
-      allow delete: if isAdmin() && isExistingDocument();
+      allow create, update, delete: if isSignedIn();
     }
 
     /**
-     * @description Manages shopping carts for each user. Path-based ownership ensures only the user can access their cart.
+     * @description Allows any authenticated user to read and write shopping carts for any user.
      * @path /users/{userId}/shoppingCarts/{cartId}
-     * @allow (create) User(LfaT495EQeabUDWcQneLlM2R3b72) can create their shopping cart
-     * @deny (create) User(otherUserId) cannot create a shopping cart for someone else.
-     * @allow (get, list) User(LfaT495EQeabUDWcQneLlM2R3b72) can read their shopping cart
-     * @deny (get, list) User(otherUserId) cannot read other's shopping cart
-     * @allow (update, delete) User(LfaT495EQeabUDWcQneLlM2R3b72) can update their shopping cart
-     * @deny (update, delete) User(otherUserId) cannot update or delete other's shopping cart
-     * @principle Enforces document ownership for all operations on shopping carts.
+     * @allow (get, list) Any user can read shopping carts.
+     * @allow (create, update, delete) Any authenticated user can create, update, or delete shopping carts.
+     * @deny none
+     * @principle Allows unrestricted access to shopping carts for rapid prototyping.
      */
     match /users/{userId}/shoppingCarts/{cartId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) && isExistingDocument();
-      allow delete: if isOwner(userId) && isExistingDocument();
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn();
     }
 
     /**
-     * @description Manages cart items within a shopping cart. Inherits ownership from the parent shopping cart.
+     * @description Allows any authenticated user to read and write cart items within any shopping cart.
      * @path /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}
-     * @allow (create) User(LfaT495EQeabUDWcQneLlM2R3b72) can create cart item
-     * @deny (create) User(otherUserId) cannot create cart item for someone else.
-     * @allow (get, list) User(LfaT495EQeabUDWcQneLlM2R3b72) can read cart item
-     * @deny (get, list) User(otherUserId) cannot read other's cart item
-     * @allow (update, delete) User(LfaT495EQeabUDWcQneLlM2R3b72) can update cart item
-     * @deny (update, delete) User(otherUserId) cannot update or delete other's cart item
-     * @principle Enforces document ownership for all operations on cart items.
+     * @allow (get, list) Any user can read cart items.
+     * @allow (create, update, delete) Any authenticated user can create, update, or delete cart items.
+     * @deny none
+     * @principle Allows unrestricted access to cart items for rapid prototyping.
      */
     match /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) && isExistingDocument();
-      allow delete: if isOwner(userId) && isExistingDocument();
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn();
     }
 
     /**
-     * @description Manages order information for each user. Path-based ownership ensures only the user can access their orders.
+     * @description Allows any authenticated user to read and write order information for any user.
      * @path /users/{userId}/orders/{orderId}
-     *  @allow (create) User(LfaT495EQeabUDWcQneLlM2R3b72) can create their order
-     * @deny (create) User(otherUserId) cannot create order for someone else.
-     * @allow (get, list) User(LfaT495EQeabUDWcQneLlM2R3b72) can read their order
-     * @deny (get, list) User(otherUserId) cannot read other's order
-     * @allow (update, delete) User(LfaT495EQeabUDWcQneLlM2R3b72) can update their order
-     * @deny (update, delete) User(otherUserId) cannot update or delete other's order
-     * @principle Enforces document ownership for all operations on orders.
+     * @allow (get, list) Any user can read order information.
+     * @allow (create, update, delete) Any authenticated user can create, update, or delete order information.
+     * @deny none
+     * @principle Allows unrestricted access to order information for rapid prototyping.
      */
     match /users/{userId}/orders/{orderId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId) && isExistingDocument();
-      allow delete: if isOwner(userId) && isExistingDocument();
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn();
     }
 
     /**
-     * @description Manages order items within an order.
+     * @description Allows any authenticated user to read and write order items within any order.
      * @path /orders/{orderId}/orderItems/{orderItemId}
-     * @allow (create) Authenticated user can create an order item.
-     * @deny (create) Unauthenticated user cannot create an order item.
-     * @allow (get, list) Authenticated user can read their order item
-     * @deny (get, list) Unauthenticated user cannot read order item
-     * @allow (update, delete) Authenticated user can update their order item
-     * @deny (update, delete) Unauthenticated user cannot delete order item
+     * @allow (get, list) Any user can read order items.
+     * @allow (create, update, delete) Any authenticated user can create, update, or delete order items.
+     * @deny none
+     * @principle Allows unrestricted access to order items for rapid prototyping.
      */
     match /orders/{orderId}/orderItems/{orderItemId} {
-        allow get: if isSignedIn() && isOrderOwner(orderId);
-        allow list: if isSignedIn() && isOrderOwner(orderId);
-        allow create: if isSignedIn() && isOrderOwner(orderId);
-        allow update: if isSignedIn() && isOrderOwner(orderId) && isExistingDocument();
-        allow delete: if isSignedIn() && isOrderOwner(orderId) && isExistingDocument();
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn();
     }
 
     /**
-     * @description Manages payments associated with an order.
+     * @description Allows any authenticated user to read and write payments associated with any order.
      * @path /orders/{orderId}/payments/{paymentId}
-     * @allow (create) Authenticated user can create payment
-     * @deny (create) Unauthenticated user cannot create payment
-     * @allow (get, list) Authenticated user can read payment
-     * @deny (get, list) Unauthenticated user cannot read payment
-     * @allow (update, delete) Authenticated user can update their payment
-     * @deny (update, delete) Unauthenticated user cannot delete other's payment
+     * @allow (get, list) Any user can read payments.
+     * @allow (create, update, delete) Any authenticated user can create, update, or delete payments.
+     * @deny none
+     * @principle Allows unrestricted access to payments for rapid prototyping.
      */
     match /orders/{orderId}/payments/{paymentId} {
-        allow get: if isSignedIn() && isOrderOwner(orderId);
-        allow list: if isSignedIn() && isOrderOwner(orderId);
-        allow create: if isSignedIn() && isOrderOwner(orderId);
-        allow update: if isSignedIn() && isOrderOwner(orderId) && isExistingDocument();
-        allow delete: if isSignedIn() && isOrderOwner(orderId) && isExistingDocument();
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn();
     }
 
-    /**
-     * @description Indicates administrative privileges. Existence of a document grants admin rights.
-     * @path /roles_admin/{uid}
-     *  @allow (create) Admin(LfaT495EQeabUDWcQneLlM2R3b72) can assign their admin role
-     * @deny (create) Not admin user cannot assign an admin role.
-     * @allow (get) Admin(LfaT495EQeabUDWcQneLlM2R3b72) can read their admin role
-     * @deny (get) Not admin user cannot read the admin role.
-     * @allow (update, delete) Admin(LfaT495EQeabUDWcQneLlM2R3b72) can update their admin role
-     * @deny (update, delete) Not admin user cannot update/delete admin role
-     * @principle Restricts access to admin role assignments to existing admins only.
-     */
+      /**
+       * @description Allows any authenticated user to manage admin privileges.
+       * @path /roles_admin/{uid}
+       * @allow (get, list) Any user can read admin roles.
+       * @allow (create, update, delete) Any authenticated user can grant or revoke admin privileges.
+       * @deny none
+       * @principle Allows unrestricted access to admin privileges for rapid prototyping.
+       */
     match /roles_admin/{uid} {
-      allow get: if isAdmin();
-      allow list: if false;
-      allow create: if isAdmin() && request.auth.uid == uid;
-      allow update: if isAdmin() && request.auth.uid == uid && isExistingDocument();
-      allow delete: if isAdmin() && request.auth.uid == uid && isExistingDocument();
+      allow get, list: if true;
+      allow create, update, delete: if isSignedIn();
     }
   }
 
-  // Helper functions
+  // Helper function to determine if a user is signed in.
   function isSignedIn() {
     return request.auth != null;
-  }
-
-  function isOwner(userId) {
-    return request.auth.uid == userId;
-  }
-
-  function isExistingDocument() {
-    return exists(resource.data);
-  }
-
-  function isAdmin() {
-    return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-  }
-
-  function isOrderOwner(orderId) {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)/orders/$(orderId)).data != null;
   }
 }
