@@ -1,28 +1,22 @@
+'use client';
 
 import PageHeader from '@/components/page-header';
 import { ProductGrid } from '@/components/product-grid';
-import { firestoreAdmin } from '@/firebase/admin';
-import { Product } from '@/lib/data/products';
-import { collection, getDocs } from 'firebase/firestore';
+import { useCollection, useFirestore } from '@/firebase';
+import type { Product } from '@/lib/data/products';
+import { collection } from 'firebase/firestore';
+import { Loader2 } from 'lucide-react';
+import { useMemo } from 'react';
 
-async function getProducts() {
-  const productsCollection = collection(firestoreAdmin, 'products');
-  try {
-    const snapshot = await getDocs(productsCollection);
-    return snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })) as Product[];
-  } catch (error) {
-    console.error("Error fetching products on server:", error);
-    // In a real app, you'd want more robust error handling.
-    // For now, we'll return an empty array on error.
-    return [];
-  }
-}
+export default function Home() {
+  const firestore = useFirestore();
+  
+  const productsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'products');
+  }, [firestore]);
 
-// Ensure the page is dynamically rendered
-export const revalidate = 0;
-
-export default async function Home() {
-  const initialProducts = await getProducts();
+  const { data: products, isLoading } = useCollection<Product>(productsQuery as any);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -30,7 +24,13 @@ export default async function Home() {
         title="Nossos Produtos"
         description="Navegue pela nossa seleção de itens deliciosos."
       />
-      <ProductGrid initialProducts={initialProducts} />
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <ProductGrid initialProducts={products || []} />
+      )}
     </div>
   );
 }
