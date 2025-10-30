@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { collection, query, getDocs } from 'firebase/firestore';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import type { Order, User } from '@/firebase/orders';
+import { collection, query, getDocs, collectionGroup } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import type { Order } from '@/firebase/orders';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -17,8 +17,6 @@ import {
 import { Loader2, DollarSign } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { AdminStatsCard } from '@/components/admin-stats-card';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 
 // Custom hook to fetch all orders from all users
 function useAllOrders() {
@@ -27,40 +25,26 @@ function useAllOrders() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const usersQuery = useMemoFirebase(
-    () => collection(firestore, 'users'),
-    [firestore]
-  );
-  const { data: users, isLoading: usersLoading } = useCollection<User>(usersQuery);
-
   useEffect(() => {
-    if (usersLoading || !firestore) return;
-    if (!users) {
-      setIsLoading(false);
-      return;
-    }
+    if (!firestore) return;
 
     const fetchOrders = async () => {
       setIsLoading(true);
       try {
-        const allOrders: Order[] = [];
-        for (const user of users) {
-          const ordersCollectionRef = collection(
-            firestore,
-            `users/${user.id}/orders`
-          );
-          const ordersQuery = query(ordersCollectionRef);
-          const ordersSnapshot = await getDocs(ordersQuery);
-          ordersSnapshot.forEach((doc) => {
-            allOrders.push({ id: doc.id, ...doc.data() } as Order);
-          });
-        }
-        // Sort orders by date, most recent first
+        const ordersQuery = query(collectionGroup(firestore, 'orders'));
+        const ordersSnapshot = await getDocs(ordersQuery);
+        
+        const allOrders = ordersSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        } as Order));
+
         allOrders.sort((a, b) => {
-          const dateA = a.orderDate?.toDate()?.getTime() || 0;
-          const dateB = b.orderDate?.toDate()?.getTime() || 0;
-          return dateB - dateA;
+            const dateA = a.orderDate?.toDate()?.getTime() || 0;
+            const dateB = b.orderDate?.toDate()?.getTime() || 0;
+            return dateB - dateA;
         });
+        
         setOrders(allOrders);
       } catch (e) {
         setError(e as Error);
@@ -70,7 +54,7 @@ function useAllOrders() {
     };
 
     fetchOrders();
-  }, [users, usersLoading, firestore]);
+  }, [firestore]);
 
   return { orders, isLoading, error };
 }

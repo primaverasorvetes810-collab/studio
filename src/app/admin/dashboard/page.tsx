@@ -30,47 +30,39 @@ import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { OverviewChart } from "@/components/overview-chart";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, collectionGroup } from 'firebase/firestore';
 import { useMemo, useState, useEffect } from "react";
 import type { Order, User } from "@/firebase/orders";
 import type { Product } from "@/lib/data/products";
 
 
-// Custom hook to fetch all orders from all users
+// Custom hook to fetch all orders from all users using a collection group query
 function useAllOrders() {
     const firestore = useFirestore();
     const [orders, setOrders] = useState<Order[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<Error | null>(null);
 
-    const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
-    const { data: users, isLoading: usersLoading } = useCollection<User>(usersQuery);
-
     useEffect(() => {
-        if (usersLoading || !firestore) return;
-        if (!users) {
-            setIsLoading(false);
-            return;
-        }
+        if (!firestore) return;
 
         const fetchOrders = async () => {
             setIsLoading(true);
             try {
-                const allOrders: Order[] = [];
-                for (const user of users) {
-                    const ordersCollectionRef = collection(firestore, `users/${user.id}/orders`);
-                    const ordersQuery = query(ordersCollectionRef);
-                    const ordersSnapshot = await getDocs(ordersQuery);
-                    ordersSnapshot.forEach((doc) => {
-                        allOrders.push({ id: doc.id, ...doc.data() } as Order);
-                    });
-                }
-                // Sort orders by date, most recent first
+                const ordersQuery = query(collectionGroup(firestore, 'orders'));
+                const ordersSnapshot = await getDocs(ordersQuery);
+                
+                const allOrders = ordersSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                } as Order));
+
                 allOrders.sort((a, b) => {
                     const dateA = a.orderDate?.toDate()?.getTime() || 0;
                     const dateB = b.orderDate?.toDate()?.getTime() || 0;
                     return dateB - dateA;
                 });
+                
                 setOrders(allOrders);
             } catch (e) {
                 setError(e as Error);
@@ -80,10 +72,9 @@ function useAllOrders() {
         };
 
         fetchOrders();
+    }, [firestore]);
 
-    }, [users, usersLoading, firestore]);
-
-    return { orders, isLoading, error, users, usersLoading };
+    return { orders, isLoading, error };
 }
 
 const statusColors: Record<Order["status"], string> = {
@@ -96,19 +87,20 @@ const statusColors: Record<Order["status"], string> = {
 };
 
 export default function DashboardPage() {
-  const { orders, isLoading: isLoadingOrders, users, usersLoading } = useAllOrders();
+  const { orders, isLoading: isLoadingOrders } = useAllOrders();
   const firestore = useFirestore();
+
+  const usersQuery = useMemoFirebase(() => collection(firestore, 'users'), [firestore]);
+  const { data: users, isLoading: usersLoading } = useCollection<User>(usersQuery);
 
   const productsQuery = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
   const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
-  const { totalProducts, activeProducts } = useMemo(() => {
+  const { totalProducts } = useMemo(() => {
     if (!products) {
-      return { totalProducts: 0, activeProducts: 0 };
+      return { totalProducts: 0 };
     }
-    const totalProducts = products.length;
-    const activeProducts = products.filter(product => product.stock > 0).length;
-    return { totalProducts, activeProducts };
+    return { totalProducts: products.length };
   }, [products]);
 
   const recentOrders = orders.slice(0, 5);
@@ -131,7 +123,7 @@ export default function DashboardPage() {
         />
         <AdminStatsCard
           title="Pedidos"
-          value={`+${orders.length}`}
+          value={isLoadingOrders ? <Loader2 className="h-6 w-6 animate-spin" /> : `+${orders.length}`}
           icon={ShoppingCart}
         />
         <AdminStatsCard
@@ -153,7 +145,7 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle>Pedidos Recentes</CardTitle>
             <CardDescription>
-              Você fez {orders.length} pedidos este mês.
+              Você tem {orders.length} pedidos no total.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -165,7 +157,7 @@ export default function DashboardPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID do Pedido</TableHead>
+                  <TableHead>Cliente</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
                 </TableRow>
@@ -174,7 +166,8 @@ export default function DashboardPage() {
                 {recentOrders.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell>
-                      <div className="font-medium">{order.id.substring(0,7)}</div>
+                      <div className="font-medium">{order.userName || 'N/A'}</div>
+                      <div className="text-sm text-muted-foreground">{order.userEmail}</div>
                     </TableCell>
                     <TableCell>
                        <Badge className={cn("whitespace-nowrap", statusColors[order.status])} variant="outline">
