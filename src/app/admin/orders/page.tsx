@@ -27,7 +27,7 @@ import {
   } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useUser as useAuthUser, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
@@ -171,14 +171,23 @@ function OrdersAdminContent() {
 }
 
 export default function OrdersAdminPage() {
-    const { user, isUserLoading } = useAuthUser();
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
     useEffect(() => {
-        if (!isUserLoading && !user) {
+        const sessionAuth = sessionStorage.getItem('adminAuthenticated');
+        if (sessionAuth === 'true') {
+            setIsAuthenticated(true);
+        }
+        setIsLoading(false);
+    }, []);
+
+    useEffect(() => {
+        if (!isLoading && !isAuthenticated) {
             router.push('/admin/login');
         }
-    }, [user, isUserLoading, router]);
+    }, [isAuthenticated, isLoading, router]);
 
     return (
         <div className="flex flex-col gap-8">
@@ -188,11 +197,11 @@ export default function OrdersAdminPage() {
                 <CardTitle>Histórico de Pedidos</CardTitle>
             </CardHeader>
             <CardContent>
-                {isUserLoading ? (
+                {isLoading ? (
                      <div className="flex justify-center items-center h-64">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
-                ) : user ? (
+                ) : isAuthenticated ? (
                     <OrdersAdminContent />
                 ) : (
                     <div className="text-center text-muted-foreground py-8">
