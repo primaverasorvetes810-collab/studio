@@ -15,17 +15,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import type { Product } from '@/lib/data/products';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { createProduct, updateProduct, type ProductPayload } from '@/firebase/products';
 
 const productSchema = z.object({
@@ -33,7 +25,9 @@ const productSchema = z.object({
   description: z.string().min(10, 'A descrição deve ter pelo menos 10 caracteres.'),
   price: z.coerce.number().positive('O preço deve ser um número positivo.'),
   stock: z.coerce.number().int().min(0, 'O estoque não pode ser negativo.'),
-  image: z.string().min(1, 'Por favor, selecione uma imagem.'),
+  image: z.any().refine(value => value instanceof FileList && value.length > 0 || typeof value === 'string', {
+    message: 'A imagem é obrigatória.',
+  }),
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;
@@ -42,6 +36,15 @@ interface ProductFormProps {
   product?: Product | null;
   onSuccess?: () => void;
 }
+
+function fileToDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
 
 export function ProductForm({ product, onSuccess }: ProductFormProps) {
   const { toast } = useToast();
@@ -57,7 +60,26 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
   });
 
   const onSubmit = async (data: ProductFormValues) => {
-    const payload: ProductPayload = data;
+    let imageDataUrl = product?.image ?? '';
+    if (data.image instanceof FileList && data.image.length > 0) {
+        try {
+            imageDataUrl = await fileToDataUrl(data.image[0]);
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Erro ao processar imagem',
+                description: 'Não foi possível ler o arquivo de imagem.',
+            });
+            return;
+        }
+    }
+
+
+    const payload: ProductPayload = {
+      ...data,
+      image: imageDataUrl,
+    };
+
     try {
       if (product) {
         // Update existing product
@@ -147,32 +169,26 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
           />
         </div>
         <FormField
-          control={form.control}
-          name="image"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Imagem</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+            control={form.control}
+            name="image"
+            render={({ field: { onChange, value, ...rest } }) => (
+                <FormItem>
+                <FormLabel>Imagem</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma imagem para o produto" />
-                  </SelectTrigger>
+                    <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => onChange(e.target.files)}
+                    {...rest}
+                    />
                 </FormControl>
-                <SelectContent>
-                  {PlaceHolderImages.map((img) => (
-                    <SelectItem key={img.id} value={img.id}>
-                      {img.description}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-               <FormDescription>
-                 Esta é a imagem que será exibida na loja.
-               </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormDescription>
+                    Faça upload de uma imagem do seu computador.
+                </FormDescription>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
         <Button type="submit" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

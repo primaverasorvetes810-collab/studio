@@ -136,16 +136,18 @@ export default function CartPage() {
                   const placeholder = PlaceHolderImages.find(
                     (p) => p.id === item.product.image
                   );
+                  const imageUrl = item.product.image.startsWith('data:image') ? item.product.image : placeholder?.imageUrl;
+                  const imageHint = item.product.image.startsWith('data:image') ? item.product.name : placeholder?.imageHint;
                   return (
                     <li key={item.id} className="flex items-start gap-4 py-4">
                       <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
-                        {placeholder && (
+                        {imageUrl && (
                           <Image
-                            src={placeholder.imageUrl}
+                            src={imageUrl}
                             alt={item.product.name}
                             fill
                             className="object-cover"
-                            data-ai-hint={placeholder.imageHint}
+                            data-ai-hint={imageHint}
                           />
                         )}
                       </div>

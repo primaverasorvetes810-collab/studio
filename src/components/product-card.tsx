@@ -25,6 +25,10 @@ type ProductCardProps = {
 
 export function ProductCard({ product }: ProductCardProps) {
   const placeholder = PlaceHolderImages.find((p) => p.id === product.image);
+  const imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
+  const imageHint = product.image.startsWith('data:image') ? product.name : placeholder?.imageHint;
+
+
   const { user } = useUser();
   const auth = useAuth();
   const { toast } = useToast();
@@ -46,13 +50,13 @@ export function ProductCard({ product }: ProductCardProps) {
     <Card className="flex flex-col overflow-hidden">
       <CardHeader className="p-0">
         <div className="relative aspect-video">
-          {placeholder && (
+          {imageUrl && (
             <Image
-              src={placeholder.imageUrl}
+              src={imageUrl}
               alt={product.name}
               fill
               className="object-cover"
-              data-ai-hint={placeholder.imageHint}
+              data-ai-hint={imageHint}
             />
           )}
         </div>

@@ -20,7 +20,6 @@ import {
 } from './non-blocking-updates';
 import { useEffect, useState, useMemo } from 'react';
 import type { Product } from '@/lib/data/products';
-import { products as staticProducts } from '@/lib/data/products';
 
 // Helper to find a user's shopping cart. Assumes one cart per user.
 async function findUserShoppingCartRef(userId: string) {
