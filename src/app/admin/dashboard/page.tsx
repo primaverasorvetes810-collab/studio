@@ -123,25 +123,21 @@ export default function DashboardPage() {
           title="Receita Total"
           value={formatPrice(totalRevenue)}
           icon={DollarSign}
-          description="+20.1% do mês passado"
         />
         <AdminStatsCard
           title="Clientes"
           value={usersLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : `+${totalClients}`}
           icon={Users}
-          description="+18.1% do mês passado"
         />
         <AdminStatsCard
           title="Pedidos"
           value={`+${orders.length}`}
           icon={ShoppingCart}
-          description="+19% do mês passado"
         />
         <AdminStatsCard
           title="Produtos Cadastrados"
           value={isLoadingProducts ? <Loader2 className="h-6 w-6 animate-spin" /> : totalProducts.toString()}
           icon={Package}
-          description={isLoadingProducts ? 'Calculando...' : `${activeProducts} ativos`}
         />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
