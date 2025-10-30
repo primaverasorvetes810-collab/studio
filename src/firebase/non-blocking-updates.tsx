@@ -87,3 +87,14 @@ export function deleteDocumentNonBlocking(docRef: DocumentReference) {
       )
     });
 }
+
+// Overload for a more specific use case in admin management
+export async function findUserByEmail(firestore: any, email: string) {
+    const usersRef = collection(firestore, 'users');
+    const q = query(usersRef, where('email', '==', email), limit(1));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+        return querySnapshot.docs[0];
+    }
+    return null;
+}

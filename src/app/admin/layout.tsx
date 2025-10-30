@@ -8,6 +8,7 @@ import {
   ShoppingCart,
   LogOut,
   DollarSign,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -63,6 +64,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Link href="/admin/products">
                     <Package />
                     Produtos
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/admin/admins">
+                    <ShieldCheck />
+                    Administradores
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

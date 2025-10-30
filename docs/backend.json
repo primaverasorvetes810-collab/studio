@@ -236,11 +236,11 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the admin entity."
+          "description": "The UID of the user who is an admin."
         },
         "email": {
           "type": "string",
-          "description": "Email address of the administrator.",
+          "description": "Email address of the administrator, stored for easy reference.",
           "format": "email"
         }
       },
@@ -265,7 +265,7 @@
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profiles.  Only the user can access their data.",
+          "description": "Stores user profiles. Only the user can access their data.",
           "params": [
             {
               "name": "userId",
@@ -401,11 +401,11 @@
           "schema": {
             "$ref": "#/backend/entities/Admin"
           },
-          "description": "Indicates administrative privileges. Existence of a document grants admin rights.",
+          "description": "Indicates administrative privileges. The document ID is the user's UID. Existence of a document grants admin rights.",
           "params": [
             {
               "name": "uid",
-              "description": "The unique identifier for the admin user."
+              "description": "The unique identifier for the admin user, matching their auth UID."
             }
           ]
         }
