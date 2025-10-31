@@ -15,6 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { parseISO, startOfDay, getMonth, differenceInCalendarDays, setYear } from 'date-fns';
 
 
 interface BirthdayClient extends User {
@@ -26,34 +27,35 @@ interface BirthdayClient extends User {
 const getAnniversaryStatus = (birthDate: string): Pick<BirthdayClient, 'anniversaryStatus' | 'daysUntil'> => {
   if (!birthDate) return { anniversaryStatus: 'none', daysUntil: 999 };
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  try {
+    const today = startOfDay(new Date());
+    // The birthDate is 'YYYY-MM-DD', which is safe for parseISO
+    const clientBirthDate = parseISO(birthDate);
 
-  const [year, month, day] = birthDate.split('-').map(Number);
-  const clientBirthDate = new Date(year, month - 1, day);
-  clientBirthDate.setHours(0,0,0,0);
+    let nextBirthday = setYear(clientBirthDate, today.getFullYear());
+    nextBirthday = startOfDay(nextBirthday);
 
-  const nextBirthday = new Date(today.getFullYear(), clientBirthDate.getMonth(), clientBirthDate.getDate());
-  nextBirthday.setHours(0,0,0,0);
+    if (nextBirthday < today) {
+      nextBirthday = setYear(nextBirthday, today.getFullYear() + 1);
+    }
+    
+    const daysUntil = differenceInCalendarDays(nextBirthday, today);
 
-  if (nextBirthday < today) {
-    nextBirthday.setFullYear(today.getFullYear() + 1);
+    if (daysUntil === 0) {
+      return { anniversaryStatus: 'today', daysUntil: 0 };
+    }
+    if (daysUntil <= 7) {
+      return { anniversaryStatus: 'soon', daysUntil };
+    }
+    if (getMonth(nextBirthday) === getMonth(today)) {
+      return { anniversaryStatus: 'thisMonth', daysUntil };
+    }
+
+    return { anniversaryStatus: 'none', daysUntil };
+  } catch (error) {
+    console.error("Error parsing date:", birthDate, error);
+    return { anniversaryStatus: 'none', daysUntil: 999 };
   }
-
-  const oneDay = 24 * 60 * 60 * 1000;
-  const daysUntil = Math.round((nextBirthday.getTime() - today.getTime()) / oneDay);
-
-  if (daysUntil === 0) {
-    return { anniversaryStatus: 'today', daysUntil: 0 };
-  }
-  if (daysUntil <= 7) {
-    return { anniversaryStatus: 'soon', daysUntil };
-  }
-  if (nextBirthday.getMonth() === today.getMonth()) {
-    return { anniversaryStatus: 'thisMonth', daysUntil };
-  }
-
-  return { anniversaryStatus: 'none', daysUntil };
 };
 
 const statusConfig = {
@@ -152,9 +154,8 @@ export default function BirthdaysPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {clients.map(client => {
                 const config = statusConfig[client.anniversaryStatus];
-                const [year, month, day] = client.birthDate.split('-').map(Number);
-                const birthDate = new Date(year, month - 1, day);
-                const formattedDate = birthDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
+                const birthDate = parseISO(client.birthDate);
+                const formattedDate = birthDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', timeZone: 'UTC' });
 
                 let title = config.title;
                 if (typeof title === 'function') {
