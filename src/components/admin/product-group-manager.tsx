@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Product, ProductGroup } from '@/lib/data/products';
@@ -211,21 +212,21 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
             <Accordion type="single" collapsible className="w-full space-y-2">
             {productGroups?.map((group) => (
                 <AccordionItem value={group.id} key={group.id} className="border rounded-lg bg-muted/20">
-                <AccordionTrigger className="px-4 py-3 text-md font-semibold hover:no-underline">
-                    <div className='flex items-center justify-between w-full pr-4'>
+                  <div className='flex items-center w-full px-4 py-1'>
+                    <AccordionTrigger className="flex-1 py-2 text-md font-semibold hover:no-underline">
                         <span>{group.name}</span>
-                        <div className="flex items-center gap-2">
-                             <Button variant="ghost" size="icon" className='h-8 w-8' onClick={(e) => { e.stopPropagation(); handleEditGroup(group)}}>
-                                <Pencil className="h-4 w-4" />
-                                <span className="sr-only">Editar Grupo</span>
-                            </Button>
-                             <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive h-8 w-8" onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group)}}>
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Deletar Grupo</span>
-                            </Button>
-                        </div>
+                    </AccordionTrigger>
+                    <div className="flex items-center gap-2 pl-4">
+                          <Button variant="ghost" size="icon" className='h-8 w-8' onClick={(e) => { e.stopPropagation(); handleEditGroup(group)}}>
+                            <Pencil className="h-4 w-4" />
+                            <span className="sr-only">Editar Grupo</span>
+                        </Button>
+                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive h-8 w-8" onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group)}}>
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Deletar Grupo</span>
+                        </Button>
                     </div>
-                </AccordionTrigger>
+                  </div>
                 <AccordionContent className="p-0">
                     <div className='px-4 pb-4 border-b'><p className='text-sm text-muted-foreground'>{group.description}</p></div>
                     <ProductListForGroup groupId={group.id} onEdit={onEditProductClick} />
@@ -264,3 +265,5 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
     </Card>
   );
 }
+
+    
