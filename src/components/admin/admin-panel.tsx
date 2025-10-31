@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -10,7 +11,6 @@ import {
   LogOut,
   DollarSign,
   Bike,
-  PanelLeft,
   Menu,
 } from 'lucide-react';
 import {
@@ -76,7 +76,7 @@ export default function AdminPanel({ onLogout }: AdminPanelProps) {
     { page: 'revenue' as AdminPage, icon: DollarSign, label: 'Receita' },
   ];
 
-  const SidebarContent = ({ isMobile = false }) => (
+  const SidebarContent = () => (
     <>
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
@@ -87,12 +87,12 @@ export default function AdminPanel({ onLogout }: AdminPanelProps) {
         <div className="flex-1">
           <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
             {navItems.map((item) => {
-              const Comp = isMobile ? SheetTrigger : 'button';
               return (
-                <Comp
+                <Button
                   key={item.page}
+                  variant="ghost"
                   onClick={() => setActivePage(item.page)}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all justify-start ${
                     activePage === item.page
                       ? 'bg-muted text-primary'
                       : 'text-muted-foreground'
@@ -100,7 +100,7 @@ export default function AdminPanel({ onLogout }: AdminPanelProps) {
                 >
                   <item.icon className="h-4 w-4" />
                   {item.label}
-                </Comp>
+                </Button>
               );
             })}
           </nav>
@@ -134,7 +134,10 @@ export default function AdminPanel({ onLogout }: AdminPanelProps) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col p-0">
-               <SidebarContent isMobile />
+               <SheetHeader className="p-4 border-b">
+                 <SheetTitle className="sr-only">Menu de Administração</SheetTitle>
+               </SheetHeader>
+               <SidebarContent />
             </SheetContent>
           </Sheet>
           <div className="w-full flex-1">
