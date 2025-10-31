@@ -4,11 +4,10 @@
 import { useState } from 'react';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { Loader2, ShieldAlert, KeyRound, Bell } from 'lucide-react';
+import { Loader2, ShieldAlert, KeyRound, Bell, Menu } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DashboardPage from '@/components/admin/pages/dashboard-page';
 import OrdersPage from '@/components/admin/pages/orders-page';
 import ProductsPage from '@/components/admin/pages/products-page';
@@ -19,6 +18,18 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import DeliveriesPage from '@/components/admin/pages/deliveries-page';
 import BirthdaysPage from '@/components/admin/pages/birthdays-page';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
+type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays";
+
+const sectionTitles: Record<AdminSection, string> = {
+  dashboard: 'Dashboard',
+  orders: 'Pedidos',
+  deliveries: 'Entregas',
+  products: 'Produtos',
+  clients: 'Clientes',
+  birthdays: 'Aniversariantes',
+}
 
 export default function AdminGatePage() {
   const { user, isUserLoading } = useUser();
@@ -27,6 +38,7 @@ export default function AdminGatePage() {
   const [isChecking, setIsChecking] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
 
   const correctPassword = "810Primavera*";
 
@@ -152,40 +164,38 @@ export default function AdminGatePage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <PageHeader
-        title="Painel de Administração"
-        description="Gerencie todos os aspectos da sua loja em um único lugar."
-      />
-      <div className="mt-8 space-y-8">
-        <Tabs defaultValue="dashboard">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="orders">Pedidos</TabsTrigger>
-            <TabsTrigger value="deliveries">Entregas</TabsTrigger>
-            <TabsTrigger value="products">Produtos</TabsTrigger>
-            <TabsTrigger value="clients">Clientes</TabsTrigger>
-            <TabsTrigger value="birthdays">Aniversariantes</TabsTrigger>
-          </TabsList>
-          <TabsContent value="dashboard" className="mt-6">
-            <DashboardPage />
-          </TabsContent>
-          <TabsContent value="orders" className="mt-6">
-            <OrdersPage />
-          </TabsContent>
-          <TabsContent value="deliveries" className="mt-6">
-            <DeliveriesPage />
-          </TabsContent>
-          <TabsContent value="products" className="mt-6">
-            <ProductsPage />
-          </TabsContent>
-          <TabsContent value="clients" className="mt-6">
-            <ClientsPage />
-          </TabsContent>
-          <TabsContent value="birthdays" className="mt-6">
-            <BirthdaysPage />
-          </TabsContent>
-        </Tabs>
+      <div className='flex items-center justify-between'>
+        <PageHeader
+          title="Painel de Administração"
+          description="Gerencie todos os aspectos da sua loja em um único lugar."
+        />
+         <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className='gap-2'>
+                <Menu className="h-4 w-4" />
+                <span>{sectionTitles[activeSection]}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuRadioGroup value={activeSection} onValueChange={(value) => setActiveSection(value as AdminSection)}>
+                 {Object.entries(sectionTitles).map(([key, title]) => (
+                    <DropdownMenuRadioItem key={key} value={key}>{title}</DropdownMenuRadioItem>
+                 ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+      </div>
 
+      <div className="mt-8 space-y-8">
+        <div>
+            {activeSection === 'dashboard' && <DashboardPage />}
+            {activeSection === 'orders' && <OrdersPage />}
+            {activeSection === 'deliveries' && <DeliveriesPage />}
+            {activeSection === 'products' && <ProductsPage />}
+            {activeSection === 'clients' && <ClientsPage />}
+            {activeSection === 'birthdays' && <BirthdaysPage />}
+        </div>
+        
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
