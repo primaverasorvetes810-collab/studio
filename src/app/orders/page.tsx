@@ -137,7 +137,7 @@ export default function OrdersPage() {
                     <div className="flex flex-col items-start text-left">
                       <span className="font-bold">Pedido #{order.id.substring(0, 7)}</span>
                       <span className="text-sm text-muted-foreground">
-                        {order.orderDate.toDate().toLocaleDateString()}
+                        {order.orderDate ? order.orderDate.toDate().toLocaleDateString() : 'Processando...'}
                       </span>
                     </div>
                     <div className="flex items-center gap-4">
