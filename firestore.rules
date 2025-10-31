@@ -62,15 +62,9 @@ service cloud.firestore {
       // Regra de Leitura: Apenas administradores podem ver quem são outros administradores.
       allow read: if isAdmin();
       
-      // Regra de Escrita: Permite a criação se for o primeiro admin, ou se o solicitante já for admin.
-      // Isso resolve o problema de quem promove o primeiro administrador.
-      allow create: if (
-        // Condição 1: A coleção 'roles_admin' está vazia, permitindo que o primeiro admin seja criado.
-        !exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) && get(/databases/$(database)/documents/roles_admin).data.size() == 0
-      ) || (
-        // Condição 2: O solicitante já é um administrador.
-        isAdmin()
-      );
+      // Regra de Escrita: Permite a criação se o usuário ainda não for um admin (para o primeiro admin)
+      // ou se o solicitante já for um admin (para promover outros).
+      allow create: if !exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) || isAdmin();
     }
   }
 }
