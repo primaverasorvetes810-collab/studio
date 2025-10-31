@@ -64,7 +64,7 @@ export default function RevenuePage() {
 
   const { totalRevenue, paidOrders } = useMemo(() => {
     if (!orders) return { totalRevenue: 0, paidOrders: [] };
-    const paid = orders.filter((order) => order.status === 'Pago');
+    const paid = orders.filter((order) => order.status === 'Pago' || order.status === 'Entregue');
     const revenue = paid.reduce((acc, order) => acc + order.totalAmount, 0);
     return { totalRevenue: revenue, paidOrders: paid };
   }, [orders]);
@@ -83,9 +83,9 @@ export default function RevenuePage() {
         title="Receita"
         description="Acompanhe o faturamento da sua loja."
       />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2">
         <AdminStatsCard
-          title="Receita Total (Pedidos Pagos)"
+          title="Receita Total (Pedidos Pagos/Entregues)"
           value={formatPrice(totalRevenue)}
           icon={DollarSign}
         />
@@ -100,9 +100,9 @@ export default function RevenuePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Cliente</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>ID do Pedido</TableHead>
-                  <TableHead>Método de Pagamento</TableHead>
+                  <TableHead className="hidden md:table-cell">Data</TableHead>
+                  <TableHead className="hidden lg:table-cell">ID do Pedido</TableHead>
+                  <TableHead className="hidden lg:table-cell">Pagamento</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
                 </TableRow>
               </TableHeader>
@@ -111,18 +111,18 @@ export default function RevenuePage() {
                   <TableRow key={order.id}>
                     <TableCell>
                       <div className="font-medium">{order.userName}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {order.userEmail}
+                      <div className="text-sm text-muted-foreground md:hidden">
+                        {order.orderDate.toDate().toLocaleDateString()}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       {order.orderDate.toDate().toLocaleDateString()}
                     </TableCell>
-                    <TableCell className="font-medium">
-                      {order.id.substring(0, 7)}...
+                    <TableCell className="hidden lg:table-cell font-medium">
+                      #{order.id.substring(0, 7)}...
                     </TableCell>
-                    <TableCell>{order.paymentMethod}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="hidden lg:table-cell">{order.paymentMethod}</TableCell>
+                    <TableCell className="text-right font-semibold text-primary">
                       {formatPrice(order.totalAmount)}
                     </TableCell>
                   </TableRow>
