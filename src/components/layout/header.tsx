@@ -44,8 +44,9 @@ export default function Header() {
     { href: "/", label: "Produtos" },
     { href: "/orders", label: "Meus Pedidos", requiresAuth: true },
     { href: "/ajuda", label: "Ajuda" },
-    { href: "/admin", label: "Admin", requiresAuth: true },
   ];
+
+  const adminLink = { href: "/admin", label: "Admin", requiresAuth: true };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm">
@@ -66,6 +67,15 @@ export default function Header() {
                 </Link>
               )
             )}
+             {user && (
+                <Link
+                  key={adminLink.href}
+                  href={adminLink.href}
+                  className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {adminLink.label}
+                </Link>
+              )}
           </nav>
         </div>
 
@@ -111,10 +121,10 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="ghost" size="icon" asChild className="hidden md:inline-flex">
+            <Button asChild variant="ghost" size="icon" className="hidden md:flex">
               <Link href="/login">
-                <User className="h-5 w-5" />
-                <span className="sr-only">Perfil do Usuário</span>
+                 <User className="h-5 w-5" />
+                 <span className="sr-only">Login</span>
               </Link>
             </Button>
           )}
@@ -146,6 +156,16 @@ export default function Header() {
                                 </Link>
                              </SheetClose>
                         )
+                    )}
+                    {user && (
+                       <SheetClose asChild>
+                          <Link
+                              href={adminLink.href}
+                              className="rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          >
+                              {adminLink.label}
+                          </Link>
+                       </SheetClose>
                     )}
                      {!user && !isUserLoading && (
                         <SheetClose asChild>
