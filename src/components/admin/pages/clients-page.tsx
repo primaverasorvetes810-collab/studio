@@ -24,8 +24,7 @@ import {
   MoreVertical,
   Loader2,
   AlertCircle,
-  Shield,
-  ShieldOff,
+  User,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -35,20 +34,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import type { User, Order } from '@/firebase/orders';
+import type { User as UserType, Order } from '@/firebase/orders';
 
 
-type ClientWithStats = User & {
+type ClientWithStats = UserType & {
   totalOrders: number;
   totalSpent: number;
   lastOrderDate: string | null;
-  isAdmin: boolean;
 };
-
-// NOTE: This is a placeholder for the roles concept which has been removed from Firestore rules.
-// The `isAdmin` flag is now derived by checking a (now non-existent) `roles_admin` collection,
-// but the UI logic to promote/revoke will fail silently or throw errors if rules are strict.
-// This is kept to fulfill the UI structure request.
 
 export default function ClientsPage() {
   const [clientsWithStats, setClientsWithStats] = useState<ClientWithStats[]>([]);
@@ -63,7 +56,7 @@ export default function ClientsPage() {
       try {
         const usersRef = collection(firestore, 'users');
         const usersSnap = await getDocs(usersRef);
-        const users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+        const users = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserType));
 
         const processedClients: ClientWithStats[] = await Promise.all(
           users.map(async (user) => {
@@ -74,16 +67,11 @@ export default function ClientsPage() {
             const totalSpent = orders.reduce((acc, order) => acc + order.totalAmount, 0);
             const lastOrder = orders.sort((a, b) => b.orderDate.toMillis() - a.orderDate.toMillis())[0];
 
-            // This check is now just for the UI, rules are open for authenticated users.
-            const adminRoleRef = doc(firestore, 'roles_admin', user.id);
-            const adminSnap = await getDoc(adminRoleRef);
-
             return {
               ...user,
               totalOrders: orders.length,
               totalSpent,
               lastOrderDate: lastOrder ? lastOrder.orderDate.toDate().toLocaleDateString() : null,
-              isAdmin: adminSnap.exists(),
             };
           })
         );
@@ -104,43 +92,6 @@ export default function ClientsPage() {
     }
   }, [firestore]);
 
-  // The following functions will appear to work on the UI but depend on Firestore rules.
-  // Since we've simplified rules, these are effectively UI-only changes until rules are tightened.
-  const handlePromote = async (userId: string, userEmail: string) => {
-    const adminRoleRef = doc(firestore, 'roles_admin', userId);
-    try {
-        await setDoc(adminRoleRef, { email: userEmail });
-        toast({
-          title: 'Sucesso!',
-          description: `${userEmail} agora é um administrador (localmente).`,
-        });
-        setClientsWithStats(prev => prev.map(c => c.id === userId ? { ...c, isAdmin: true } : c));
-    } catch (e) {
-         toast({
-          variant: 'destructive',
-          title: 'Erro de permissão',
-          description: 'Não foi possível promover o usuário. Verifique as regras do Firestore.'
-        });
-    }
-  };
-
-  const handleRevoke = async (userId: string, userEmail: string) => {
-     const adminRoleRef = doc(firestore, 'roles_admin', userId);
-     try {
-        await deleteDoc(adminRoleRef);
-        toast({
-          title: 'Sucesso!',
-          description: `Privilégios de admin revogados para ${userEmail} (localmente).`,
-        });
-        setClientsWithStats(prev => prev.map(c => c.id === userId ? { ...c, isAdmin: false } : c));
-     } catch (e) {
-         toast({
-          variant: 'destructive',
-          title: 'Erro de permissão',
-          description: 'Não foi possível revogar os privilégios. Verifique as regras do Firestore.'
-        });
-     }
-  };
 
   if (isLoading) {
     return (
@@ -170,7 +121,7 @@ export default function ClientsPage() {
       <CardHeader>
         <CardTitle>Clientes</CardTitle>
         <CardDescription>
-          Gerencie os usuários cadastrados no seu sistema. A promoção a 'Admin' é apenas visual, pois as regras do Firestore foram simplificadas.
+          Gerencie os usuários cadastrados no seu sistema.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -180,10 +131,7 @@ export default function ClientsPage() {
               <TableHead>Cliente</TableHead>
               <TableHead className="hidden sm:table-cell">Total Gasto</TableHead>
               <TableHead className="hidden md:table-cell">Último Pedido</TableHead>
-              <TableHead>Status (Visual)</TableHead>
-              <TableHead>
-                <span className="sr-only">Ações</span>
-              </TableHead>
+              <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -197,40 +145,16 @@ export default function ClientsPage() {
                   <TableCell className="hidden sm:table-cell">{formatPrice(client.totalSpent)}</TableCell>
                   <TableCell className="hidden md:table-cell">{client.lastOrderDate || 'N/A'}</TableCell>
                    <TableCell>
-                    {client.isAdmin ? (
-                      <Badge variant="outline" className="border-green-500 bg-green-500/10 text-green-700">
-                        <Shield className="mr-1 h-3 w-3" />
-                        Admin
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary">Cliente</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreVertical className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onSelect={() => handlePromote(client.id, client.email)} disabled={client.isAdmin}>
-                          <Shield className="mr-2 h-4 w-4" />
-                          Tornar Admin
-                        </DropdownMenuItem>
-                         <DropdownMenuItem onSelect={() => handleRevoke(client.id, client.email)} disabled={!client.isAdmin} className="text-red-600 focus:bg-red-50 focus:text-red-700">
-                           <ShieldOff className="mr-2 h-4 w-4" />
-                          Revogar Admin
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Badge variant="secondary">
+                        <User className="mr-1 h-3 w-3" />
+                        Cliente
+                    </Badge>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={4} className="h-24 text-center">
                   Nenhum cliente encontrado.
                 </TableCell>
               </TableRow>

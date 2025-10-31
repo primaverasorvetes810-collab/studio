@@ -11,23 +11,26 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    function isAdmin() {
-      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-    }
-    
-    match /roles_admin/{uid} {
-      allow create: if request.auth != null; // ANY authenticated user can create an admin role for themselves.
-      allow read, delete: if isAdmin();
+    // A lógica do administrador agora é tratada por um portão de senha no cliente.
+    // As regras confiam que, se um usuário estiver autenticado, ele passou
+    // pela verificação de senha para realizar ações de administrador.
+    // Isso NÃO é seguro para produção, mas segue a solicitação do usuário.
+    function canPerformAdminAction() {
+      return isSignedIn();
     }
 
     match /users/{userId} {
-      allow read, create, update: if isSignedIn() && isOwner(userId);
-      // Admins can read the list of all users for management
-      allow list: if isAdmin();
+      // Qualquer usuário conectado pode criar um perfil para si mesmo.
+      // Os usuários só podem ler/atualizar seus próprios perfis.
+      allow create, read, update: if isSignedIn() && isOwner(userId);
+      // Qualquer usuário autenticado (que passou pelo portão de senha) pode listar usuários.
+      allow list: if canPerformAdminAction();
 
       match /orders/{orderId} {
+        // Os usuários podem criar/ler seus próprios pedidos.
         allow read, create: if isSignedIn() && isOwner(userId);
-        allow list, update: if isAdmin();
+        // Usuários autenticados (administradores) podem atualizar qualquer pedido.
+        allow update: if canPerformAdminAction();
       }
 
       match /shoppingCarts/{cartId} {
@@ -39,14 +42,19 @@ service cloud.firestore {
       }
     }
     
+    // Usuários autenticados (administradores) podem ler todos os pedidos através da consulta de grupo de coleção.
+    match /{path=**}/orders/{orderId} {
+       allow list, read: if canPerformAdminAction();
+    }
+    
     match /productGroups/{productGroupId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if canPerformAdminAction(); // A escrita é permitida para usuários autenticados (administradores)
     }
 
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if canPerformAdminAction(); // A escrita é permitida para usuários autenticados (administradores)
     }
   }
 }
