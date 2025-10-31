@@ -8,7 +8,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -61,17 +60,19 @@ export function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
       </CardHeader>
-      <CardContent className="flex-grow p-4">
-        <CardTitle className="mb-2 text-lg">{product.name}</CardTitle>
-        <CardDescription>{product.description}</CardDescription>
+      <CardContent className="flex flex-col flex-grow p-4">
+        <div className="flex-grow">
+          <CardTitle className="mb-1 text-lg">{product.name}</CardTitle>
+          <CardDescription className="line-clamp-2 text-sm">{product.description}</CardDescription>
+        </div>
+        <div className="mt-4 flex items-center justify-between">
+            <p className="text-xl font-bold text-primary">{formatPrice(product.price)}</p>
+            <Button size="sm" onClick={handleAddToCart}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Adicionar
+            </Button>
+        </div>
       </CardContent>
-      <CardFooter className="flex items-center justify-between p-4 pt-0">
-        <p className="text-xl font-bold text-primary">{formatPrice(product.price)}</p>
-        <Button size="sm" onClick={handleAddToCart}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar
-        </Button>
-      </CardFooter>
     </Card>
   );
 }
