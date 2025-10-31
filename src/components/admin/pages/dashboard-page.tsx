@@ -96,7 +96,7 @@ const statusColors: Record<Order["status"], string> = {
 };
 
 export default function DashboardPage() {
-  const { orders, isLoading: isLoadingOrders } = useAllOrders();
+  const { orders, isLoading: isLoadingOrders, error: ordersError } = useAllOrders();
 
   const firestore = useFirestore();
 
@@ -140,6 +140,16 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader title="Painel" description="Uma visão geral da sua loja." />
+       {ordersError && (
+        <Card className="bg-destructive/10 border-destructive">
+          <CardHeader>
+            <CardTitle className="text-destructive">Erro de Permissão</CardTitle>
+            <CardDescription className="text-destructive/80">
+              Você não tem permissão para visualizar todos os pedidos. Peça a um administrador para lhe conceder acesso.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <AdminStatsCard
           title="Receita Total"

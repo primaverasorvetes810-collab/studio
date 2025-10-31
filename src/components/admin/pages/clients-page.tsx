@@ -20,13 +20,14 @@ import { useFirestore } from "@/firebase";
 import { type Order } from "@/firebase/orders";
 import { type User } from "@/firebase/orders";
 import { collection, collectionGroup, getDocs, query } from "firebase/firestore";
-import { MoreVertical, Loader2, Eye } from "lucide-react";
+import { MoreVertical, Loader2, Eye, ShieldCheck } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuTrigger,
+    DropdownMenuSeparator,
   } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -34,6 +35,8 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { formatPrice } from '@/lib/utils';
 import ClientDetailPage from './client-detail-page';
+import { promoteUserToAdmin } from '@/firebase/roles';
+import { useToast } from '@/hooks/use-toast';
 
 
 interface ClientData {
@@ -53,6 +56,7 @@ export default function ClientsPage() {
     const [error, setError] = useState<string | null>(null);
     const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
     const firestore = useFirestore();
+    const { toast } = useToast();
 
     useEffect(() => {
         const fetchClientsAndOrders = async () => {
@@ -124,13 +128,25 @@ export default function ClientsPage() {
         fetchClientsAndOrders();
       }, [firestore]);
 
+    const handlePromoteAdmin = async (client: ClientData) => {
+        try {
+            await promoteUserToAdmin(client.id, client.email);
+            toast({
+                title: "Sucesso!",
+                description: `${client.name} agora é um administrador.`,
+            });
+        } catch (error) {
+            // Error is handled globally
+        }
+    };
+
     if (selectedClientId) {
       return <ClientDetailPage clientId={selectedClientId} onBack={() => setSelectedClientId(null)} />;
     }
 
     return (
         <div className="flex flex-col gap-8">
-            <PageHeader title="Clientes" description="Veja informações sobre seus clientes." />
+            <PageHeader title="Clientes" description="Veja informações e gerencie as permissões dos seus clientes." />
             <Card>
                 <CardHeader>
                     <CardTitle>Todos os Clientes</CardTitle>
@@ -152,7 +168,7 @@ export default function ClientsPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Nome</TableHead>
+                                <TableHead className="w-[250px]">Nome</TableHead>
                                 <TableHead className="hidden md:table-cell">Total Gasto</TableHead>
                                 <TableHead className="hidden md:table-cell">Pedidos</TableHead>
                                 <TableHead className="hidden md:table-cell">Último Pedido</TableHead>
@@ -165,7 +181,7 @@ export default function ClientsPage() {
                             {clients.map((client) => (
                                 <TableRow key={client.id}>
                                     <TableCell>
-                                        <div className="font-medium">{client.name}</div>
+                                        <div className="font-medium truncate">{client.name}</div>
                                     </TableCell>
                                     <TableCell className="hidden md:table-cell">{formatPrice(client.totalSpent)}</TableCell>
                                     <TableCell className="hidden md:table-cell">{client.orderCount}</TableCell>
@@ -183,6 +199,11 @@ export default function ClientsPage() {
                                                 <DropdownMenuItem onClick={() => setSelectedClientId(client.id)}>
                                                    <Eye className="mr-2 h-4 w-4" />
                                                    Ver Detalhes
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem onClick={() => handlePromoteAdmin(client)}>
+                                                    <ShieldCheck className="mr-2 h-4 w-4" />
+                                                    Tornar Admin
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
