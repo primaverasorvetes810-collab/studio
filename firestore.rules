@@ -39,13 +39,15 @@ service cloud.firestore {
     }
 
     match /productGroups/{productGroupId} {
-      // Permite que o admin (qualquer usuário autenticado) gerencie grupos.
-      allow read, write: if isSignedIn();
+      // Permite que qualquer um leia, mas apenas admin (autenticado) gerencie.
+      allow read: if true;
+      allow write: if isSignedIn();
     }
 
     match /products/{productId} {
-       // Permite que o admin (qualquer usuário autenticado) gerencie produtos.
-      allow read, write: if isSignedIn();
+       // Permite que qualquer um leia, mas apenas admin (autenticado) gerencie.
+      allow read: if true;
+      allow write: if isSignedIn();
     }
   }
 }
