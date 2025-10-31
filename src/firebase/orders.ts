@@ -42,6 +42,7 @@ export interface User {
     email: string;
     registerTime: Timestamp;
     fullName: string;
+    birthDate: string;
     phone?: string;
     address?: string;
     neighborhood?: string;

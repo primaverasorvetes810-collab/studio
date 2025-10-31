@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, query, where, getDocs, collectionGroup } from 'firebase/firestore';
+import { collection, query, where, getDocs, collectionGroup, doc, getDoc } from 'firebase/firestore';
 import PageHeader from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -47,16 +47,9 @@ export default function ClientDetailPage({ clientId, onBack }: ClientDetailPageP
       const ordersRef = collectionGroup(firestore, 'orders');
       
       try {
-        const querySnapshot = await getDocs(ordersRef);
+        const querySnapshot = await getDocs(query(ordersRef, where('userId', '==', clientId)));
         
-        if (querySnapshot.empty) {
-          setIsLoading(false);
-          return;
-        }
-  
-        const allOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-        
-        const userOrders = allOrders.filter(order => order.userId === clientId);
+        const userOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
 
         if (userOrders.length === 0) {
             // If no orders, fetch user data directly
