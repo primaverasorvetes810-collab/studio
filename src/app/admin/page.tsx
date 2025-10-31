@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { Loader2, ShieldCheck, ShieldAlert, KeyRound } from 'lucide-react';
+import { Loader2, ShieldAlert, KeyRound } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -16,6 +16,8 @@ import PageHeader from '@/components/page-header';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
+import DeliveriesPage from '@/components/admin/pages/deliveries-page';
+import BirthdaysPage from '@/components/admin/pages/birthdays-page';
 
 export default function AdminGatePage() {
   const { user, isUserLoading } = useUser();
@@ -117,11 +119,13 @@ export default function AdminGatePage() {
         description="Gerencie todos os aspectos da sua loja em um único lugar."
       />
       <Tabs defaultValue="dashboard" className="mt-8">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="orders">Pedidos</TabsTrigger>
+          <TabsTrigger value="deliveries">Entregas</TabsTrigger>
           <TabsTrigger value="products">Produtos</TabsTrigger>
           <TabsTrigger value="clients">Clientes</TabsTrigger>
+          <TabsTrigger value="birthdays">Aniversariantes</TabsTrigger>
         </TabsList>
         <TabsContent value="dashboard" className="mt-6">
           <DashboardPage />
@@ -129,11 +133,17 @@ export default function AdminGatePage() {
         <TabsContent value="orders" className="mt-6">
           <OrdersPage />
         </TabsContent>
+        <TabsContent value="deliveries" className="mt-6">
+          <DeliveriesPage />
+        </TabsContent>
         <TabsContent value="products" className="mt-6">
           <ProductsPage />
         </TabsContent>
         <TabsContent value="clients" className="mt-6">
           <ClientsPage />
+        </TabsContent>
+         <TabsContent value="birthdays" className="mt-6">
+          <BirthdaysPage />
         </TabsContent>
       </Tabs>
     </div>
