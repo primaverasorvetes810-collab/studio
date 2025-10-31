@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/table";
 import { useFirestore } from "@/firebase";
 import { type Order } from "@/firebase/orders";
-import { collectionGroup, getDocs, query } from "firebase/firestore";
+import { type User } from "@/firebase/orders";
+import { collection, collectionGroup, getDocs, query } from "firebase/firestore";
 import { MoreHorizontal, Loader2, Eye } from "lucide-react";
 import {
     DropdownMenu,
@@ -53,50 +54,64 @@ export default function ClientsPage() {
     const firestore = useFirestore();
 
     useEffect(() => {
-        const fetchClientsFromOrders = async () => {
+        const fetchClientsAndOrders = async () => {
           if (!firestore) return;
           setIsLoading(true);
           setError(null);
     
           try {
+            // 1. Fetch all users
+            const usersQuery = query(collection(firestore, 'users'));
+            const usersSnapshot = await getDocs(usersQuery);
+            const users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+
+            // 2. Fetch all orders
             const ordersQuery = query(collectionGroup(firestore, 'orders'));
             const ordersSnapshot = await getDocs(ordersQuery);
-    
-            const clientsMap = new Map<string, ClientData>();
-    
-            ordersSnapshot.forEach(doc => {
-              const order = doc.data() as Order;
-              const userId = order.userId;
-    
-              if (!clientsMap.has(userId)) {
-                clientsMap.set(userId, {
-                  id: userId,
-                  name: order.userName || 'N/A',
-                  email: order.userEmail || 'N/A',
-                  phone: order.userPhone,
-                  totalSpent: 0,
-                  lastOrderDate: null,
-                  orderCount: 0,
-                });
-              }
-    
-              const client = clientsMap.get(userId)!;
-              client.totalSpent += order.totalAmount;
-              client.orderCount += 1;
-              const orderDate = order.orderDate.toDate();
-              if (!client.lastOrderDate || orderDate > client.lastOrderDate) {
-                client.lastOrderDate = orderDate;
-              }
+            const allOrders = ordersSnapshot.docs.map(doc => doc.data() as Order);
+
+            // 3. Create a map of orders by userId
+            const ordersByUserId = new Map<string, Order[]>();
+            allOrders.forEach(order => {
+                if (!ordersByUserId.has(order.userId)) {
+                    ordersByUserId.set(order.userId, []);
+                }
+                ordersByUserId.get(order.userId)!.push(order);
             });
     
-            const clientsArray = Array.from(clientsMap.values());
-            setClients(clientsArray);
+            // 4. Combine user data with order data
+            const clientsData = users.map(user => {
+                const userOrders = ordersByUserId.get(user.id) || [];
+                const totalSpent = userOrders.reduce((acc, order) => acc + order.totalAmount, 0);
+                const orderCount = userOrders.length;
+                
+                let lastOrderDate: Date | null = null;
+                if (orderCount > 0) {
+                    lastOrderDate = userOrders.reduce((latest, order) => {
+                        const orderDate = order.orderDate.toDate();
+                        return latest > orderDate ? latest : orderDate;
+                    }, new Date(0));
+                }
+
+                return {
+                    id: user.id,
+                    name: user.fullName || 'N/A',
+                    email: user.email || 'N/A',
+                    phone: user.phone,
+                    totalSpent,
+                    orderCount,
+                    lastOrderDate,
+                };
+            });
+    
+            setClients(clientsData);
 
           } catch (e: any) {
              setError("Falha ao carregar clientes. Verifique as permissões do Firestore.");
              if (e.message.includes('permission-denied')) {
+                // This might be either users or orders, we'll assume orders for the error
                 errorEmitter.emit('permission-error', new FirestorePermissionError({
-                    path: 'orders', // This is now a collection group query
+                    path: 'orders', // or 'users'
                     operation: 'list'
                 }));
              }
@@ -105,7 +120,7 @@ export default function ClientsPage() {
           }
         };
     
-        fetchClientsFromOrders();
+        fetchClientsAndOrders();
       }, [firestore]);
 
 
