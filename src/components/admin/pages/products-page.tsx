@@ -138,16 +138,17 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title="Grupos de Produtos"
         description="Organize seus produtos em grupos para facilitar a navegação."
-      >
+      />
+      <div className="mb-4">
         <Button onClick={handleAddNewGroup}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Grupo
         </Button>
-      </PageHeader>
+      </div>
 
       {areGroupsLoading ? (
         <div className="flex justify-center items-center h-64">
@@ -160,12 +161,12 @@ export default function ProductsPage() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between p-4 gap-4">
                   <CollapsibleTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-pointer flex-1">
+                    <div className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
                       <Button variant="ghost" size="sm" className="shrink-0">
                         <ChevronRight className="h-4 w-4 transition-transform data-[state=open]:rotate-90" />
                         <span className="sr-only">Toggle</span>
                       </Button>
-                      <CardTitle className='text-lg'>{group.name}</CardTitle>
+                      <CardTitle className='text-lg truncate' title={group.name}>{group.name}</CardTitle>
                     </div>
                   </CollapsibleTrigger>
                   <div className="flex items-center gap-2 shrink-0">

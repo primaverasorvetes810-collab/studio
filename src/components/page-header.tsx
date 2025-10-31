@@ -4,21 +4,17 @@ type PageHeaderProps = {
   title: string;
   description?: string;
   className?: string;
-  children?: React.ReactNode;
 };
 
-export default function PageHeader({ title, description, className, children }: PageHeaderProps) {
+export default function PageHeader({ title, description, className }: PageHeaderProps) {
   return (
-    <div className={cn("mb-8 flex items-start justify-between", className)}>
-        <div className="grid gap-1">
-            <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
-                {title}
-            </h1>
-            {description && (
-                <p className="text-lg text-muted-foreground">{description}</p>
-            )}
-        </div>
-        {children}
+    <div className={cn("grid gap-1", className)}>
+        <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
+            {title}
+        </h1>
+        {description && (
+            <p className="text-lg text-muted-foreground">{description}</p>
+        )}
     </div>
   );
 }
