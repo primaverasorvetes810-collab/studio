@@ -9,9 +9,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, BarChart2, ShoppingCart, Truck, Package, Users, Gift } from "lucide-react";
-import Link from "next/link";
+import { BookOpen, BarChart2, ShoppingCart, Truck, Package, Users, Gift, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const adminFaqs = [
   {
@@ -47,13 +47,52 @@ const adminFaqs = [
 ];
 
 export default function AdminHelpPage() {
+    const { toast } = useToast();
+    
+    const handleTestNotification = () => {
+        if (!("Notification" in window)) {
+          toast({
+            variant: "destructive",
+            title: "Navegador não suportado",
+            description: "Este navegador não suporta notificações de desktop.",
+          });
+          return;
+        }
+    
+        if (Notification.permission === "granted") {
+          new Notification("Primavera Delivery", {
+            body: "Este é um alarme de teste! Novos pedidos podem ser notificados assim.",
+            icon: "/favicon.ico", 
+          });
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission().then((permission) => {
+            if (permission === "granted") {
+              new Notification("Permissão concedida!", {
+                body: "Agora você pode receber notificações.",
+              });
+            } else {
+                toast({
+                    title: 'Permissão negada',
+                    description: 'Você não receberá notificações.'
+                });
+            }
+          });
+        } else {
+            toast({
+                variant: "destructive",
+                title: 'Permissão de notificação bloqueada',
+                description: 'Você precisa permitir notificações nas configurações do seu navegador.'
+            });
+        }
+    };
+
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-8">
+    <>
       <PageHeader
         title="Guia do Painel de Administração"
         description="Entenda o que cada seção do seu painel de controle faz."
       />
-      <div className="mt-8">
+      <div className="mt-8 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -79,12 +118,26 @@ export default function AdminHelpPage() {
             </Accordion>
           </CardContent>
         </Card>
-        <div className="mt-8 text-center">
-            <Button asChild>
-                <Link href="/admin">Voltar para o Painel</Link>
-            </Button>
-        </div>
+
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Bell className="text-primary" />
+                    Notificações Push (Alarmes)
+                </CardTitle>
+                <CardDescription>
+                    Permita notificações em seu navegador para receber alertas, como quando um novo pedido chegar.
+                    Clique no botão para pedir permissão e enviar uma notificação de teste para o seu dispositivo.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button onClick={handleTestNotification}>
+                    Testar Alarme
+                </Button>
+            </CardContent>
+        </Card>
+
       </div>
-    </div>
+    </>
   );
 }

@@ -18,9 +18,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import DeliveriesPage from '@/components/admin/pages/deliveries-page';
 import BirthdaysPage from '@/components/admin/pages/birthdays-page';
+import AdminHelpPage from './ajuda/page';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays";
+type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays" | "help";
 
 const sectionTitles: Record<AdminSection, string> = {
   dashboard: 'Dashboard',
@@ -29,6 +30,7 @@ const sectionTitles: Record<AdminSection, string> = {
   products: 'Produtos',
   clients: 'Clientes',
   birthdays: 'Aniversariantes',
+  help: 'Ajuda',
 }
 
 export default function AdminGatePage() {
@@ -63,43 +65,6 @@ export default function AdminGatePage() {
     }, 500);
   };
   
-  const handleTestNotification = () => {
-    if (!("Notification" in window)) {
-      toast({
-        variant: "destructive",
-        title: "Navegador não suportado",
-        description: "Este navegador não suporta notificações de desktop.",
-      });
-      return;
-    }
-
-    if (Notification.permission === "granted") {
-      new Notification("Primavera Delivery", {
-        body: "Este é um alarme de teste! Novos pedidos podem ser notificados assim.",
-        icon: "/favicon.ico", // Opcional: adicione um ícone
-      });
-    } else if (Notification.permission !== "denied") {
-      Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-          new Notification("Permissão concedida!", {
-            body: "Agora você pode receber notificações.",
-          });
-        } else {
-            toast({
-                title: 'Permissão negada',
-                description: 'Você não receberá notificações.'
-            });
-        }
-      });
-    } else {
-        toast({
-            variant: "destructive",
-            title: 'Permissão de notificação bloqueada',
-            description: 'Você precisa permitir notificações nas configurações do seu navegador.'
-        });
-    }
-  };
-
   if (isUserLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -196,42 +161,8 @@ export default function AdminGatePage() {
             {activeSection === 'products' && <ProductsPage />}
             {activeSection === 'clients' && <ClientsPage />}
             {activeSection === 'birthdays' && <BirthdaysPage />}
+            {activeSection === 'help' && <AdminHelpPage />}
         </div>
-        
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Bell className="text-primary" />
-                    Notificações Push (Alarmes)
-                </CardTitle>
-                <CardDescription>
-                    Clique no botão para pedir permissão e enviar uma notificação de teste para o seu dispositivo.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button onClick={handleTestNotification}>
-                    Testar Alarme
-                </Button>
-            </CardContent>
-        </Card>
-
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <HelpCircle className="text-primary" />
-                    Precisa de Ajuda?
-                </CardTitle>
-                <CardDescription>
-                    Não tem certeza sobre o que cada seção faz? Consulte nosso guia.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button asChild variant="outline">
-                    <Link href="/admin/ajuda">Ver Guia do Administrador</Link>
-                </Button>
-            </CardContent>
-        </Card>
-
       </div>
     </div>
   );
