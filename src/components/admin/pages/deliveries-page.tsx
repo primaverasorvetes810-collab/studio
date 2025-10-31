@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collectionGroup, getDocs, query, where } from 'firebase/firestore';
+import { collectionGroup, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { Order, OrderStatus } from '@/firebase/orders';
 import {
@@ -44,10 +44,8 @@ export default function DeliveriesPage() {
       setIsLoading(true);
       if (!firestore) return;
       try {
-        const ordersQuery = query(
-            collectionGroup(firestore, 'orders'),
-            where('status', 'in', ['Pago', 'Enviado'])
-        );
+        // Fetch all orders using a collection group query, then filter on the client
+        const ordersQuery = collectionGroup(firestore, 'orders');
         const ordersSnapshot = await getDocs(ordersQuery);
         
         let fetchedOrders: Order[] = [];
@@ -55,7 +53,12 @@ export default function DeliveriesPage() {
             fetchedOrders.push({ id: orderDoc.id, ...orderDoc.data() } as Order);
         });
 
-        const sortedOrders = fetchedOrders.sort(
+        // Client-side filtering for statuses 'Pago' and 'Enviado'
+        const deliveryOrders = fetchedOrders.filter(order => 
+            order.status === 'Pago' || order.status === 'Enviado'
+        );
+
+        const sortedOrders = deliveryOrders.sort(
           (a, b) => a.orderDate.toMillis() - b.orderDate.toMillis()
         );
         setDeliveries(sortedOrders);
