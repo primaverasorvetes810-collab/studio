@@ -98,15 +98,15 @@ export default function OrdersPage() {
                     <Accordion type="single" collapsible className="w-full">
                         {orders.map((order) => (
                         <AccordionItem value={order.id} key={order.id} className="border-b">
-                             <div className="flex items-center justify-between w-full px-4 py-3">
-                                <AccordionTrigger className="p-0 flex-1 text-left hover:no-underline">
+                             <div className="flex flex-wrap items-center justify-between w-full px-4 py-2 gap-y-2">
+                                <AccordionTrigger className="p-0 flex-1 text-left hover:no-underline min-w-[150px]">
                                     <div className="flex flex-col items-start">
-                                        <span className="font-bold text-base">{order.userName}</span>
+                                        <span className="font-bold text-base truncate">{order.userName}</span>
                                         <span className="text-sm text-muted-foreground">Pedido #{order.id.substring(0, 7)}...</span>
                                     </div>
                                 </AccordionTrigger>
-                                <div className="flex items-center gap-4 ml-4">
-                                    <span className="font-bold text-primary">{formatPrice(order.totalAmount)}</span>
+                                <div className="flex items-center gap-4 ml-auto shrink-0">
+                                    <span className="font-bold text-primary hidden sm:inline">{formatPrice(order.totalAmount)}</span>
                                     <OrderStatusSelector order={order} onStatusChange={handleStatusChange} />
                                 </div>
                             </div>
@@ -126,7 +126,9 @@ export default function OrdersPage() {
                                             <div className='text-sm space-y-1'>
                                                 <p><span className='text-muted-foreground'>Data:</span> {order.orderDate.toDate().toLocaleString()}</p>
                                                 <p><span className='text-muted-foreground'>Pagamento:</span> {order.paymentMethod}</p>
-                                                <p><span className='text-muted-foreground'>Status:</span> {order.status}</p>
+                                                <p className="flex items-center gap-2"><span className='text-muted-foreground'>Status:</span> {order.status}</p>
+                                                <p className="flex items-center gap-2 sm:hidden"><span className='text-muted-foreground'>Total:</span> <span className="font-bold">{formatPrice(order.totalAmount)}</span></p>
+
                                             </div>
                                         </div>
                                     </div>
