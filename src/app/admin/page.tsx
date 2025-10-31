@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { Loader2, ShieldAlert, KeyRound } from 'lucide-react';
+import { Loader2, ShieldAlert, KeyRound, Bell } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -48,6 +49,43 @@ export default function AdminGatePage() {
       setIsChecking(false);
       setPassword('');
     }, 500);
+  };
+  
+  const handleTestNotification = () => {
+    if (!("Notification" in window)) {
+      toast({
+        variant: "destructive",
+        title: "Navegador não suportado",
+        description: "Este navegador não suporta notificações de desktop.",
+      });
+      return;
+    }
+
+    if (Notification.permission === "granted") {
+      new Notification("Primavera Delivery", {
+        body: "Este é um alarme de teste! Novos pedidos podem ser notificados assim.",
+        icon: "/favicon.ico", // Opcional: adicione um ícone
+      });
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          new Notification("Permissão concedida!", {
+            body: "Agora você pode receber notificações.",
+          });
+        } else {
+            toast({
+                title: 'Permissão negada',
+                description: 'Você não receberá notificações.'
+            });
+        }
+      });
+    } else {
+        toast({
+            variant: "destructive",
+            title: 'Permissão de notificação bloqueada',
+            description: 'Você precisa permitir notificações nas configurações do seu navegador.'
+        });
+    }
   };
 
   if (isUserLoading) {
@@ -118,34 +156,53 @@ export default function AdminGatePage() {
         title="Painel de Administração"
         description="Gerencie todos os aspectos da sua loja em um único lugar."
       />
-      <Tabs defaultValue="dashboard" className="mt-8">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="orders">Pedidos</TabsTrigger>
-          <TabsTrigger value="deliveries">Entregas</TabsTrigger>
-          <TabsTrigger value="products">Produtos</TabsTrigger>
-          <TabsTrigger value="clients">Clientes</TabsTrigger>
-          <TabsTrigger value="birthdays">Aniversariantes</TabsTrigger>
-        </TabsList>
-        <TabsContent value="dashboard" className="mt-6">
-          <DashboardPage />
-        </TabsContent>
-        <TabsContent value="orders" className="mt-6">
-          <OrdersPage />
-        </TabsContent>
-        <TabsContent value="deliveries" className="mt-6">
-          <DeliveriesPage />
-        </TabsContent>
-        <TabsContent value="products" className="mt-6">
-          <ProductsPage />
-        </TabsContent>
-        <TabsContent value="clients" className="mt-6">
-          <ClientsPage />
-        </TabsContent>
-         <TabsContent value="birthdays" className="mt-6">
-          <BirthdaysPage />
-        </TabsContent>
-      </Tabs>
+      <div className="mt-8 space-y-8">
+        <Tabs defaultValue="dashboard">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6">
+            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="orders">Pedidos</TabsTrigger>
+            <TabsTrigger value="deliveries">Entregas</TabsTrigger>
+            <TabsTrigger value="products">Produtos</TabsTrigger>
+            <TabsTrigger value="clients">Clientes</TabsTrigger>
+            <TabsTrigger value="birthdays">Aniversariantes</TabsTrigger>
+          </TabsList>
+          <TabsContent value="dashboard" className="mt-6">
+            <DashboardPage />
+          </TabsContent>
+          <TabsContent value="orders" className="mt-6">
+            <OrdersPage />
+          </TabsContent>
+          <TabsContent value="deliveries" className="mt-6">
+            <DeliveriesPage />
+          </TabsContent>
+          <TabsContent value="products" className="mt-6">
+            <ProductsPage />
+          </TabsContent>
+          <TabsContent value="clients" className="mt-6">
+            <ClientsPage />
+          </TabsContent>
+          <TabsContent value="birthdays" className="mt-6">
+            <BirthdaysPage />
+          </TabsContent>
+        </Tabs>
+
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Bell className="text-primary" />
+                    Notificações Push (Alarmes)
+                </CardTitle>
+                <CardDescription>
+                    Clique no botão para pedir permissão e enviar uma notificação de teste para o seu dispositivo.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button onClick={handleTestNotification}>
+                    Testar Alarme
+                </Button>
+            </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
