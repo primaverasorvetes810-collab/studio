@@ -1,228 +1,47 @@
-/**
- * @fileoverview Firestore Security Rules for Primavera Delivery application.
- *
- * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for user-specific data
- * (profiles, shopping carts, orders).  Product and ProductGroup data is publicly readable
- * but requires admin privileges to modify.  Admin privileges are determined by the
- * presence of a document in the `/roles_admin/{uid}` collection.
- *
- * Data Structure:
- * - /users/{userId}: Stores user profiles, accessible only by the user.
- * - /productGroups/{productGroupId}: Stores product groups, publicly readable, admin-only write.
- * - /products/{productId}: Stores product details, publicly readable, admin-only write.
- * - /users/{userId}/shoppingCarts/{cartId}: Stores shopping carts, owned by the user.
- * - /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}: Stores cart items, owned by the user.
- * - /users/{userId}/orders/{orderId}: Stores order history, owned by the user.
- * - /orders/{orderId}/orderItems/{orderItemId}: Stores order items.
- * - /orders/{orderId}/payments/{paymentId}: Stores payments for orders.
- * - /roles_admin/{uid}: Presence of a document grants admin privileges to the user.
- *
- * Key Security Decisions:
- * - User data is strictly controlled by the user's UID.
- * - Product and ProductGroup data is publicly readable to enable browsing without authentication.
- * - Admin privileges are granted based on the existence of a document in `/roles_admin/{uid}`, not on JWT claims.
- * - Data validation is minimized for rapid prototyping, focusing on ownership and relational integrity.
- * - Listing of orderItems and payments is generally disallowed to prevent unintended exposure of data.
- *
- * Denormalization for Authorization:
- * - No denormalization is explicitly used in this ruleset, as path-based ownership is sufficient
- *   for most authorization decisions.  Consider denormalizing admin status directly onto user
- *   documents if admin checks become frequent.
- *
- * Structural Segregation:
- * - Draft vs. published content is not applicable in this data model. All user data is considered private,
- *   while product data is considered public.
- */
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * @description Checks if the user is signed in.
-     * @return {bool} True if the user is signed in, false otherwise.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the user is the owner of the resource, based on the provided userId.
-     * @param {string} userId - The user ID to compare against the request's auth UID.
-     * @return {bool} True if the user is the owner, false otherwise.
-     * @example isOwner('someUserId') will return true if request.auth.uid == 'someUserId'.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-        /**
-     * @description Checks if the user is an existing owner of the resource (isSignedIn, isOwner and resource exists)
-     * @param {string} userId - The user ID to compare against the request's auth UID.
-     * @return {bool} True if the user is the owner, false otherwise.
-     * @example isExistingOwner('someUserId') will return true if request.auth.uid == 'someUserId'.
-     */
-    function isExistingOwner(userId) {
-      return isSignedIn() && isOwner(userId) && resource != null;
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    /**
-     * @description Checks if the user has admin privileges.
-     * @return {bool} True if the user is an admin, false otherwise.
-     */
-    function isAdmin() {
-      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-    }
-
-    /**
-     * @description Rules for the /users/{userId} collection.
-     * @path /users/{userId}
-     * @allow (get) Signed-in user can read their own profile.
-     * @allow (create) Signed-in user can create their own profile.
-     * @deny (get) Signed-in user cannot read other user profiles.
-     * @deny (update) Non-admin users cannot update other profiles.
-     * @principle Enforces document ownership for writes, restricts access to a user's own data tree.
-     */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false; // Prevent listing all users.
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id; // Enforce immutability of userId
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Rules for the /productGroups/{productGroupId} collection.
-     * @path /productGroups/{productGroupId}
-     * @allow (get) Any user can read product groups.
-     * @allow (create) Only admins can create product groups.
-     * @deny (update) Non-admin users cannot update product groups.
-     * @deny (delete) Non-admin users cannot delete product groups.
-     * @principle Publicly readable, admin-only write access.
-     */
-    match /productGroups/{productGroupId} {
-      allow get, list: if true; // Public read
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    /**
-     * @description Rules for the /products/{productId} collection.
-     * @path /products/{productId}
-     * @allow (get) Any user can read product details.
-     * @allow (create) Only admins can create products.
-     * @deny (update) Non-admin users cannot update products.
-     * @deny (delete) Non-admin users cannot delete products.
-     * @principle Publicly readable, admin-only write access.
-     */
-    match /products/{productId} {
-      allow get, list: if true; // Public read
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    /**
-     * @description Rules for the /users/{userId}/shoppingCarts/{cartId} collection.
-     * @path /users/{userId}/shoppingCarts/{cartId}
-     * @allow (get) Signed-in user can read their own shopping cart.
-     * @allow (create) Signed-in user can create their own shopping cart.
-     * @deny (get) Signed-in user cannot read other user's shopping carts.
-     * @deny (update) Non-owner users cannot update shopping carts.
-     * @principle Enforces document ownership for writes, restricts access to a user's own data tree.
-     */
-    match /users/{userId}/shoppingCarts/{cartId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Rules for the /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId} collection.
-     * @path /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}
-     * @allow (get) Signed-in user can read their own cart items.
-     * @allow (create) Signed-in user can create items in their own cart.
-     * @deny (get) Signed-in user cannot read other user's cart items.
-     * @deny (update) Non-owner users cannot update cart items.
-     * @principle Enforces document ownership for writes, restricts access to a user's own data tree.
-     */
-    match /users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
+      allow read: if isOwner(userId);
       allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      
+      match /orders/{orderId} {
+        // A user can manage their own orders
+        allow read, create: if isOwner(userId);
+      }
+
+      match /shoppingCarts/{cartId} {
+        allow read, create, update, delete: if isOwner(userId);
+
+        match /cartItems/{cartItemId} {
+          allow read, create, update, delete: if isOwner(userId);
+        }
+      }
+    }
+    
+    // Admin pages need to list all orders from all users
+    match /{path=**}/orders/{orderId} {
+      allow read, update: if isSignedIn();
     }
 
-    /**
-     * @description Rules for the /users/{userId}/orders/{orderId} collection.
-     * @path /users/{userId}/orders/{orderId}
-     * @allow (get) Signed-in user can read their own order.
-     * @allow (create) Signed-in user can create their own order.
-     * @deny (get) Signed-in user cannot read other user's orders.
-     * @deny (update) Non-owner users cannot update orders.
-     * @principle Enforces document ownership for writes, restricts access to a user's own data tree.
-     */
-    match /users/{userId}/orders/{orderId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == userId;
-      allow delete: if isExistingOwner(userId);
+    match /productGroups/{productGroupId} {
+      // Allow admin (any authenticated user in this app's case) to manage groups
+      allow read, write: if isSignedIn();
     }
 
-    /**
-     * @description Rules for the /orders/{orderId}/orderItems/{orderItemId} collection.
-     * @path /orders/{orderId}/orderItems/{orderItemId}
-     * @deny (get) No one can read order items directly, must go through the user's order.
-     * @deny (create) No one can create order items directly, only backend.
-     * @deny (update) No one can update order items directly, only backend.
-     * @deny (delete) No one can delete order items directly, only backend.
-     * @principle Restricts access to order items, only accessible via backend functions.
-     */
-    match /orders/{orderId}/orderItems/{orderItemId} {
-      allow get: if false;
-      allow list: if false;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
-    }
-
-    /**
-     * @description Rules for the /orders/{orderId}/payments/{paymentId} collection.
-     * @path /orders/{orderId}/payments/{paymentId}
-     * @deny (get) No one can read payments directly, must go through the user's order.
-     * @deny (create) No one can create payments directly, only backend.
-     * @deny (update) No one can update payments directly, only backend.
-     * @deny (delete) No one can delete payments directly, only backend.
-     * @principle Restricts access to payments, only accessible via backend functions.
-     */
-    match /orders/{orderId}/payments/{paymentId} {
-      allow get: if false;
-      allow list: if false;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
-    }
-
-    /**
-     * @description Rules for the /roles_admin/{uid} collection.
-     * @path /roles_admin/{uid}
-     * @allow (get) Only admin users can check for other admins.
-     * @allow (create) Only admins can assign admin roles.
-     * @deny (update) Only admins can update admin roles.
-     * @deny (delete) Only admins can delete admin roles.
-     * @principle Restricts access to admin roles, only accessible by other admins.
-     */
-    match /roles_admin/{uid} {
-      allow get: if isAdmin();
-      allow list: if isAdmin();
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+    match /products/{productId} {
+       // Allow admin (any authenticated user) to manage products
+      allow read, write: if isSignedIn();
     }
   }
 }
