@@ -49,7 +49,7 @@ export default function Header() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="flex items-center space-x-2">
-          <PrimaveraLogo className="h-10" />
+          <PrimaveraLogo className="h-8 md:h-10" />
         </Link>
 
         <nav className="hidden items-center gap-6 md:flex">
@@ -76,6 +76,7 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {/* Desktop View */}
           <div className="hidden items-center gap-2 md:flex">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/cart">
@@ -123,24 +124,26 @@ export default function Header() {
               </Button>
             )}
           </div>
-          <div className="flex items-center md:hidden">
+          
+          {/* Mobile View */}
+          <div className="flex items-center gap-2 md:hidden">
               <Button variant="ghost" size="icon" asChild>
                 <Link href="/cart">
-                  <ShoppingCart className="h-5 w-5" />
+                  <ShoppingCart className="h-6 w-6" />
                   <span className="sr-only">Carrinho de Compras</span>
                 </Link>
               </Button>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
+                  <Menu className="h-6 w-6" />
                   <span className="sr-only">Abrir menu</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col">
                 <SheetClose asChild>
                   <Link href="/" className="mb-4">
-                    <PrimaveraLogo className="h-10" />
+                    <PrimaveraLogo className="h-8" />
                   </Link>
                 </SheetClose>
                 
