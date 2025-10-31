@@ -16,11 +16,32 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ShoppingCart, User, LogOut } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
+import { useState, useEffect } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+
 
 export default function Header() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user) {
+        const adminRef = doc(firestore, 'roles_admin', user.uid);
+        const adminSnap = await getDoc(adminRef);
+        setIsAdmin(adminSnap.exists());
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    if (!isUserLoading) {
+        checkAdminStatus();
+    }
+  }, [user, isUserLoading, firestore]);
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -54,6 +75,14 @@ export default function Header() {
                 >
                   Meus Pedidos
                 </Link>
+                 {isAdmin && (
+                  <Link
+                    href="/admin/dashboard"
+                    className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Admin
+                  </Link>
+                )}
               </>
             )}
           </nav>
