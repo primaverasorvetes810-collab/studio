@@ -62,7 +62,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </CardHeader>
       <CardContent className="flex-grow p-4">
-        <CardTitle className="mb-2 text-lg font-headline">{product.name}</CardTitle>
+        <CardTitle className="mb-2 text-lg">{product.name}</CardTitle>
         <CardDescription>{product.description}</CardDescription>
       </CardContent>
       <CardFooter className="flex items-center justify-between p-4 pt-0">
