@@ -111,7 +111,7 @@ export default function ClientsPage() {
              if (e.message.includes('permission-denied')) {
                 // This might be either users or orders, we'll assume orders for the error
                 errorEmitter.emit('permission-error', new FirestorePermissionError({
-                    path: 'orders', // or 'users'
+                    path: 'users', // The error is likely on listing users
                     operation: 'list'
                 }));
              }
