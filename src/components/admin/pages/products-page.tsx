@@ -17,8 +17,8 @@ import {
   Loader2,
   Trash2,
   Edit,
-  ChevronDown,
   ChevronRight,
+  MoreVertical,
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -49,6 +49,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function ProductsPage() {
   const firestore = useFirestore();
@@ -62,6 +68,8 @@ export default function ProductsPage() {
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [groupToDelete, setGroupToDelete] = useState<ProductGroup | null>(null);
   const [currentGroupId, setCurrentGroupId] = useState<string | null>(null);
+  const [openCollapsibles, setOpenCollapsibles] = useState<Record<string, boolean>>({});
+
 
   // Fetch product groups
   const productGroupsQuery = useMemoFirebase(() => {
@@ -125,6 +133,10 @@ export default function ProductsPage() {
     setProductToDelete(null);
   };
 
+  const toggleCollapsible = (groupId: string) => {
+    setOpenCollapsibles(prev => ({...prev, [groupId]: !prev[groupId]}));
+  };
+
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
@@ -144,42 +156,68 @@ export default function ProductsPage() {
       ) : productGroups && productGroups.length > 0 ? (
         <div className="space-y-4">
           {productGroups.map((group) => (
-            <Collapsible key={group.id} className="w-full">
+            <Collapsible key={group.id} open={openCollapsibles[group.id] || false} onOpenChange={() => toggleCollapsible(group.id)} className="w-full">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between p-4">
                   <CollapsibleTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-pointer">
-                      <Button variant="ghost" size="sm">
-                        <ChevronRight className="h-4 w-4 transition-transform [&[data-state=open]>svg]:rotate-90" />
+                    <div className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                      <Button variant="ghost" size="sm" className="shrink-0">
+                        <ChevronRight className="h-4 w-4 transition-transform data-[state=open]:rotate-90" />
                         <span className="sr-only">Toggle</span>
                       </Button>
-                      <CardTitle className='text-lg'>{group.name}</CardTitle>
+                      <CardTitle className='text-lg truncate'>{group.name}</CardTitle>
                     </div>
                   </CollapsibleTrigger>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditGroup(group)}
-                    >
-                      <Edit className="mr-2 h-4 w-4" />
-                      Editar Grupo
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteGroupClick(group)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Excluir Grupo
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => handleAddNewProduct(group.id)}
-                    >
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Adicionar Produto
-                    </Button>
+                  <div className="flex items-center gap-2 ml-4">
+                    <div className="hidden md:flex items-center gap-2">
+                         <Button
+                            size="sm"
+                            onClick={() => handleAddNewProduct(group.id)}
+                            >
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Produto
+                        </Button>
+                         <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditGroup(group)}
+                            >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                        </Button>
+                         <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteGroupClick(group)}
+                            >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                        </Button>
+                    </div>
+                    <div className="md:hidden">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                    <MoreVertical className="h-5 w-5" />
+                                    <span className="sr-only">Mais Ações</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleAddNewProduct(group.id)}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Adicionar Produto
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditGroup(group)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Editar Grupo
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDeleteGroupClick(group)} className="text-destructive">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Excluir Grupo
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                   </div>
                 </CardHeader>
                 <CollapsibleContent>
