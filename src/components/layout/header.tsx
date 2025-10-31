@@ -54,12 +54,6 @@ export default function Header() {
                 Meus Pedidos
               </Link>
             )}
-            <Link
-              href="/admin/dashboard"
-              className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Admin
-            </Link>
           </nav>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-4">

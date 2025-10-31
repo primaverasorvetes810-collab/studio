@@ -25,9 +25,11 @@ import {
 import { PrimaveraLogo } from '@/components/icons';
 import AdminLoginPage from './login/page';
 import { usePathname, useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -36,8 +38,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (sessionAuth === 'true') {
       setIsAuthenticated(true);
     } else if (pathname !== '/admin/login') {
-        // Allow access to login page
+      router.replace('/admin/login');
     }
+    setIsLoading(false);
   }, [pathname, router]);
 
   const handleLoginSuccess = () => {
@@ -52,14 +55,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     router.push('/admin/login');
   };
 
-  if (pathname === '/admin/login') {
-    return <AdminLoginPage onLoginSuccess={handleLoginSuccess} />;
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
     return <AdminLoginPage onLoginSuccess={handleLoginSuccess} />;
   }
-
+  
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-muted/40">
