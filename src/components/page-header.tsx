@@ -9,7 +9,7 @@ type PageHeaderProps = {
 export default function PageHeader({ title, description, className }: PageHeaderProps) {
   return (
     <div className={cn("grid gap-1", className)}>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary font-headline">
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground font-headline">
             {title}
         </h1>
         {description && (
