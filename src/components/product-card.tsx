@@ -67,9 +67,8 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
         <div className="mt-4 flex items-center justify-between">
             <p className="text-lg font-bold text-primary">{formatPrice(product.price)}</p>
-            <Button size="xs" onClick={handleAddToCart}>
-              <PlusCircle className="mr-1 h-3 w-3" />
-              Adicionar
+            <Button size="icon" className="h-8 w-8" onClick={handleAddToCart}>
+              <PlusCircle className="h-4 w-4" />
             </Button>
         </div>
       </CardContent>
