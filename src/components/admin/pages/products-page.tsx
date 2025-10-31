@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import {
-  useCollection,
   useFirestore,
   useMemoFirebase,
+  useCollection,
 } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Product, ProductGroup } from '@/lib/data/products';
@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ListFilter, PlusCircle } from 'lucide-react';
-import { ProductGrid } from '@/components/product-grid';
 import { ProductGroupAccordion } from '@/components/product-group-accordion';
 import { ProductForm } from '@/components/admin/product-form';
 

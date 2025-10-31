@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useCollection, useFirestore, useUserOrders } from '@/firebase/orders';
+import { useFirestore } from '@/firebase';
 import { formatPrice } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { CircleDollarSign, Package, ShoppingBag, Users, Loader2 } from 'lucide-react';
@@ -47,6 +47,7 @@ export default function DashboardPage() {
         const fetchAllData = async () => {
             setIsLoading(true);
             try {
+                if (!firestore) return;
                 // Fetch all users to get their IDs
                 const usersSnapshot = await getDocs(collection(firestore, 'users'));
                 const userIds = usersSnapshot.docs.map(doc => doc.id);
@@ -79,8 +80,9 @@ export default function DashboardPage() {
                 setIsLoading(false);
             }
         };
-
+        
         fetchAllData();
+
     }, [firestore]);
 
 

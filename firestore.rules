@@ -15,24 +15,18 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
     
-    // Regra para a coleção de administradores
     match /roles_admin/{uid} {
-      // Qualquer usuário autenticado pode se tornar um administrador se a coleção de administradores estiver vazia.
-      // Depois que o primeiro administrador for criado, apenas outros administradores podem adicionar novos.
-      allow create: if size(get(/databases/$(database)/documents/roles_admin).data) == 0 || isAdmin();
+      allow create: if request.auth != null; // ANY authenticated user can create an admin role for themselves.
       allow read, delete: if isAdmin();
     }
 
-    // Regras para a coleção de usuários
     match /users/{userId} {
       allow read, create, update: if isSignedIn() && isOwner(userId);
-      // Administradores podem ler a lista de todos os usuários para gerenciamento
+      // Admins can read the list of all users for management
       allow list: if isAdmin();
 
-      // Regras para subcoleções do usuário
       match /orders/{orderId} {
         allow read, create: if isSignedIn() && isOwner(userId);
-        // Administradores podem ler e atualizar QUALQUER pedido
         allow list, update: if isAdmin();
       }
 
@@ -45,15 +39,14 @@ service cloud.firestore {
       }
     }
     
-    // Produtos e Grupos de Produtos
     match /productGroups/{productGroupId} {
       allow read: if true;
-      allow write: if isAdmin(); // Apenas administradores podem escrever
+      allow write: if isAdmin();
     }
 
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin(); // Apenas administradores podem escrever
+      allow write: if isAdmin();
     }
   }
 }

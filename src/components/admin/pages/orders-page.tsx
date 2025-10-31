@@ -49,6 +49,7 @@ export default function OrdersPage() {
   useEffect(() => {
     const fetchAllOrders = async () => {
       setIsLoading(true);
+      if (!firestore) return;
       try {
         const usersSnapshot = await getDocs(collection(firestore, 'users'));
         let fetchedOrders: Order[] = [];
@@ -80,6 +81,7 @@ export default function OrdersPage() {
   }, [firestore, toast]);
 
   const handleStatusChange = async (orderId: string, userId: string, newStatus: OrderStatus) => {
+    if (!firestore) return;
     const orderRef = doc(firestore, `users/${userId}/orders`, orderId);
     try {
       await updateDoc(orderRef, { status: newStatus });

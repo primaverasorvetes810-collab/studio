@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useCollection, useFirestore } from '@/firebase';
-import { collection, doc, getDocs, limit, query, where, getDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { collection, doc, getDocs, getDoc } from 'firebase/firestore';
 import {
   Table,
   TableBody,
@@ -92,7 +92,9 @@ export default function ClientsPage() {
       }
     };
 
-    fetchData();
+    if(firestore) {
+      fetchData();
+    }
   }, [firestore]);
 
 
