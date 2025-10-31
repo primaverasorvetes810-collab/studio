@@ -84,17 +84,19 @@ export default function DashboardPage() {
     }, [firestore]);
 
 
-    const chartData = allOrders.reduce((acc, order) => {
-        if (!order.orderDate) return acc;
-        const month = order.orderDate.toDate().toLocaleString('default', { month: 'short' });
-        const existingMonth = acc.find(item => item.name === month);
-        if (existingMonth) {
-            existingMonth.total += order.totalAmount;
-        } else {
-            acc.push({ name: month, total: order.totalAmount });
-        }
-        return acc;
-    }, [] as { name: string; total: number }[]).reverse();
+     const chartData = allOrders
+        .filter(order => order.status === 'Entregue' && order.orderDate)
+        .reduce((acc, order) => {
+            const month = order.orderDate.toDate().toLocaleString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
+            const existingMonth = acc.find(item => item.name === month);
+            if (existingMonth) {
+                existingMonth.total += order.totalAmount;
+            } else {
+                acc.push({ name: month, total: order.totalAmount });
+            }
+            return acc;
+        }, [] as { name: string; total: number }[])
+        .reverse();
 
   if (isLoading) {
     return <div className="flex h-full items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
