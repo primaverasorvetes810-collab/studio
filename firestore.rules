@@ -38,9 +38,10 @@ service cloud.firestore {
       }
     }
     
-    // Apenas administradores podem ler ou atualizar todos os pedidos.
+    // Temporariamente permite que qualquer usuário autenticado leia todos os pedidos para configurar o primeiro administrador.
     match /{path=**}/orders/{orderId} {
-      allow read, update: if isAdmin();
+      allow read: if isSignedIn();
+      allow update: if isAdmin();
     }
 
     match /productGroups/{productGroupId} {
@@ -65,7 +66,7 @@ service cloud.firestore {
       // Isso resolve o problema de quem promove o primeiro administrador.
       allow create: if (
         // Condição 1: A coleção 'roles_admin' está vazia, permitindo que o primeiro admin seja criado.
-        !exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) && size(get(/databases/$(database)/documents/roles_admin).data) == 0
+        !exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) && get(/databases/$(database)/documents/roles_admin).data.size() == 0
       ) || (
         // Condição 2: O solicitante já é um administrador.
         isAdmin()
