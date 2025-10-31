@@ -10,17 +10,17 @@ import {
   LogOut,
   DollarSign,
   Bike,
+  PanelLeft,
+  Menu,
 } from 'lucide-react';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-  SidebarProvider,
-} from '@/components/ui/sidebar';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
 import { PrimaveraLogo } from '@/components/icons';
 import DashboardPage from './pages/dashboard-page';
 import OrdersPage from './pages/orders-page';
@@ -33,7 +33,13 @@ interface AdminPanelProps {
   onLogout: () => void;
 }
 
-type AdminPage = 'dashboard' | 'orders' | 'products' | 'clients' | 'deliveries' | 'revenue';
+type AdminPage =
+  | 'dashboard'
+  | 'orders'
+  | 'products'
+  | 'clients'
+  | 'deliveries'
+  | 'revenue';
 
 export default function AdminPanel({ onLogout }: AdminPanelProps) {
   const [activePage, setActivePage] = useState<AdminPage>('dashboard');
@@ -57,70 +63,88 @@ export default function AdminPanel({ onLogout }: AdminPanelProps) {
     }
   };
 
-  return (
-    <SidebarProvider>
-      <div className="flex min-h-[calc(100vh-theme(spacing.32))] bg-muted/40">
-        <Sidebar className="hidden md:flex md:flex-col md:w-64 border-r bg-sidebar text-sidebar-foreground">
-          <SidebarHeader>
-            <div className="flex items-center gap-2">
-              <PrimaveraLogo className="h-10" />
-            </div>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setActivePage('dashboard')} isActive={activePage === 'dashboard'}>
-                  <LayoutDashboard />
-                  Painel
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setActivePage('orders')} isActive={activePage === 'orders'}>
-                  <ShoppingCart />
-                  Pedidos
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setActivePage('products')} isActive={activePage === 'products'}>
-                  <Package />
-                  Produtos
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setActivePage('clients')} isActive={activePage === 'clients'}>
-                  <Users />
-                  Clientes
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setActivePage('deliveries')} isActive={activePage === 'deliveries'}>
-                  <Bike />
-                  Entregas
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setActivePage('revenue')} isActive={activePage === 'revenue'}>
-                  <DollarSign />
-                  Receita
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={onLogout}>
-                  <LogOut />
-                  Sair
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarFooter>
-        </Sidebar>
-        <div className="flex-1 flex flex-col">
-          <main className="flex-1 p-6">{renderActivePage()}</main>
+  const navItems = [
+    {
+      page: 'dashboard' as AdminPage,
+      icon: LayoutDashboard,
+      label: 'Painel',
+    },
+    { page: 'orders' as AdminPage, icon: ShoppingCart, label: 'Pedidos' },
+    { page: 'products' as AdminPage, icon: Package, label: 'Produtos' },
+    { page: 'clients' as AdminPage, icon: Users, label: 'Clientes' },
+    { page: 'deliveries' as AdminPage, icon: Bike, label: 'Entregas' },
+    { page: 'revenue' as AdminPage, icon: DollarSign, label: 'Receita' },
+  ];
+
+  const SidebarContent = ({ isMobile = false }) => (
+    <>
+      <div className="flex h-full max-h-screen flex-col gap-2">
+        <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+          <Link href="/" className="flex items-center gap-2 font-semibold">
+            <PrimaveraLogo className="h-8" />
+          </Link>
+        </div>
+        <div className="flex-1">
+          <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+            {navItems.map((item) => {
+              const Comp = isMobile ? SheetTrigger : 'button';
+              return (
+                <Comp
+                  key={item.page}
+                  onClick={() => setActivePage(item.page)}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${
+                    activePage === item.page
+                      ? 'bg-muted text-primary'
+                      : 'text-muted-foreground'
+                  }`}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Comp>
+              );
+            })}
+          </nav>
+        </div>
+        <div className="mt-auto p-4 border-t">
+            <Button variant="ghost" className="w-full justify-start" onClick={onLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
+            </Button>
         </div>
       </div>
-    </SidebarProvider>
+    </>
+  );
+
+  return (
+    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+      <div className="hidden border-r bg-muted/40 md:block">
+        <SidebarContent />
+      </div>
+      <div className="flex flex-col">
+        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Alternar menu de navegação</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="flex flex-col p-0">
+               <SidebarContent isMobile />
+            </SheetContent>
+          </Sheet>
+          <div className="w-full flex-1">
+            {/* Pode adicionar um campo de busca aqui no futuro */}
+          </div>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+            {renderActivePage()}
+        </main>
+      </div>
+    </div>
   );
 }
