@@ -29,11 +29,13 @@ const getAnniversaryStatus = (birthDate: string): Pick<BirthdayClient, 'annivers
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // The birthDate from the form is 'YYYY-MM-DD'. We need to adjust for timezone.
   const [year, month, day] = birthDate.split('-').map(Number);
   const clientBirthDate = new Date(year, month - 1, day);
+  clientBirthDate.setHours(0,0,0,0);
 
   const nextBirthday = new Date(today.getFullYear(), clientBirthDate.getMonth(), clientBirthDate.getDate());
+  nextBirthday.setHours(0,0,0,0);
+
   if (nextBirthday < today) {
     nextBirthday.setFullYear(today.getFullYear() + 1);
   }
@@ -41,7 +43,7 @@ const getAnniversaryStatus = (birthDate: string): Pick<BirthdayClient, 'annivers
   const oneDay = 24 * 60 * 60 * 1000;
   const daysUntil = Math.round((nextBirthday.getTime() - today.getTime()) / oneDay);
 
-  if (daysUntil === 365 || daysUntil === 0) {
+  if (daysUntil === 0) {
     return { anniversaryStatus: 'today', daysUntil: 0 };
   }
   if (daysUntil <= 7) {
@@ -62,7 +64,7 @@ const statusConfig = {
   },
   soon: {
     className: 'bg-red-500/20 border-red-500/80',
-    title: (days: number) => `Faltam ${days} dias!`,
+    title: (days: number) => `Faltam ${days} ${days === 1 ? 'dia' : 'dias'}!`,
     iconColor: 'text-red-500',
   },
   thisMonth: {
@@ -170,7 +172,7 @@ export default function BirthdaysPage() {
                         </Card>
                     </TooltipTrigger>
                     <TooltipContent>
-                        {title}
+                        <p>{title}</p>
                     </TooltipContent>
                 </Tooltip>
                 );
