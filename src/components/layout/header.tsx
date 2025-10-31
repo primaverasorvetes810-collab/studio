@@ -46,13 +46,15 @@ export default function Header() {
             >
               Produtos
             </Link>
-            {user && (
-              <Link
-                href="/orders"
-                className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Meus Pedidos
-              </Link>
+            {!isUserLoading && user && (
+              <>
+                <Link
+                  href="/orders"
+                  className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Meus Pedidos
+                </Link>
+              </>
             )}
           </nav>
         </div>
