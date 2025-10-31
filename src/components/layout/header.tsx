@@ -132,7 +132,7 @@ export default function Header() {
             </Sheet>
 
           <Link href="/" className="flex items-center">
-            <PrimaveraLogo className="h-8 md:h-10" />
+            <PrimaveraLogo className="h-8" />
           </Link>
         </div>
         
