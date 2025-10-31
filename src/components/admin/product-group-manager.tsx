@@ -37,7 +37,7 @@ import { Badge } from '../ui/badge';
 import { deleteProduct } from '@/firebase/products';
 
 
-function ProductListForGroup({ groupId, onEdit }: { groupId: string, onEdit: (product: Product) => void }) {
+function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEdit: (product: Product) => void, onAdd: () => void }) {
   const firestore = useFirestore();
   const productsQuery = useMemoFirebase(
     () => (firestore ? query(collection(firestore, 'products'), where('groupId', '==', groupId)) : null),
@@ -57,7 +57,17 @@ function ProductListForGroup({ groupId, onEdit }: { groupId: string, onEdit: (pr
   }
 
   if (isLoading) return <div className="flex items-center justify-center p-4"><Loader2 className="h-5 w-5 animate-spin" /></div>;
-  if (!products || products.length === 0) return <p className="px-4 py-2 text-sm text-muted-foreground">Nenhum produto neste grupo.</p>;
+  if (!products || products.length === 0) {
+    return (
+        <div className="px-4 py-4 text-center border-t">
+             <p className="text-sm text-muted-foreground mb-4">Nenhum produto neste grupo.</p>
+             <Button size="sm" className="h-8 gap-1" onClick={onAdd}>
+                <PlusCircle className="h-3.5 w-3.5" />
+                <span>Adicionar Produto</span>
+            </Button>
+        </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -194,12 +204,6 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
                     Novo Grupo
                     </span>
                 </Button>
-                 <Button size="sm" className="h-8 gap-1" onClick={onAddProductClick}>
-                    <PlusCircle className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Novo Produto
-                    </span>
-                </Button>
             </div>
         </div>
       </CardHeader>
@@ -228,8 +232,16 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
                     </div>
                   </div>
                 <AccordionContent className="p-0">
-                    <div className='px-4 pb-4 border-b'><p className='text-sm text-muted-foreground'>{group.description}</p></div>
-                    <ProductListForGroup groupId={group.id} onEdit={onEditProductClick} />
+                    <div className='px-4 pb-4 border-b flex justify-between items-start'>
+                        <p className='text-sm text-muted-foreground pt-1'>{group.description}</p>
+                         <Button size="sm" variant="outline" className="h-8 gap-1" onClick={onAddProductClick}>
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                            Novo Produto
+                            </span>
+                        </Button>
+                    </div>
+                    <ProductListForGroup groupId={group.id} onEdit={onEditProductClick} onAdd={onAddProductClick} />
                 </AccordionContent>
                 </AccordionItem>
             ))}
