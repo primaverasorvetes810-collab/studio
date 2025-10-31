@@ -49,12 +49,10 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo - always visible */}
         <Link href="/" className="flex items-center space-x-2">
           <PrimaveraLogo className="h-10" />
         </Link>
 
-        {/* Desktop Navigation */}
         <nav className="hidden items-center gap-6 md:flex">
           {!isUserLoading &&
             navLinks.map((link) => 
@@ -70,7 +68,6 @@ export default function Header() {
             )}
         </nav>
 
-        {/* Icons - Desktop */}
         <div className="hidden items-center gap-2 md:flex">
           <Button variant="ghost" size="icon" asChild>
             <Link href="/cart">
@@ -119,8 +116,13 @@ export default function Header() {
           )}
         </div>
 
-        {/* Mobile Navigation Trigger */}
-        <div className="md:hidden">
+        <div className="flex items-center gap-2 md:hidden">
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/cart">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="sr-only">Carrinho de Compras</span>
+              </Link>
+            </Button>
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -152,15 +154,33 @@ export default function Header() {
               </nav>
 
               <div className="mt-auto flex flex-col gap-2 border-t pt-4">
-                <SheetClose asChild>
-                   <Button variant="outline" className="w-full justify-start" asChild>
-                      <Link href="/cart">
-                        <ShoppingCart className="mr-2 h-4 w-4" />
-                        Carrinho
-                      </Link>
-                    </Button>
-                </SheetClose>
-                {!isUserLoading && !user && (
+                 {isUserLoading ? (
+                    <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+                 ) : user ? (
+                   <>
+                     <div className="flex items-center gap-3 rounded-md p-2">
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage
+                            src={user.photoURL ?? ""}
+                            alt={user.displayName ?? "Usuário"}
+                            />
+                            <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                            <p className="text-sm font-medium leading-none">
+                            {user.displayName || "Usuário"}
+                            </p>
+                            <p className="text-xs leading-none text-muted-foreground">
+                            {user.email}
+                            </p>
+                        </div>
+                     </div>
+                     <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
+                       <LogOut className="mr-2 h-4 w-4" />
+                       Sair
+                     </Button>
+                   </>
+                ) : (
                     <SheetClose asChild>
                         <Button className="w-full justify-start" asChild>
                            <Link href="/login">
@@ -169,12 +189,6 @@ export default function Header() {
                            </Link>
                         </Button>
                     </SheetClose>
-                )}
-                 {user && (
-                     <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
-                       <LogOut className="mr-2 h-4 w-4" />
-                       Sair
-                     </Button>
                 )}
               </div>
             </SheetContent>
