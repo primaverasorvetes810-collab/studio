@@ -1,0 +1,456 @@
+
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Primavera Delivery application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "registerTime": {
+          "type": "string",
+          "description": "Timestamp of when the user registered.",
+          "format": "date-time"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "birthDate": {
+          "type": "string",
+          "description": "The user's date of birth.",
+          "format": "date"
+        },
+        "phone": {
+          "type": "string",
+          "description": "The user's phone number."
+        },
+        "address": {
+          "type": "string",
+          "description": "The user's street address."
+        },
+        "neighborhood": {
+          "type": "string",
+          "description": "The user's neighborhood."
+        },
+        "city": {
+          "type": "string",
+          "description": "The user's city."
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "registerTime",
+        "fullName",
+        "birthDate",
+        "phone",
+        "address",
+        "neighborhood",
+        "city"
+      ]
+    },
+    "ProductGroup": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ProductGroup",
+      "type": "object",
+      "description": "Represents a group or category of products.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the product group."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the product group."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description for the product group."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Product": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Product",
+      "type": "object",
+      "description": "Represents a product available for sale, belonging to a group.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the product entity."
+        },
+        "groupId": {
+          "type": "string",
+          "description": "Reference to the ProductGroup this product belongs to."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the product."
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the product."
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the product."
+        },
+        "stockLevel": {
+          "type": "number",
+          "description": "Current stock level of the product."
+        }
+      },
+      "required": [
+        "id",
+        "groupId",
+        "name",
+        "description",
+        "price",
+        "stockLevel"
+      ]
+    },
+    "ShoppingCart": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ShoppingCart",
+      "type": "object",
+      "description": "Represents the shopping cart of a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the shopping cart entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who owns the cart. (Relationship: User 1:1 ShoppingCart)"
+        }
+      },
+      "required": [
+        "id",
+        "userId"
+      ]
+    },
+    "CartItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CartItem",
+      "type": "object",
+      "description": "Represents an item in a shopping cart.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the cart item entity."
+        },
+        "shoppingCartId": {
+          "type": "string",
+          "description": "Reference to the ShoppingCart that contains this item. (Relationship: ShoppingCart 1:N CartItem)"
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the Product in this cart item. (Relationship: Product 1:N CartItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the product in the cart."
+        }
+      },
+      "required": [
+        "id",
+        "shoppingCartId",
+        "productId",
+        "quantity"
+      ]
+    },
+    "Order": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Order",
+      "type": "object",
+      "description": "Represents an order placed by a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who placed the order. (Relationship: User 1:N Order)"
+        },
+        "orderDate": {
+          "type": "string",
+          "description": "Date and time when the order was placed.",
+          "format": "date-time"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Payment method used for the order (Pix, Dinheiro, Cartão de Crédito ou Débito)."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "Total amount of the order."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "orderDate",
+        "paymentMethod",
+        "totalAmount"
+      ]
+    },
+    "OrderItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "OrderItem",
+      "type": "object",
+      "description": "Represents an item in an order.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order item entity."
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to the Order that contains this item. (Relationship: Order 1:N OrderItem)"
+        },
+        "productId": {
+          "type": "string",
+          "description": "Reference to the Product in this order item. (Relationship: Product 1:N OrderItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the product in the order."
+        },
+        "itemPrice": {
+          "type": "number",
+          "description": "Price of the product at the time of the order."
+        }
+      },
+      "required": [
+        "id",
+        "orderId",
+        "productId",
+        "quantity",
+        "itemPrice"
+      ]
+    },
+    "Payment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Payment",
+      "type": "object",
+      "description": "Represents a payment made for an order, including installment support.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the payment entity."
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to the Order this payment is for. (Relationship: Order 1:N Payment)"
+        },
+        "paymentDate": {
+          "type": "string",
+          "description": "Date and time when the payment was made.",
+          "format": "date-time"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount paid in this payment."
+        },
+        "installmentNumber": {
+          "type": "number",
+          "description": "Installment number for this payment (if applicable)."
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "Due date for this payment installment.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the payment (e.g., pending, paid, expired)."
+        }
+      },
+      "required": [
+        "id",
+        "orderId",
+        "paymentDate",
+        "amount",
+        "status"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Only the user can access their data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/productGroups/{productGroupId}",
+        "definition": {
+          "entityName": "ProductGroup",
+          "schema": {
+            "$ref": "#/backend/entities/ProductGroup"
+          },
+          "description": "Stores product groups. Publicly readable.",
+          "params": [
+            {
+              "name": "productGroupId",
+              "description": "The unique identifier for the product group."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Stores all products. Products are queried by their 'groupId'. Publicly readable.",
+          "params": [
+            {
+              "name": "productId",
+              "description": "The unique identifier for the product."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/shoppingCarts/{cartId}",
+        "definition": {
+          "entityName": "ShoppingCart",
+          "schema": {
+            "$ref": "#/backend/entities/ShoppingCart"
+          },
+          "description": "Stores shopping carts for each user. Path-based ownership ensures only the user can access their cart.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "cartId",
+              "description": "The unique identifier for the shopping cart."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/shoppingCarts/{cartId}/cartItems/{cartItemId}",
+        "definition": {
+          "entityName": "CartItem",
+          "schema": {
+            "$ref": "#/backend/entities/CartItem"
+          },
+          "description": "Stores cart items within a shopping cart. Inherits ownership from the parent shopping cart.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "cartId",
+              "description": "The unique identifier for the shopping cart."
+            },
+            {
+              "name": "cartItemId",
+              "description": "The unique identifier for the cart item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores order information for each user. Path-based ownership ensures only the user can access their orders.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/orders/{orderId}/orderItems/{orderItemId}",
+        "definition": {
+          "entityName": "OrderItem",
+          "schema": {
+            "$ref": "#/backend/entities/OrderItem"
+          },
+          "description": "Stores order items within an order.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            },
+            {
+              "name": "orderItemId",
+              "description": "The unique identifier for the order item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/orders/{orderId}/payments/{paymentId}",
+        "definition": {
+          "entityName": "Payment",
+          "schema": {
+            "$ref": "#/backend/entities/Payment"
+          },
+          "description": "Stores payments associated with an order.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            },
+            {
+              "name": "paymentId",
+              "description": "The unique identifier for the payment."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The data structure is updated to support Product Groups. A new top-level collection `/productGroups` is introduced. The `/products` collection now includes a `groupId` field on each product document, allowing for efficient querying of products within a specific group (e.g., `db.collection('products').where('groupId', '==', 'some-group-id')`). This maintains a denormalized structure that is good for query performance and security rule simplicity, as product reads don't depend on traversing a nested path. All other collections remain as they were, ensuring existing functionality for users, carts, and orders is unaffected. This design allows for a scalable product catalog while keeping security and data access patterns straightforward."
+  }
+}

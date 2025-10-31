@@ -102,17 +102,6 @@ export default function Header() {
                       </SheetClose>
                     )
                 )}
-                {user && (
-                  <SheetClose asChild>
-                    <Link
-                      href="/admin"
-                      className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    >
-                      <User className="h-5 w-5" />
-                      Admin
-                    </Link>
-                  </SheetClose>
-                )}
               </nav>
 
               <div className="mt-auto flex flex-col gap-2 border-t pt-4">
@@ -187,14 +176,6 @@ export default function Header() {
                   </Link>
                 )
             )}
-          {user && (
-            <Link
-              href="/admin"
-              className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Admin
-            </Link>
-          )}
         </nav>
 
         {/* Right side icons */}
