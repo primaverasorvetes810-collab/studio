@@ -20,7 +20,7 @@ import { useFirestore } from "@/firebase";
 import { type Order } from "@/firebase/orders";
 import { type User } from "@/firebase/orders";
 import { collection, collectionGroup, getDocs, query } from "firebase/firestore";
-import { MoreHorizontal, Loader2, Eye } from "lucide-react";
+import { MoreVertical, Loader2, Eye } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -153,10 +153,12 @@ export default function ClientsPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Nome</TableHead>
-                                <TableHead>Total Gasto</TableHead>
-                                <TableHead>Pedidos</TableHead>
-                                <TableHead>Último Pedido</TableHead>
-                                <TableHead>Ações</TableHead>
+                                <TableHead className="hidden md:table-cell">Total Gasto</TableHead>
+                                <TableHead className="hidden md:table-cell">Pedidos</TableHead>
+                                <TableHead className="hidden md:table-cell">Último Pedido</TableHead>
+                                <TableHead>
+                                  <span className="sr-only">Ações</span>
+                                </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -164,16 +166,16 @@ export default function ClientsPage() {
                                 <TableRow key={client.id}>
                                     <TableCell>
                                         <div className="font-medium">{client.name}</div>
-                                        <div className="text-sm text-muted-foreground">{client.email}</div>
+                                        <div className="text-sm text-muted-foreground md:hidden">{client.email}</div>
                                     </TableCell>
-                                    <TableCell>{formatPrice(client.totalSpent)}</TableCell>
-                                    <TableCell>{client.orderCount}</TableCell>
-                                    <TableCell>{client.lastOrderDate?.toLocaleDateString() ?? 'N/A'}</TableCell>
+                                    <TableCell className="hidden md:table-cell">{formatPrice(client.totalSpent)}</TableCell>
+                                    <TableCell className="hidden md:table-cell">{client.orderCount}</TableCell>
+                                    <TableCell className="hidden md:table-cell">{client.lastOrderDate?.toLocaleDateString() ?? 'N/A'}</TableCell>
                                     <TableCell>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                    <MoreHorizontal className="h-4 w-4" />
+                                                    <MoreVertical className="h-4 w-4" />
                                                     <span className="sr-only">Alternar menu</span>
                                                 </Button>
                                             </DropdownMenuTrigger>
