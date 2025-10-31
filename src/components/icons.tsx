@@ -11,7 +11,7 @@ export function PrimaveraLogo(props: SVGProps<SVGSVGElement>) {
       {...props}
     >
       <text
-        x="10"
+        x="11"
         y="55"
         style={{ fontFamily: "'Lilita One', cursive" }}
         fontSize="50"
