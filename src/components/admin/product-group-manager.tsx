@@ -61,10 +61,6 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
     return (
         <div className="px-4 py-4 text-center border-t">
              <p className="text-sm text-muted-foreground mb-4">Nenhum produto neste grupo.</p>
-             <Button size="sm" className="h-8 gap-1" onClick={onAdd}>
-                <PlusCircle className="h-3.5 w-3.5" />
-                <span>Adicionar Produto</span>
-            </Button>
         </div>
     );
   }
