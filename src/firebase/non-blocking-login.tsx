@@ -4,6 +4,7 @@ import {
   signInAnonymously,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  UserCredential,
 } from 'firebase/auth';
 import { getClientSdks } from '@/firebase';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
@@ -66,7 +67,7 @@ export function initiateEmailSignUp(authInstance: Auth, data: SignUpData): void 
     });
 }
 
-/** Inicia o login por e-mail/senha (sem bloqueio). */
-export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
-  signInWithEmailAndPassword(authInstance, email, password);
+/** Inicia o login por e-mail/senha e retorna uma promessa. */
+export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): Promise<UserCredential> {
+  return signInWithEmailAndPassword(authInstance, email, password);
 }

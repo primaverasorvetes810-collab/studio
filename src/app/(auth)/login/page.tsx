@@ -23,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, initiateEmailSignIn } from "@/firebase";
+import { FirebaseError } from "firebase/app";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
@@ -43,14 +44,41 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = (data: LoginFormValues) => {
-    initiateEmailSignIn(auth, data.email, data.password);
-    // Note: We don't await here. The auth state is handled by the global onAuthStateChanged listener.
-    // The FirebaseErrorListener will catch and display any auth errors.
-    toast({
-      title: "Verificando...",
-      description: "Tentando fazer login.",
-    });
+  const onSubmit = async (data: LoginFormValues) => {
+    form.clearErrors();
+    try {
+      await initiateEmailSignIn(auth, data.email, data.password);
+      // A navegação ou atualização do estado da UI após o login bem-sucedido
+      // é gerenciada pelo listener onAuthStateChanged no FirebaseProvider.
+      toast({
+        title: "Verificando...",
+        description: "Tentando fazer login.",
+      });
+    } catch (error: any) {
+      let title = "Ocorreu um erro";
+      let description = "Não foi possível fazer o login. Tente novamente mais tarde.";
+
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            title = "Credenciais inválidas";
+            description = "O e-mail ou a senha que você digitou está incorreto.";
+            break;
+          case 'auth/too-many-requests':
+            title = "Muitas tentativas";
+            description = "O acesso a esta conta foi temporariamente desativado. Tente novamente mais tarde.";
+            break;
+        }
+      }
+      
+      toast({
+        variant: "destructive",
+        title: title,
+        description: description,
+      });
+    }
   };
 
   return (
