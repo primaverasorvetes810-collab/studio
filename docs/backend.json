@@ -288,6 +288,23 @@
         "amount",
         "status"
       ]
+    },
+     "Admin": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Admin",
+      "type": "object",
+      "description": "Represents an administrator's role, linking a user ID to an admin status.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The user ID of the administrator."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email of the administrator, for easy reference."
+        }
+      },
+      "required": ["userId", "email"]
     }
   },
   "auth": {
@@ -446,6 +463,22 @@
             {
               "name": "paymentId",
               "description": "The unique identifier for the payment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "Admin",
+          "schema": {
+            "$ref": "#/backend/entities/Admin"
+          },
+          "description": "Top-level collection to store admin roles. The document ID is the user ID. Checks for existence in this collection to determine admin status.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The user's unique ID."
             }
           ]
         }
