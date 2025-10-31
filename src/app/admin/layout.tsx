@@ -34,25 +34,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
 
   useEffect(() => {
-    const sessionAuth = sessionStorage.getItem('adminAuthenticated');
-    if (sessionAuth === 'true') {
-      setIsAuthenticated(true);
-    } else if (pathname !== '/admin/login') {
-      router.replace('/admin/login');
+    // Check for sessionStorage is a client-side only operation.
+    if (typeof window !== 'undefined') {
+        const sessionAuth = sessionStorage.getItem('adminAuthenticated');
+        if (sessionAuth === 'true') {
+          setIsAuthenticated(true);
+        } else if (pathname !== '/admin/login') {
+          router.replace('/admin/login');
+        }
+        setIsLoading(false);
     }
-    setIsLoading(false);
   }, [pathname, router]);
 
   const handleLoginSuccess = () => {
-    sessionStorage.setItem('adminAuthenticated', 'true');
-    setIsAuthenticated(true);
-    router.push('/admin/dashboard');
+    if (typeof window !== 'undefined') {
+        sessionStorage.setItem('adminAuthenticated', 'true');
+        setIsAuthenticated(true);
+        router.push('/admin/dashboard');
+    }
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('adminAuthenticated');
-    setIsAuthenticated(false);
-    router.push('/admin/login');
+     if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('adminAuthenticated');
+        setIsAuthenticated(false);
+        router.push('/admin/login');
+    }
   };
 
   if (isLoading) {
@@ -63,8 +70,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
+  // If the path is the login page, render it directly.
+  // Otherwise, if not authenticated, the effect above will have already started a redirect.
+  // We still show the loader while redirecting.
   if (!isAuthenticated) {
-    return <AdminLoginPage onLoginSuccess={handleLoginSuccess} />;
+    if (pathname === '/admin/login') {
+        return <AdminLoginPage onLoginSuccess={handleLoginSuccess} />;
+    }
+    return (
+        <div className="flex h-screen w-full items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    );
   }
   
   return (
