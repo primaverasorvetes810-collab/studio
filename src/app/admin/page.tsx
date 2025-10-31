@@ -25,7 +25,7 @@ export default function AdminGatePage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const correctPassword = "810Primaver*";
+  const correctPassword = "810Primavera*";
 
   const handlePasswordCheck = () => {
     setIsChecking(true);
