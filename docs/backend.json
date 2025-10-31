@@ -288,27 +288,6 @@
         "amount",
         "status"
       ]
-    },
-    "Admin": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Admin",
-      "type": "object",
-      "description": "Represents an administrator of the Primavera Delivery application.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "The UID of the user who is an admin."
-        },
-        "email": {
-          "type": "string",
-          "description": "Email address of the administrator, stored for easy reference.",
-          "format": "email"
-        }
-      },
-      "required": [
-        "id",
-        "email"
-      ]
     }
   },
   "auth": {
@@ -342,7 +321,7 @@
           "schema": {
             "$ref": "#/backend/entities/ProductGroup"
           },
-          "description": "Stores product groups. Publicly readable, admin-only write access.",
+          "description": "Stores product groups. Publicly readable.",
           "params": [
             {
               "name": "productGroupId",
@@ -358,7 +337,7 @@
           "schema": {
             "$ref": "#/backend/entities/Product"
           },
-          "description": "Stores all products. Products are queried by their 'groupId'. Publicly readable, admin-only write access.",
+          "description": "Stores all products. Products are queried by their 'groupId'. Publicly readable.",
           "params": [
             {
               "name": "productId",
@@ -467,22 +446,6 @@
             {
               "name": "paymentId",
               "description": "The unique identifier for the payment."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/roles_admin/{uid}",
-        "definition": {
-          "entityName": "Admin",
-          "schema": {
-            "$ref": "#/backend/entities/Admin"
-          },
-          "description": "Indicates administrative privileges. The document ID is the user's UID. Existence of a document grants admin rights.",
-          "params": [
-            {
-              "name": "uid",
-              "description": "The unique identifier for the admin user, matching their auth UID."
             }
           ]
         }

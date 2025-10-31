@@ -11,16 +11,9 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Função para verificar se o usuário tem a função de administrador.
-    function isAdmin() {
-      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-    }
-
     match /users/{userId} {
       // O usuário pode ler, criar e atualizar seu próprio perfil.
       allow read, create, update: if isSignedIn() && isOwner(userId);
-      // Qualquer usuário logado pode listar os clientes.
-      allow list: if isSignedIn();
       
       match /orders/{orderId} {
         // Um usuário pode ler e criar seus próprios pedidos.
@@ -38,33 +31,18 @@ service cloud.firestore {
       }
     }
     
-    // Apenas administradores podem atualizar os pedidos de outros.
-    match /orders/{orderId} {
-      allow read: if isSignedIn();
-      allow update: if isAdmin();
-    }
-
     match /productGroups/{productGroupId} {
       // Permite que qualquer um leia.
       allow read: if true;
-      // Apenas administradores podem escrever.
-      allow write: if isAdmin();
+      // Ninguém pode escrever (gestão via Console do Firebase).
+      allow write: if false;
     }
 
     match /products/{productId} {
       // Permite que qualquer um leia.
       allow read: if true;
-      // Apenas administradores podem escrever.
-      allow write: if isAdmin();
-    }
-
-    match /roles_admin/{uid} {
-      // Regra de Leitura: Apenas administradores podem ver quem são outros administradores.
-      allow read: if isAdmin();
-      // Regra de Escrita: Qualquer usuário autenticado pode se tornar um admin.
-      // Esta é uma regra permissiva para resolver o problema do primeiro admin.
-      // DEVE ser alterada para `if isAdmin();` após a configuração inicial.
-      allow create: if isSignedIn();
+      // Ninguém pode escrever (gestão via Console do Firebase).
+      allow write: if false;
     }
   }
 }
