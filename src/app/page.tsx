@@ -24,13 +24,20 @@ export default function Home() {
         title="Nossos Produtos"
         description="Navegue por nossas categorias e escolha seus itens favoritos."
       />
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : (
-        <ProductGroupAccordion productGroups={productGroups || []} />
-      )}
+      <div className="mt-8">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <>
+            <p className="mb-4 text-center text-muted-foreground">
+                Clique em uma categoria para ver os produtos. Depois, clique no '+' para adicionar ao seu carrinho.
+            </p>
+            <ProductGroupAccordion productGroups={productGroups || []} />
+          </>
+        )}
+      </div>
     </div>
   );
 }
