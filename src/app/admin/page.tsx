@@ -193,9 +193,9 @@ export default function AdminGatePage() {
             {activeSection === 'dashboard' && <DashboardPage />}
             {activeSection === 'orders' && <OrdersPage />}
             {activeSection === 'deliveries' && <DeliveriesPage />}
-            {active_section === 'products' && <ProductsPage />}
-            {active_section === 'clients' && <ClientsPage />}
-            {active_section === 'birthdays' && <BirthdaysPage />}
+            {activeSection === 'products' && <ProductsPage />}
+            {activeSection === 'clients' && <ClientsPage />}
+            {activeSection === 'birthdays' && <BirthdaysPage />}
         </div>
         
         <Card>
