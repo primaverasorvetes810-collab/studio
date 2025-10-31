@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useState } from 'react';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { Loader2, ShieldAlert, KeyRound, Bell, Menu, HelpCircle } from 'lucide-react';
+import { Loader2, ShieldAlert, KeyRound, Menu } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -19,9 +18,10 @@ import { Label } from '@/components/ui/label';
 import DeliveriesPage from '@/components/admin/pages/deliveries-page';
 import BirthdaysPage from '@/components/admin/pages/birthdays-page';
 import AdminHelpPage from './ajuda/page';
+import CarouselManagerPage from '@/components/admin/pages/carousel-manager-page';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays" | "help";
+type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays" | "carousel" | "help";
 
 const sectionTitles: Record<AdminSection, string> = {
   dashboard: 'Dashboard',
@@ -30,6 +30,7 @@ const sectionTitles: Record<AdminSection, string> = {
   products: 'Produtos',
   clients: 'Clientes',
   birthdays: 'Aniversariantes',
+  carousel: 'Carrossel',
   help: 'Ajuda',
 }
 
@@ -161,6 +162,7 @@ export default function AdminGatePage() {
             {activeSection === 'products' && <ProductsPage />}
             {activeSection === 'clients' && <ClientsPage />}
             {activeSection === 'birthdays' && <BirthdaysPage />}
+            {activeSection === 'carousel' && <CarouselManagerPage />}
             {activeSection === 'help' && <AdminHelpPage />}
         </div>
       </div>

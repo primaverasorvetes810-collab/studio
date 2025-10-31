@@ -1,5 +1,6 @@
 'use client';
 
+import HomeCarousel from '@/components/home-carousel';
 import PageHeader from '@/components/page-header';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import type { ProductGroup } from '@/lib/data/products';
@@ -20,10 +21,13 @@ export default function Home() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <PageHeader
-        title="Nossos Produtos"
-        description="Navegue por nossas categorias e escolha seus itens favoritos."
-      />
+      <HomeCarousel />
+      <div className="my-8">
+        <PageHeader
+          title="Nossos Produtos"
+          description="Navegue por nossas categorias e escolha seus itens favoritos."
+        />
+      </div>
       <div className="mt-8">
         {isLoading ? (
           <div className="flex justify-center items-center h-64">

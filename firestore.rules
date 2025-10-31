@@ -56,5 +56,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if canPerformAdminAction(); // A escrita é permitida para usuários autenticados (administradores)
     }
+
+    match /carouselImages/{imageId} {
+      allow read: if true;
+      allow write: if canPerformAdminAction();
+    }
   }
 }

@@ -288,6 +288,37 @@
         "amount",
         "status"
       ]
+    },
+     "CarouselImage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CarouselImage",
+      "type": "object",
+      "description": "Represents an image in the homepage carousel.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the carousel image."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the image.",
+          "format": "uri"
+        },
+        "altText": {
+          "type": "string",
+          "description": "Alternative text for the image."
+        },
+        "link": {
+          "type": "string",
+          "description": "Optional URL to link to when the image is clicked.",
+          "format": "uri"
+        },
+        "order": {
+            "type": "number",
+            "description": "The display order of the image in the carousel."
+        }
+      },
+      "required": ["id", "imageUrl", "altText", "order"]
     }
   },
   "auth": {
@@ -446,6 +477,22 @@
             {
               "name": "paymentId",
               "description": "The unique identifier for the payment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/carouselImages/{imageId}",
+        "definition": {
+          "entityName": "CarouselImage",
+          "schema": {
+            "$ref": "#/backend/entities/CarouselImage"
+          },
+          "description": "Stores images for the homepage carousel. Publicly readable.",
+          "params": [
+            {
+              "name": "imageId",
+              "description": "The unique identifier for the carousel image."
             }
           ]
         }
