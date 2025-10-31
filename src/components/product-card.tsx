@@ -46,7 +46,7 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Card className="group flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-primary/30">
+    <Card className="group flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/20">
       <CardHeader className="p-0">
         <div className="relative aspect-video">
           {imageUrl && (
@@ -54,7 +54,7 @@ export function ProductCard({ product }: ProductCardProps) {
               src={imageUrl}
               alt={product.name}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-110"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
               data-ai-hint={imageHint}
             />
           )}
@@ -63,12 +63,12 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardContent className="flex flex-col flex-grow p-4">
         <div className="flex-grow">
           <CardTitle className="mb-1 text-lg">{product.name}</CardTitle>
-          <CardDescription className="line-clamp-2 text-sm">{product.description}</CardDescription>
+          <CardDescription className="line-clamp-1 text-sm">{product.description}</CardDescription>
         </div>
         <div className="mt-4 flex items-center justify-between">
-            <p className="text-xl font-bold text-primary">{formatPrice(product.price)}</p>
-            <Button size="sm" onClick={handleAddToCart}>
-              <PlusCircle className="mr-2 h-4 w-4" />
+            <p className="text-lg font-bold text-primary">{formatPrice(product.price)}</p>
+            <Button size="xs" onClick={handleAddToCart}>
+              <PlusCircle className="mr-1 h-3 w-3" />
               Adicionar
             </Button>
         </div>
