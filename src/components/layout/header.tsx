@@ -43,12 +43,13 @@ export default function Header() {
     { href: "/", label: "Produtos", icon: Home },
     { href: "/orders", label: "Meus Pedidos", icon: Box, requiresAuth: true },
     { href: "/ajuda", label: "Ajuda", icon: HelpCircle },
+    { href: "/cart", label: "Carrinho", icon: ShoppingCart, isMobileOnly: true },
   ];
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
            <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
@@ -131,15 +132,18 @@ export default function Header() {
               </SheetContent>
             </Sheet>
 
-          <Link href="/" className="flex items-center">
-            <PrimaveraLogo className="h-8" />
+          <Link href="/" className="hidden md:flex">
+            <PrimaveraLogo className="h-8 md:h-10" />
           </Link>
         </div>
         
+        <Link href="/" className="md:hidden">
+            <PrimaveraLogo className="h-8" />
+        </Link>
+        
         <nav className="hidden items-center gap-6 md:flex">
-          {!isUserLoading &&
-            navLinks.map((link) => 
-              (!link.requiresAuth || user) && (
+          {navLinks.map((link) => 
+              (!link.requiresAuth || user) && !link.isMobileOnly && (
                 <Link
                   key={link.href}
                   href={link.href}
@@ -160,7 +164,7 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" asChild>
+          <Button variant="ghost" size="icon" asChild className="hidden md:inline-flex">
             <Link href="/cart">
               <ShoppingCart className="h-6 w-6" />
               <span className="sr-only">Carrinho de Compras</span>
