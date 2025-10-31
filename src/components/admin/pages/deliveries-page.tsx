@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { collectionGroup, query, onSnapshot } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
 import type { OrderWithItems } from '@/firebase/orders';
 import { updateOrderStatus } from '@/firebase/orders';
 import PageHeader from '@/components/page-header';
@@ -45,8 +45,12 @@ function useAllPaidOrders() {
       setOrders(paidOrders);
       setIsLoading(false);
     }, (err) => {
-      console.error(err);
-      setError(err);
+      const contextualError = new FirestorePermissionError({
+        path: 'orders', // This is a collection group query
+        operation: 'list',
+      });
+      setError(contextualError);
+      errorEmitter.emit('permission-error', contextualError);
       setIsLoading(false);
     });
 
@@ -58,7 +62,7 @@ function useAllPaidOrders() {
 
 
 export default function DeliveriesPage() {
-  const { orders: ordersToDeliver } = useAllPaidOrders();
+  const { orders: ordersToDeliver, isLoading: areOrdersLoading } = useAllPaidOrders();
   const { toast } = useToast();
   const [notificationPermission, setNotificationPermission] = useState('default');
   const notifiedOrderIds = useRef(new Set<string>());
@@ -138,7 +142,7 @@ export default function DeliveriesPage() {
     }
   };
   
-  if (isLoading) {
+  if (isLoading || areOrdersLoading) {
      return (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
