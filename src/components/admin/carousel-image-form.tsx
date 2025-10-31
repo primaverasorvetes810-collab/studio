@@ -24,9 +24,12 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import type { CarouselImage } from '@/firebase/carousel';
 import { createCarouselImage, updateCarouselImage } from '@/firebase/carousel';
+import { useState } from 'react';
+import Image from 'next/image';
+import { Upload } from 'lucide-react';
 
 const ImagePayloadSchema = z.object({
-  imageUrl: z.string().url('Por favor, insira uma URL válida.'),
+  imageUrl: z.string().min(1, 'A imagem é obrigatória.'),
   altText: z.string().min(1, 'O texto alternativo é obrigatório.'),
   link: z.string().url('Por favor, insira uma URL válida para o link.').optional().or(z.literal('')),
   order: z.number(),
@@ -41,6 +44,8 @@ type ImageFormProps = {
 
 export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOrder }: ImageFormProps) {
   const { toast } = useToast();
+  const [preview, setPreview] = useState<string | null>(image?.imageUrl ?? null);
+
   const form = useForm<z.infer<typeof ImagePayloadSchema>>({
     resolver: zodResolver(ImagePayloadSchema),
     defaultValues: {
@@ -50,6 +55,19 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
       order: image?.order ?? currentOrder,
     },
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setPreview(dataUrl);
+        form.setValue('imageUrl', dataUrl, { shouldValidate: true });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const onSubmit = async (data: z.infer<typeof ImagePayloadSchema>) => {
     try {
@@ -69,11 +87,11 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
 
   return (
     <Dialog open={true} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{image ? 'Editar Imagem' : 'Adicionar Nova Imagem'}</DialogTitle>
           <DialogDescription>
-            Preencha os detalhes da imagem. Clique em salvar quando terminar.
+            Faça o upload de uma imagem e preencha os detalhes. Clique em salvar quando terminar.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -83,9 +101,32 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
               name="imageUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>URL da Imagem</FormLabel>
+                  <FormLabel>Imagem</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://exemplo.com/imagem.png" {...field} />
+                    <div>
+                      <Input
+                        id="image-upload"
+                        type="file"
+                        accept="image/png, image/jpeg, image/gif, image/webp"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="image-upload"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted"
+                      >
+                        {preview ? (
+                          <Image src={preview} alt="Pré-visualização" width={100} height={100} className="object-contain h-full p-2" />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground">
+                              <span className="font-semibold">Clique para fazer upload</span>
+                            </p>
+                          </div>
+                        )}
+                      </label>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
