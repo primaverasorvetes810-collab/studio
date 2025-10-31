@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { Loader2, ShieldAlert, KeyRound, Bell, Menu } from 'lucide-react';
+import { Loader2, ShieldAlert, KeyRound, Bell, Menu, HelpCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -214,6 +214,24 @@ export default function AdminGatePage() {
                 </Button>
             </CardContent>
         </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <HelpCircle className="text-primary" />
+                    Precisa de Ajuda?
+                </CardTitle>
+                <CardDescription>
+                    Não tem certeza sobre o que cada seção faz? Consulte nosso guia.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Button asChild variant="outline">
+                    <Link href="/admin/ajuda">Ver Guia do Administrador</Link>
+                </Button>
+            </CardContent>
+        </Card>
+
       </div>
     </div>
   );
