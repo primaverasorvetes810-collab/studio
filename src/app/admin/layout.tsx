@@ -39,8 +39,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         const sessionAuth = sessionStorage.getItem('adminAuthenticated');
         if (sessionAuth === 'true') {
           setIsAuthenticated(true);
-        } else if (pathname !== '/admin/login') {
-          router.replace('/admin/login');
+          // If authenticated and on the login page, redirect to dashboard
+          if (pathname === '/admin/login') {
+            router.replace('/admin/dashboard');
+          }
+        } else {
+          // If not authenticated, redirect to login page, unless already there.
+          if (pathname !== '/admin/login') {
+            router.replace('/admin/login');
+          }
         }
         setIsLoading(false);
     }
@@ -50,7 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (typeof window !== 'undefined') {
         sessionStorage.setItem('adminAuthenticated', 'true');
         setIsAuthenticated(true);
-        router.push('/admin/dashboard');
+        router.replace('/admin/dashboard');
     }
   };
 
@@ -58,7 +65,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
      if (typeof window !== 'undefined') {
         sessionStorage.removeItem('adminAuthenticated');
         setIsAuthenticated(false);
-        router.push('/admin/login');
+        router.replace('/admin/login');
     }
   };
 
@@ -71,12 +78,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   // If the path is the login page, render it directly.
-  // Otherwise, if not authenticated, the effect above will have already started a redirect.
-  // We still show the loader while redirecting.
+  // If not authenticated and not on login page, the effect will redirect, so we show a loader.
   if (!isAuthenticated) {
     if (pathname === '/admin/login') {
         return <AdminLoginPage onLoginSuccess={handleLoginSuccess} />;
     }
+    // This loader is shown while the redirect is in progress.
     return (
         <div className="flex h-screen w-full items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -84,6 +91,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
   
+  // If authenticated and trying to access login, loader is shown while redirecting to dashboard.
+  if (pathname === '/admin/login') {
+      return (
+        <div className="flex h-screen w-full items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    );
+  }
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-muted/40">
