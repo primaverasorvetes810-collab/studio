@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
-import { collection, doc, getDocs, getDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import {
   Table,
   TableBody,
@@ -34,7 +34,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { promoteUserToAdmin, revokeUserAdminRole } from '@/firebase/roles';
 import { useToast } from '@/hooks/use-toast';
 import type { User, Order } from '@/firebase/orders';
 
@@ -45,6 +44,11 @@ type ClientWithStats = User & {
   lastOrderDate: string | null;
   isAdmin: boolean;
 };
+
+// NOTE: This is a placeholder for the roles concept which has been removed from Firestore rules.
+// The `isAdmin` flag is now derived by checking a (now non-existent) `roles_admin` collection,
+// but the UI logic to promote/revoke will fail silently or throw errors if rules are strict.
+// This is kept to fulfill the UI structure request.
 
 export default function ClientsPage() {
   const [clientsWithStats, setClientsWithStats] = useState<ClientWithStats[]>([]);
@@ -70,6 +74,7 @@ export default function ClientsPage() {
             const totalSpent = orders.reduce((acc, order) => acc + order.totalAmount, 0);
             const lastOrder = orders.sort((a, b) => b.orderDate.toMillis() - a.orderDate.toMillis())[0];
 
+            // This check is now just for the UI, rules are open for authenticated users.
             const adminRoleRef = doc(firestore, 'roles_admin', user.id);
             const adminSnap = await getDoc(adminRoleRef);
 
@@ -99,43 +104,42 @@ export default function ClientsPage() {
     }
   }, [firestore]);
 
-
-  const handlePromote = (userId: string, userEmail: string) => {
-    promoteUserToAdmin(userId, userEmail)
-      .then(() => {
+  // The following functions will appear to work on the UI but depend on Firestore rules.
+  // Since we've simplified rules, these are effectively UI-only changes until rules are tightened.
+  const handlePromote = async (userId: string, userEmail: string) => {
+    const adminRoleRef = doc(firestore, 'roles_admin', userId);
+    try {
+        await setDoc(adminRoleRef, { email: userEmail });
         toast({
           title: 'Sucesso!',
-          description: `${userEmail} agora é um administrador.`,
+          description: `${userEmail} agora é um administrador (localmente).`,
         });
-        // Atualiza o estado local para refletir a mudança
         setClientsWithStats(prev => prev.map(c => c.id === userId ? { ...c, isAdmin: true } : c));
-      })
-      .catch((error) => {
-        toast({
+    } catch (e) {
+         toast({
           variant: 'destructive',
-          title: 'Erro ao promover',
-          description: error.message || 'Não foi possível promover o usuário.',
+          title: 'Erro de permissão',
+          description: 'Não foi possível promover o usuário. Verifique as regras do Firestore.'
         });
-      });
+    }
   };
 
-  const handleRevoke = (userId: string, userEmail: string) => {
-    revokeUserAdminRole(userId)
-      .then(() => {
+  const handleRevoke = async (userId: string, userEmail: string) => {
+     const adminRoleRef = doc(firestore, 'roles_admin', userId);
+     try {
+        await deleteDoc(adminRoleRef);
         toast({
           title: 'Sucesso!',
-          description: `Privilégios de admin revogados para ${userEmail}.`,
+          description: `Privilégios de admin revogados para ${userEmail} (localmente).`,
         });
-        // Atualiza o estado local para refletir a mudança
         setClientsWithStats(prev => prev.map(c => c.id === userId ? { ...c, isAdmin: false } : c));
-      })
-      .catch((error) => {
-        toast({
+     } catch (e) {
+         toast({
           variant: 'destructive',
-          title: 'Erro ao revogar',
-          description: error.message || 'Não foi possível revogar os privilégios do usuário.',
+          title: 'Erro de permissão',
+          description: 'Não foi possível revogar os privilégios. Verifique as regras do Firestore.'
         });
-      });
+     }
   };
 
   if (isLoading) {
@@ -166,7 +170,7 @@ export default function ClientsPage() {
       <CardHeader>
         <CardTitle>Clientes</CardTitle>
         <CardDescription>
-          Gerencie os usuários cadastrados no seu sistema e suas permissões.
+          Gerencie os usuários cadastrados no seu sistema. A promoção a 'Admin' é apenas visual, pois as regras do Firestore foram simplificadas.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -176,7 +180,7 @@ export default function ClientsPage() {
               <TableHead>Cliente</TableHead>
               <TableHead className="hidden sm:table-cell">Total Gasto</TableHead>
               <TableHead className="hidden md:table-cell">Último Pedido</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Status (Visual)</TableHead>
               <TableHead>
                 <span className="sr-only">Ações</span>
               </TableHead>

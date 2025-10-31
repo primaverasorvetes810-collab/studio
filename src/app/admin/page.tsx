@@ -1,9 +1,9 @@
 'use client';
 
-import { useAdmin } from '@/hooks/use-admin';
+import { useState } from 'react';
+import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { Loader2, ShieldAlert } from 'lucide-react';
+import { Loader2, ShieldCheck, ShieldAlert, KeyRound } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -13,17 +13,42 @@ import OrdersPage from '@/components/admin/pages/orders-page';
 import ProductsPage from '@/components/admin/pages/products-page';
 import ClientsPage from '@/components/admin/pages/clients-page';
 import PageHeader from '@/components/page-header';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
 
-export default function AdminPage() {
-  const { isAdmin, isLoading } = useAdmin();
+export default function AdminGatePage() {
+  const { user, isUserLoading } = useUser();
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [isChecking, setIsChecking] = useState(false);
+  const { toast } = useToast();
   const router = useRouter();
 
-  useEffect(() => {
-    // This could be used to redirect if access is determined on the client-side
-    // after initial loading, but for now, we render conditionally.
-  }, [isAdmin, isLoading, router]);
+  const correctPassword = "810Primaver*";
 
-  if (isLoading) {
+  const handlePasswordCheck = () => {
+    setIsChecking(true);
+    setTimeout(() => { // Simula uma verificação
+      if (password === correctPassword) {
+        setIsAdminAuthenticated(true);
+        toast({
+          title: 'Acesso Concedido',
+          description: 'Bem-vindo ao Painel de Administração.',
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Acesso Negado',
+          description: 'A senha inserida está incorreta.',
+        });
+      }
+      setIsChecking(false);
+      setPassword('');
+    }, 500);
+  };
+
+  if (isUserLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -31,7 +56,7 @@ export default function AdminPage() {
     );
   }
 
-  if (!isAdmin) {
+  if (!user) {
     return (
       <div className="container mx-auto flex min-h-[70vh] flex-col items-center justify-center text-center">
         <Card className="max-w-md">
@@ -39,18 +64,51 @@ export default function AdminPage() {
                 <ShieldAlert className="h-12 w-12 text-destructive" />
                 <CardTitle className="text-2xl">Acesso Negado</CardTitle>
                 <CardDescription>
-                Você não tem permissão para acessar esta página. Apenas administradores podem ver este conteúdo.
+                Você precisa estar logado para acessar o painel de administração.
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <Button asChild>
-                    <Link href="/">Voltar para a Página Inicial</Link>
+                    <Link href="/login">Fazer Login</Link>
                 </Button>
             </CardContent>
         </Card>
       </div>
     );
   }
+
+  if (!isAdminAuthenticated) {
+    return (
+        <div className="container mx-auto flex min-h-[70vh] flex-col items-center justify-center">
+            <Card className="w-full max-w-md">
+                <CardHeader className="items-center text-center">
+                    <KeyRound className="h-12 w-12 text-primary" />
+                    <CardTitle className="text-2xl">Acesso ao Cofre</CardTitle>
+                    <CardDescription>
+                        Insira a senha de administrador para acessar o painel.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="space-y-2">
+                        <Label htmlFor="admin-password">Senha de Administrador</Label>
+                        <Input 
+                            id="admin-password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handlePasswordCheck()}
+                            placeholder="********"
+                        />
+                    </div>
+                    <Button onClick={handlePasswordCheck} className="w-full" disabled={isChecking}>
+                        {isChecking ? <Loader2 className="animate-spin" /> : "Entrar"}
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
+    );
+  }
+
 
   return (
     <div className="container mx-auto px-4 py-8">
