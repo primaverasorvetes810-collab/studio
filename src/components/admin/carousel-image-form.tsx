@@ -31,7 +31,7 @@ import { Upload } from 'lucide-react';
 const ImagePayloadSchema = z.object({
   imageUrl: z.string().min(1, 'A imagem é obrigatória.'),
   altText: z.string().min(1, 'O texto alternativo é obrigatório.'),
-  link: z.string().url('Por favor, insira uma URL válida para o link.').optional().or(z.literal('')),
+  link: z.string().url('Por favor, insira uma URL válida para o link.').or(z.literal('')).optional(),
   order: z.number(),
 });
 

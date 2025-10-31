@@ -18,7 +18,7 @@ export const CarouselImageSchema = z.object({
     id: z.string(),
     imageUrl: z.string().url(),
     altText: z.string(),
-    link: z.string().url().optional(),
+    link: z.string().url().or(z.literal('')).optional(),
     order: z.number(),
 });
 
