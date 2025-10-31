@@ -1,8 +1,7 @@
-
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { collectionGroup, query, onSnapshot, Unsubscribe } from 'firebase/firestore';
+import { useState, useEffect, useRef } from 'react';
+import { collectionGroup, query, onSnapshot } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { OrderWithItems } from '@/firebase/orders';
 import { updateOrderStatus } from '@/firebase/orders';
@@ -13,7 +12,6 @@ import { Loader2, Bike, Rocket, BellRing } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { PrimaveraLogo } from '@/components/icons';
 
 // Custom hook to fetch all orders and filter for paid ones on the client
 function useAllPaidOrders() {
@@ -55,21 +53,23 @@ function useAllPaidOrders() {
     return () => unsubscribe();
   }, [firestore]);
 
-  return { orders, setOrders, isLoading, error };
+  return { orders, isLoading, error };
 }
 
 
 export default function DeliveriesPage() {
-  const { orders: ordersToDeliver, setOrders, isLoading } = useAllPaidOrders();
+  const { orders: ordersToDeliver } = useAllPaidOrders();
   const { toast } = useToast();
   const [notificationPermission, setNotificationPermission] = useState('default');
   const notifiedOrderIds = useRef(new Set<string>());
+  const [isLoading, setIsLoading] = useState(true);
 
   // Effect to request notification permission
   useEffect(() => {
     if ("Notification" in window) {
       setNotificationPermission(Notification.permission);
     }
+    setIsLoading(false); // Done checking for notification support
   }, []);
 
   // Effect to show notifications for new paid orders
@@ -138,25 +138,33 @@ export default function DeliveriesPage() {
     }
   };
   
+  if (isLoading) {
+     return (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )
+  }
+  
   if (notificationPermission !== 'granted') {
     return (
-      <div className="flex h-[calc(100vh-200px)] items-center justify-center">
-        <Card className="max-w-md text-center">
+      <div className="flex flex-col items-center justify-center text-center p-8 gap-4">
+        <Card className="max-w-md">
           <CardHeader>
              <div className="flex justify-center mb-4">
                 <BellRing className="h-12 w-12 text-primary" />
             </div>
             <CardTitle className="text-2xl">Ativar Notificações de Entrega</CardTitle>
-             <CardContent className="pt-4">
-                <p className="text-muted-foreground mb-6">
-                    Para ser alertado sobre novos pedidos em tempo real, você precisa habilitar as notificações em seu navegador.
-                </p>
-                <Button onClick={requestNotificationPermission}>
-                    <BellRing className="mr-2 h-4 w-4" />
-                    Habilitar Notificações
-                </Button>
-            </CardContent>
           </CardHeader>
+          <CardContent className="pt-4">
+            <p className="text-muted-foreground mb-6">
+                Para ser alertado sobre novos pedidos em tempo real, você precisa habilitar as notificações em seu navegador.
+            </p>
+            <Button onClick={requestNotificationPermission}>
+                <BellRing className="mr-2 h-4 w-4" />
+                Habilitar Notificações
+            </Button>
+          </CardContent>
         </Card>
       </div>
     );
@@ -170,11 +178,7 @@ export default function DeliveriesPage() {
         description="Pedidos com pagamento confirmado aguardando envio."
       />
       
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : ordersToDeliver.length === 0 ? (
+      {ordersToDeliver.length === 0 ? (
         <Card className="text-center py-16">
            <CardContent>
              <Bike className="mx-auto h-12 w-12 text-muted-foreground mb-4" />

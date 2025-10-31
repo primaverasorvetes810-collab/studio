@@ -56,6 +56,12 @@ export default function Header() {
                 >
                   Meus Pedidos
                 </Link>
+                <Link
+                  href="/admin"
+                  className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Admin
+                </Link>
               </>
             )}
           </nav>

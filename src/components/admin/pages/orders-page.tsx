@@ -1,4 +1,3 @@
-
 'use client';
 
 import PageHeader from "@/components/page-header";
@@ -17,8 +16,6 @@ import {
     AccordionItem,
     AccordionTrigger,
   } from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { useFirestore } from "@/firebase";
 import { useEffect, useState } from "react";
 import { collectionGroup, getDocs, query } from "firebase/firestore";
@@ -68,16 +65,8 @@ function useAllOrders() {
 }
 
 
-export default function OrdersAdminPage() {
+export default function OrdersPage() {
     const { orders, isLoading, error, setOrders } = useAllOrders();
-    const [_, setTicker] = useState(0); // Used to force re-renders for time-based updates
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-          setTicker(prev => prev + 1);
-        }, 60000); // Update every minute
-        return () => clearInterval(interval);
-    }, []);
 
     const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
         setOrders(prevOrders => prevOrders.map(order => 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -34,6 +33,7 @@ import { useEffect, useState } from "react";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { formatPrice } from '@/lib/utils';
+import ClientDetailPage from './client-detail-page';
 
 
 interface ClientData {
@@ -51,6 +51,7 @@ export default function ClientsPage() {
     const [clients, setClients] = useState<ClientData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
     const firestore = useFirestore();
 
     useEffect(() => {
@@ -123,6 +124,9 @@ export default function ClientsPage() {
         fetchClientsAndOrders();
       }, [firestore]);
 
+    if (selectedClientId) {
+      return <ClientDetailPage clientId={selectedClientId} onBack={() => setSelectedClientId(null)} />;
+    }
 
     return (
         <div className="flex flex-col gap-8">
@@ -175,11 +179,9 @@ export default function ClientsPage() {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                                                <DropdownMenuItem asChild>
-                                                   <Link href={`/admin/clients/${client.id}`}>
-                                                        <Eye className="mr-2 h-4 w-4" />
-                                                        Ver Detalhes
-                                                    </Link>
+                                                <DropdownMenuItem onClick={() => setSelectedClientId(client.id)}>
+                                                   <Eye className="mr-2 h-4 w-4" />
+                                                   Ver Detalhes
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>

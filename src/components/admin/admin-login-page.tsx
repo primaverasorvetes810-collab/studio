@@ -49,7 +49,7 @@ export default function AdminLoginPage({ onLoginSuccess }: AdminLoginPageProps) 
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
+    <div className="container mx-auto flex min-h-[calc(100vh-theme(spacing.32))] items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">

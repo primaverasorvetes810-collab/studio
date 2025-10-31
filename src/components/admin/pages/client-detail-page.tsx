@@ -1,8 +1,6 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'next/navigation';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, query, where, getDocs, collectionGroup } from 'firebase/firestore';
 import PageHeader from '@/components/page-header';
@@ -10,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/utils';
-import { Loader2, Mail, Phone, Home, ShoppingBag, Calendar, DollarSign } from 'lucide-react';
+import { Loader2, Mail, Phone, Home, ShoppingBag, Calendar, DollarSign, ArrowLeft } from 'lucide-react';
 import { AdminStatsCard } from '@/components/admin-stats-card';
 import { type Order } from '@/firebase/orders';
+import { Button } from '@/components/ui/button';
 
 
 interface ClientDetails {
@@ -28,15 +27,19 @@ interface ClientDetails {
     lastOrderDate: Date | null;
 }
 
-export default function ClientDetailPage() {
-  const { id: userId } = useParams();
+interface ClientDetailPageProps {
+    clientId: string;
+    onBack: () => void;
+}
+
+export default function ClientDetailPage({ clientId, onBack }: ClientDetailPageProps) {
   const firestore = useFirestore();
   const [client, setClient] = useState<ClientDetails | null>(null);
   const [clientOrders, setClientOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!firestore || !userId) return;
+    if (!firestore || !clientId) return;
 
     const fetchClientData = async () => {
       setIsLoading(true);
@@ -53,9 +56,27 @@ export default function ClientDetailPage() {
   
         const allOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
         
-        const userOrders = allOrders.filter(order => order.userId === userId);
+        const userOrders = allOrders.filter(order => order.userId === clientId);
 
         if (userOrders.length === 0) {
+            // If no orders, fetch user data directly
+            const userRef = doc(firestore, 'users', clientId);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                setClient({
+                    id: clientId,
+                    name: userData.fullName || 'Não disponível',
+                    email: userData.email || 'Não disponível',
+                    phone: userData.phone,
+                    address: userData.address,
+                    neighborhood: userData.neighborhood,
+                    city: userData.city,
+                    totalSpent: 0,
+                    orderCount: 0,
+                    lastOrderDate: null,
+                });
+            }
             setIsLoading(false);
             return;
         }
@@ -68,7 +89,7 @@ export default function ClientDetailPage() {
         const lastOrderDate = latestOrder.orderDate.toDate();
   
         setClient({
-          id: userId as string,
+          id: clientId,
           name: latestOrder.userName || 'Não disponível',
           email: latestOrder.userEmail || 'Não disponível',
           phone: latestOrder.userPhone,
@@ -90,7 +111,7 @@ export default function ClientDetailPage() {
     };
 
     fetchClientData();
-  }, [firestore, userId]);
+  }, [firestore, clientId]);
 
 
   if (isLoading) {
@@ -103,7 +124,12 @@ export default function ClientDetailPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader title={client.name} description={`Detalhes do cliente e histórico de pedidos.`} />
+      <PageHeader title={client.name} description={`Detalhes do cliente e histórico de pedidos.`}>
+        <Button variant="outline" onClick={onBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar para a Lista
+        </Button>
+      </PageHeader>
       
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
@@ -162,28 +188,34 @@ export default function ClientDetailPage() {
           <CardTitle>Histórico de Pedidos</CardTitle>
         </CardHeader>
         <CardContent>
-        <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-800">
-                    <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID do Pedido</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Data</th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total</th>
-                    </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                    {clientOrders.map(order => (
-                        <tr key={order.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{order.id.substring(0, 7)}...</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{order.orderDate.toDate().toLocaleDateString()}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{order.status}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-300">{formatPrice(order.totalAmount)}</td>
+        {clientOrders.length > 0 ? (
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID do Pedido</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Data</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        {clientOrders.map(order => (
+                            <tr key={order.id}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{order.id.substring(0, 7)}...</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{order.orderDate.toDate().toLocaleDateString()}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{order.status}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500 dark:text-gray-300">{formatPrice(order.totalAmount)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        ) : (
+            <div className="text-center text-muted-foreground py-8">
+                Este cliente ainda não fez nenhum pedido.
+            </div>
+        )}
         </CardContent>
       </Card>
     </div>
