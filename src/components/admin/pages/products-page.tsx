@@ -158,18 +158,18 @@ export default function ProductsPage() {
           {productGroups.map((group) => (
             <Collapsible key={group.id} open={openCollapsibles[group.id] || false} onOpenChange={() => toggleCollapsible(group.id)} className="w-full">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between p-4">
+                <CardHeader className="flex flex-row items-center justify-between p-4 gap-4">
                   <CollapsibleTrigger asChild>
-                    <div className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                    <div className="flex items-center gap-2 cursor-pointer flex-1">
                       <Button variant="ghost" size="sm" className="shrink-0">
                         <ChevronRight className="h-4 w-4 transition-transform data-[state=open]:rotate-90" />
                         <span className="sr-only">Toggle</span>
                       </Button>
-                      <CardTitle className='text-lg truncate'>{group.name}</CardTitle>
+                      <CardTitle className='text-lg'>{group.name}</CardTitle>
                     </div>
                   </CollapsibleTrigger>
-                  <div className="flex items-center gap-2 ml-4">
-                    <div className="hidden md:flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="hidden lg:flex items-center gap-2">
                          <Button
                             size="sm"
                             onClick={() => handleAddNewProduct(group.id)}
@@ -194,7 +194,7 @@ export default function ProductsPage() {
                             Excluir
                         </Button>
                     </div>
-                    <div className="md:hidden">
+                    <div className="lg:hidden">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
