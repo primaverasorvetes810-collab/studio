@@ -164,26 +164,28 @@ export default function AdminGatePage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className='flex items-center justify-between'>
+      <div className='flex flex-col gap-4'>
+        <div className="flex justify-end">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="outline" className='gap-2'>
+                    <Menu className="h-4 w-4" />
+                    <span>{sectionTitles[activeSection]}</span>
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                <DropdownMenuRadioGroup value={activeSection} onValueChange={(value) => setActiveSection(value as AdminSection)}>
+                    {Object.entries(sectionTitles).map(([key, title]) => (
+                        <DropdownMenuRadioItem key={key} value={key}>{title}</DropdownMenuRadioItem>
+                    ))}
+                </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
         <PageHeader
           title="Painel de Administração"
           description="Gerencie todos os aspectos da sua loja em um único lugar."
         />
-         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className='gap-2'>
-                <Menu className="h-4 w-4" />
-                <span>{sectionTitles[activeSection]}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-              <DropdownMenuRadioGroup value={activeSection} onValueChange={(value) => setActiveSection(value as AdminSection)}>
-                 {Object.entries(sectionTitles).map(([key, title]) => (
-                    <DropdownMenuRadioItem key={key} value={key}>{title}</DropdownMenuRadioItem>
-                 ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
       </div>
 
       <div className="mt-8 space-y-8">
@@ -191,9 +193,9 @@ export default function AdminGatePage() {
             {activeSection === 'dashboard' && <DashboardPage />}
             {activeSection === 'orders' && <OrdersPage />}
             {activeSection === 'deliveries' && <DeliveriesPage />}
-            {activeSection === 'products' && <ProductsPage />}
-            {activeSection === 'clients' && <ClientsPage />}
-            {activeSection === 'birthdays' && <BirthdaysPage />}
+            {active_section === 'products' && <ProductsPage />}
+            {active_section === 'clients' && <ClientsPage />}
+            {active_section === 'birthdays' && <BirthdaysPage />}
         </div>
         
         <Card>
