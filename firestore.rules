@@ -11,14 +11,19 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Função para verificar se o usuário tem a função de administrador.
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
     match /users/{userId} {
       // O usuário pode ler e criar seu próprio perfil.
       allow read, create: if isSignedIn() && isOwner(userId);
-      // Qualquer administrador logado pode listar todos os usuários.
-      allow list: if isSignedIn();
+      // Apenas administradores podem listar todos os usuários.
+      allow list: if isAdmin();
       
       match /orders/{orderId} {
-        // Um usuário pode gerenciar (ler, criar) seus próprios pedidos.
+        // Um usuário pode ler e criar seus próprios pedidos.
         allow read, create: if isSignedIn() && isOwner(userId);
       }
 
@@ -33,21 +38,28 @@ service cloud.firestore {
       }
     }
     
-    // As páginas de administração (admin) precisam listar todos os pedidos de todos os usuários.
+    // Apenas administradores podem ler ou atualizar todos os pedidos.
     match /{path=**}/orders/{orderId} {
-      allow read, update: if isSignedIn();
+      allow read, update: if isAdmin();
     }
 
     match /productGroups/{productGroupId} {
-      // Permite que qualquer um leia, mas apenas admin (autenticado) gerencie.
+      // Permite que qualquer um leia.
       allow read: if true;
-      allow write: if isSignedIn();
+      // Apenas administradores podem escrever.
+      allow write: if isAdmin();
     }
 
     match /products/{productId} {
-       // Permite que qualquer um leia, mas apenas admin (autenticado) gerencie.
+      // Permite que qualquer um leia.
       allow read: if true;
-      allow write: if isSignedIn();
+      // Apenas administradores podem escrever.
+      allow write: if isAdmin();
+    }
+
+    match /roles_admin/{uid} {
+      // Apenas administradores podem ler os papéis de admin (para segurança).
+      allow read: if isAdmin();
     }
   }
 }
