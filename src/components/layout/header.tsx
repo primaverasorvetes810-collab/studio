@@ -18,6 +18,9 @@ import {
   SheetContent,
   SheetTrigger,
   SheetClose,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ShoppingCart, User, LogOut, Menu, Home, Box, HelpCircle } from "lucide-react";
@@ -58,6 +61,10 @@ export default function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Menu Principal</SheetTitle>
+                  <SheetDescription>Navegue pelo site usando os links abaixo.</SheetDescription>
+                </SheetHeader>
                 <SheetClose asChild>
                   <Link href="/" className="mb-4">
                     <PrimaveraLogo className="h-8" />
@@ -66,7 +73,7 @@ export default function Header() {
                 
                 <nav className="flex flex-1 flex-col gap-2">
                   {navLinks.map((link) => 
-                    (!link.requiresAuth || user) && (
+                    ((!link.requiresAuth || user) && (!link.isMobileOnly || (link.isMobileOnly && user))) && (
                       <SheetClose asChild key={link.href}>
                         <Link
                           href={link.href}
@@ -133,7 +140,7 @@ export default function Header() {
             </Sheet>
 
           <Link href="/" className="hidden md:flex">
-            <PrimaveraLogo className="h-8 md:h-10" />
+            <PrimaveraLogo className="h-8" />
           </Link>
         </div>
         
@@ -143,7 +150,7 @@ export default function Header() {
         
         <nav className="hidden items-center gap-6 md:flex">
           {navLinks.map((link) => 
-              (!link.requiresAuth || user) && !link.isMobileOnly && (
+              ((!link.requiresAuth || user) && !link.isMobileOnly) && (
                 <Link
                   key={link.href}
                   href={link.href}
