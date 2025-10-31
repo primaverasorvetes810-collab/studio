@@ -17,8 +17,8 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // O usuário pode ler e criar seu próprio perfil.
-      allow read, create: if isSignedIn() && isOwner(userId);
+      // O usuário pode ler, criar e atualizar seu próprio perfil.
+      allow read, create, update: if isSignedIn() && isOwner(userId);
       // Apenas administradores podem listar todos os usuários.
       allow list: if isAdmin();
       
@@ -58,8 +58,18 @@ service cloud.firestore {
     }
 
     match /roles_admin/{uid} {
-      // Apenas administradores podem ler os papéis de admin (para segurança).
+      // Regra de Leitura: Apenas administradores podem ver quem são outros administradores.
       allow read: if isAdmin();
+      
+      // Regra de Escrita: Permite a criação se for o primeiro admin, ou se o solicitante já for admin.
+      // Isso resolve o problema de quem promove o primeiro administrador.
+      allow create: if (
+        // Condição 1: A coleção 'roles_admin' está vazia, permitindo que o primeiro admin seja criado.
+        !exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) && size(get(/databases/$(database)/documents/roles_admin).data) == 0
+      ) || (
+        // Condição 2: O solicitante já é um administrador.
+        isAdmin()
+      );
     }
   }
 }
