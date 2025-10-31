@@ -3,46 +3,55 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
     function isSignedIn() {
       return request.auth != null;
     }
 
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+    
+    match /roles_admin/{uid} {
+      allow create: if request.auth != null; // ANY authenticated user can create an admin role for themselves.
+      allow read, delete: if isAdmin();
+    }
+
     match /users/{userId} {
-      // O usuário pode ler, criar e atualizar seu próprio perfil.
       allow read, create, update: if isSignedIn() && isOwner(userId);
-      
+      // Admins can read the list of all users for management
+      allow list: if isAdmin();
+
       match /orders/{orderId} {
-        // Um usuário pode ler e criar seus próprios pedidos.
         allow read, create: if isSignedIn() && isOwner(userId);
+        allow list, update: if isAdmin();
       }
 
       match /shoppingCarts/{cartId} {
-        // Um usuário pode gerenciar seu próprio carrinho de compras.
         allow read, create, update, delete: if isSignedIn() && isOwner(userId);
 
         match /cartItems/{cartItemId} {
-          // Permite gerenciar os itens dentro do carrinho.
           allow read, create, update, delete: if isSignedIn() && isOwner(userId);
         }
       }
     }
+
+    // Admins can manage all orders via collection group query
+    match /{path=**}/orders/{orderId} {
+       allow list, read: if isAdmin();
+    }
     
     match /productGroups/{productGroupId} {
-      // Permite que qualquer um leia.
       allow read: if true;
-      // Ninguém pode escrever (gestão via Console do Firebase).
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     match /products/{productId} {
-      // Permite que qualquer um leia.
       allow read: if true;
-      // Ninguém pode escrever (gestão via Console do Firebase).
-      allow write: if false;
+      allow write: if isAdmin();
     }
   }
 }

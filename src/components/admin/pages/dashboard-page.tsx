@@ -20,8 +20,8 @@ import { useFirestore } from '@/firebase';
 import { formatPrice } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { CircleDollarSign, Package, ShoppingBag, Users, Loader2 } from 'lucide-react';
-import type { User, Order } from '@/firebase/orders';
-import { collection, getDocs } from 'firebase/firestore';
+import type { Order } from '@/firebase/orders';
+import { collection, getDocs, collectionGroup } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 
 const statusColors: Record<Order["status"], string> = {
@@ -50,16 +50,13 @@ export default function DashboardPage() {
                 if (!firestore) return;
                 // Fetch all users to get their IDs
                 const usersSnapshot = await getDocs(collection(firestore, 'users'));
-                const userIds = usersSnapshot.docs.map(doc => doc.id);
+                setTotalClients(usersSnapshot.size);
 
-                // Fetch orders for all users
-                let fetchedOrders: Order[] = [];
-                for (const userId of userIds) {
-                    const ordersSnapshot = await getDocs(collection(firestore, `users/${userId}/orders`));
-                    ordersSnapshot.forEach(doc => {
-                        fetchedOrders.push({ id: doc.id, ...doc.data() } as Order);
-                    });
-                }
+                // Fetch all orders using a collection group query
+                const ordersQuery = collectionGroup(firestore, 'orders');
+                const ordersSnapshot = await getDocs(ordersQuery);
+
+                const fetchedOrders: Order[] = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
                 
                 const sortedOrders = fetchedOrders.sort((a, b) => b.orderDate.toMillis() - a.orderDate.toMillis());
                 setAllOrders(sortedOrders);
@@ -68,7 +65,6 @@ export default function DashboardPage() {
                 const revenue = sortedOrders.reduce((acc, order) => acc + (order.status === 'Entregue' ? order.totalAmount : 0), 0);
                 setTotalRevenue(revenue);
                 setTotalOrders(sortedOrders.length);
-                setTotalClients(userIds.length);
 
                 // Fetch products count
                 const productsSnapshot = await getDocs(collection(firestore, 'products'));
@@ -81,12 +77,15 @@ export default function DashboardPage() {
             }
         };
         
-        fetchAllData();
+        if (firestore) {
+            fetchAllData();
+        }
 
     }, [firestore]);
 
 
     const chartData = allOrders.reduce((acc, order) => {
+        if (!order.orderDate) return acc;
         const month = order.orderDate.toDate().toLocaleString('default', { month: 'short' });
         const existingMonth = acc.find(item => item.name === month);
         if (existingMonth) {
@@ -98,7 +97,7 @@ export default function DashboardPage() {
     }, [] as { name: string; total: number }[]).reverse();
 
   if (isLoading) {
-    return <div className="flex h-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    return <div className="flex h-full items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
   return (

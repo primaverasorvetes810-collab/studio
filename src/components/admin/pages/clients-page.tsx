@@ -25,6 +25,7 @@ import {
   Loader2,
   AlertCircle,
   Shield,
+  ShieldOff,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -33,7 +34,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { promoteUserToAdmin } from '@/firebase/roles';
+import { promoteUserToAdmin, revokeUserAdminRole } from '@/firebase/roles';
 import { useToast } from '@/hooks/use-toast';
 import type { User, Order } from '@/firebase/orders';
 
@@ -52,8 +53,7 @@ export default function ClientsPage() {
   const { toast } = useToast();
   const firestore = useFirestore();
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchClientData = async () => {
       setIsLoading(true);
       setError(null);
       try {
@@ -92,8 +92,10 @@ export default function ClientsPage() {
       }
     };
 
+
+  useEffect(() => {
     if(firestore) {
-      fetchData();
+      fetchClientData();
     }
   }, [firestore]);
 
@@ -117,9 +119,28 @@ export default function ClientsPage() {
       });
   };
 
+  const handleRevoke = (userId: string, userEmail: string) => {
+    revokeUserAdminRole(userId)
+      .then(() => {
+        toast({
+          title: 'Sucesso!',
+          description: `Privilégios de admin revogados para ${userEmail}.`,
+        });
+        // Atualiza o estado local para refletir a mudança
+        setClientsWithStats(prev => prev.map(c => c.id === userId ? { ...c, isAdmin: false } : c));
+      })
+      .catch((error) => {
+        toast({
+          variant: 'destructive',
+          title: 'Erro ao revogar',
+          description: error.message || 'Não foi possível revogar os privilégios do usuário.',
+        });
+      });
+  };
+
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="ml-2">Carregando clientes...</p>
       </div>
@@ -145,7 +166,7 @@ export default function ClientsPage() {
       <CardHeader>
         <CardTitle>Clientes</CardTitle>
         <CardDescription>
-          Gerencie os usuários cadastrados no seu sistema.
+          Gerencie os usuários cadastrados no seu sistema e suas permissões.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -191,7 +212,12 @@ export default function ClientsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onSelect={() => handlePromote(client.id, client.email)} disabled={client.isAdmin}>
+                          <Shield className="mr-2 h-4 w-4" />
                           Tornar Admin
+                        </DropdownMenuItem>
+                         <DropdownMenuItem onSelect={() => handleRevoke(client.id, client.email)} disabled={!client.isAdmin} className="text-red-600 focus:bg-red-50 focus:text-red-700">
+                           <ShieldOff className="mr-2 h-4 w-4" />
+                          Revogar Admin
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

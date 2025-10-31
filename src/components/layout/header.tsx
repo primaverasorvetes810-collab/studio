@@ -31,12 +31,15 @@ import {
   Home,
   Box,
   HelpCircle,
+  Shield,
 } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
+import { useAdmin } from "@/hooks/use-admin";
 
 export default function Header() {
   const { user, isUserLoading } = useUser();
+  const { isAdmin } = useAdmin();
   const auth = useAuth();
   const router = useRouter();
 
@@ -59,8 +62,16 @@ export default function Header() {
       label: "Carrinho",
       icon: ShoppingCart,
       isMobileOnly: true,
+      requiresAuth: true,
     },
+     { href: "/admin", label: "Admin", icon: Shield, requiresAdmin: true },
   ];
+
+  const renderLink = (link: (typeof navLinks)[0]) => {
+    if (link.requiresAdmin && !isAdmin) return null;
+    if (link.requiresAuth && !user) return null;
+    return true;
+  }
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm">
@@ -90,7 +101,7 @@ export default function Header() {
               <nav className="flex flex-1 flex-col gap-2">
                 {navLinks.map(
                   (link) =>
-                    (!link.requiresAuth || user) && (
+                    (renderLink(link)) && (
                       <SheetClose asChild key={link.href}>
                         <Link
                           href={link.href}
@@ -166,7 +177,7 @@ export default function Header() {
             .filter((link) => !link.isMobileOnly)
             .map(
               (link) =>
-                (!link.requiresAuth || user) && (
+                (renderLink(link)) && (
                   <Link
                     key={link.href}
                     href={link.href}
@@ -222,6 +233,14 @@ export default function Header() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                 {isAdmin && (
+                    <DropdownMenuItem asChild>
+                        <Link href="/admin">
+                            <Shield className="mr-2 h-4 w-4" />
+                            <span>Admin</span>
+                        </Link>
+                    </DropdownMenuItem>
+                 )}
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sair</span>

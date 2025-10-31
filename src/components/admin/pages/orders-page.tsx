@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { collectionGroup, doc, updateDoc, getDocs } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { Order, OrderStatus } from '@/firebase/orders';
 import {
@@ -51,16 +51,14 @@ export default function OrdersPage() {
       setIsLoading(true);
       if (!firestore) return;
       try {
-        const usersSnapshot = await getDocs(collection(firestore, 'users'));
+        const ordersQuery = collectionGroup(firestore, 'orders');
+        const ordersSnapshot = await getDocs(ordersQuery);
+        
         let fetchedOrders: Order[] = [];
-        for (const userDoc of usersSnapshot.docs) {
-          const ordersSnapshot = await getDocs(
-            collection(firestore, `users/${userDoc.id}/orders`)
-          );
-          ordersSnapshot.forEach((orderDoc) => {
+        ordersSnapshot.forEach((orderDoc) => {
             fetchedOrders.push({ id: orderDoc.id, ...orderDoc.data() } as Order);
-          });
-        }
+        });
+
         const sortedOrders = fetchedOrders.sort(
           (a, b) => b.orderDate.toMillis() - a.orderDate.toMillis()
         );
@@ -77,7 +75,9 @@ export default function OrdersPage() {
       }
     };
 
-    fetchAllOrders();
+    if(firestore) {
+        fetchAllOrders();
+    }
   }, [firestore, toast]);
 
   const handleStatusChange = async (orderId: string, userId: string, newStatus: OrderStatus) => {
@@ -106,7 +106,7 @@ export default function OrdersPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
