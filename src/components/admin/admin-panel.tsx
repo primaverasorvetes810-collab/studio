@@ -12,6 +12,7 @@ import {
   DollarSign,
   Bike,
   Menu,
+  Cake,
 } from 'lucide-react';
 import {
   Sheet,
@@ -28,6 +29,7 @@ import ProductsPage from './pages/products-page';
 import ClientsPage from './pages/clients-page';
 import DeliveriesPage from './pages/deliveries-page';
 import RevenuePage from './pages/revenue-page';
+import BirthdaysPage from './pages/birthdays-page';
 
 interface AdminPanelProps {
   onLogout: () => void;
@@ -39,7 +41,8 @@ type AdminPage =
   | 'products'
   | 'clients'
   | 'deliveries'
-  | 'revenue';
+  | 'revenue'
+  | 'birthdays';
 
 export default function AdminPanel({ onLogout }: AdminPanelProps) {
   const [activePage, setActivePage] = useState<AdminPage>('dashboard');
@@ -58,6 +61,8 @@ export default function AdminPanel({ onLogout }: AdminPanelProps) {
         return <DeliveriesPage />;
       case 'revenue':
         return <RevenuePage />;
+      case 'birthdays':
+        return <BirthdaysPage />;
       default:
         return <DashboardPage />;
     }
@@ -74,6 +79,7 @@ export default function AdminPanel({ onLogout }: AdminPanelProps) {
     { page: 'clients' as AdminPage, icon: Users, label: 'Clientes' },
     { page: 'deliveries' as AdminPage, icon: Bike, label: 'Entregas' },
     { page: 'revenue' as AdminPage, icon: DollarSign, label: 'Receita' },
+    { page: 'birthdays' as AdminPage, icon: Cake, label: 'Aniversários' },
   ];
 
   const SidebarContent = () => (
