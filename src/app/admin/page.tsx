@@ -35,23 +35,6 @@ const sectionTitles: Record<AdminSection, string> = {
   help: 'Ajuda',
 }
 
-const showNotification = (totalAmount: number) => {
-  const audio = new Audio('/notification-sound.mp3');
-  audio.play().catch(e => console.error("Erro ao tocar som de notificação:", e));
-
-  const notification = new Notification("Novo Pedido Recebido!", {
-    body: `Um novo pedido no valor de ${formatPrice(totalAmount)} acaba de chegar!`,
-    icon: "/favicon.ico",
-    requireInteraction: true,
-  });
-
-  notification.onclick = () => {
-    window.focus();
-    // Você pode adicionar uma navegação para a página de pedidos aqui se desejar
-    // Por exemplo: router.push('/admin/orders');
-  };
-};
-
 export default function AdminGatePage() {
   const { user, isUserLoading } = useUser();
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
@@ -87,6 +70,24 @@ export default function AdminGatePage() {
   // Efeito para ouvir novos pedidos
   useEffect(() => {
     if (!isAdminAuthenticated) return;
+
+    // A função é definida e usada apenas dentro do useEffect (client-side)
+    const showNotification = (totalAmount: number) => {
+      const audio = new Audio('/notification-sound.mp3');
+      audio.play().catch(e => console.error("Erro ao tocar som de notificação:", e));
+
+      const notification = new Notification("Novo Pedido Recebido!", {
+        body: `Um novo pedido no valor de ${formatPrice(totalAmount)} acaba de chegar!`,
+        icon: "/favicon.ico",
+        requireInteraction: true,
+      });
+
+      notification.onclick = () => {
+        window.focus();
+        // Você pode adicionar uma navegação para a página de pedidos aqui se desejar
+        // Por exemplo: router.push('/admin/orders');
+      };
+    };
 
     const handleNewOrder = (event: Event) => {
       const customEvent = event as CustomEvent;
