@@ -137,7 +137,7 @@ export default function CartPage() {
                   const imageUrl = item.product.image.startsWith('data:image') ? item.product.image : placeholder?.imageUrl;
                   const imageHint = item.product.image.startsWith('data:image') ? item.product.name : placeholder?.imageHint;
                   return (
-                     <li key={item.id} className="flex flex-col sm:flex-row items-start gap-4 py-4">
+                     <li key={item.id} className="flex items-start gap-4 py-4">
                       <div className="relative h-24 w-24 flex-shrink-0 self-start overflow-hidden rounded-md">
                         {imageUrl && (
                           <Image
@@ -149,10 +149,10 @@ export default function CartPage() {
                           />
                         )}
                       </div>
-                      <div className="flex-1 w-full">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-semibold pr-2">{item.product.name}</h3>
-                           <p className="text-sm font-medium whitespace-nowrap text-muted-foreground">
+                      <div className="flex-1">
+                        <div className="flex flex-col">
+                          <h3 className="font-semibold">{item.product.name}</h3>
+                           <p className="text-sm font-medium text-muted-foreground">
                             {formatPrice(item.product.price)}
                           </p>
                         </div>
