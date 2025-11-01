@@ -150,9 +150,9 @@ export default function CartPage() {
                           />
                         )}
                       </div>
-                      <div className="flex-1 flex flex-col justify-between self-stretch">
+                      <div className="flex-1 flex flex-col justify-between self-stretch min-w-0">
                         <div>
-                          <h3 className="font-semibold">{item.product.name}</h3>
+                          <h3 className="font-semibold break-words">{item.product.name}</h3>
                            <p className="text-sm font-medium text-muted-foreground">
                             {formatPrice(item.product.price)}
                           </p>
