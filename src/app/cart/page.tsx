@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -149,8 +150,8 @@ export default function CartPage() {
                           />
                         )}
                       </div>
-                      <div className="flex-1">
-                        <div className="flex flex-col">
+                      <div className="flex-1 flex flex-col justify-between self-stretch">
+                        <div>
                           <h3 className="font-semibold">{item.product.name}</h3>
                            <p className="text-sm font-medium text-muted-foreground">
                             {formatPrice(item.product.price)}
