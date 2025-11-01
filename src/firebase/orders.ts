@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -15,6 +14,7 @@ import {
   collectionGroup,
   getDoc,
   updateDoc,
+  increment,
 } from 'firebase/firestore';
 import { getClientSdks, useCollection, useMemoFirebase } from '@/firebase';
 import { errorEmitter } from './error-emitter';
@@ -77,35 +77,18 @@ export async function createOrderFromCart(
   const { firestore } = getClientSdks();
   const userId = user.uid;
 
-  // --- CORREÇÃO: Operações de leitura realizadas ANTES da transação ---
-  // 1. Obter os dados do usuário.
-  const userRef = doc(firestore, 'users', userId);
-  const userSnap = await getDoc(userRef);
-  if (!userSnap.exists()) {
-     // Emite um erro se o documento do usuário não for encontrado.
-     errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({ path: userRef.path, operation: 'get' })
-      );
-    throw new Error("User document not found!");
-  }
-  const userData = userSnap.data() as User;
-
-  // 2. Obter as referências de todos os itens do carrinho que serão deletados.
-  const cartItemsCollectionRef = collection(
-    firestore,
-    `users/${userId}/shoppingCarts/${cartId}/cartItems`
-  );
-  const cartItemsSnapshot = await getDocs(query(cartItemsCollectionRef));
-  const cartItemRefsToDelete = cartItemsSnapshot.docs.map(doc => doc.ref);
-
-
-  // --- Transação apenas com operações de ESCRITA ---
   try {
     await runTransaction(firestore, async (transaction) => {
-      // 1. Criar o novo documento de pedido.
-      const newOrderRef = doc(collection(firestore, `users/${userId}/orders`));
+      // 1. Get user data for the order
+      const userRef = doc(firestore, 'users', userId);
+      const userSnap = await transaction.get(userRef);
+      if (!userSnap.exists()) {
+        throw new Error("Documento do usuário não encontrado!");
+      }
+      const userData = userSnap.data() as User;
 
+      // 2. Create the new order document
+      const newOrderRef = doc(collection(firestore, `users/${userId}/orders`));
       const orderItems = cartItems.map((cartItem) => ({
         id: cartItem.id,
         productId: cartItem.productId,
@@ -139,20 +122,38 @@ export async function createOrderFromCart(
 
       transaction.set(newOrderRef, newOrderData);
 
-      // 2. Deletar todos os itens do carrinho usando as referências obtidas anteriormente.
-      cartItemRefsToDelete.forEach(ref => transaction.delete(ref));
+      // 3. Update stock for each product
+      for (const item of cartItems) {
+        const productRef = doc(firestore, 'products', item.productId);
+        // Atomically decrement the stock by the quantity purchased
+        transaction.update(productRef, { 
+          stock: increment(-item.quantity)
+        });
+      }
+
+      // 4. Delete all items from the user's cart
+      const cartItemsCollectionRef = collection(
+        firestore,
+        `users/${userId}/shoppingCarts/${cartId}/cartItems`
+      );
+      const cartItemsSnapshot = await getDocs(query(cartItemsCollectionRef));
+      cartItemsSnapshot.docs.forEach(doc => transaction.delete(doc.ref));
     });
-  } catch (error) {
-    // Se a transação falhar, agora o erro será mais provável de ser uma permissão real de escrita.
+  } catch (error: any) {
+    // If the transaction fails, it will be because of read/write permissions or stock issues.
     errorEmitter.emit(
       'permission-error',
       new FirestorePermissionError({
-        path: `users/${userId}/orders`, // O caminho principal da operação de escrita
+        path: `users/${userId}`, // A path abrangente da operação
         operation: 'write',
-        requestResourceData: { paymentMethod, totalAmount },
+        requestResourceData: {
+          order: { paymentMethod, totalAmount },
+          cartItems: cartItems.map(i => ({ id: i.productId, quantity: i.quantity })),
+        },
       })
     );
-    throw error;
+     // Re-throw the original error after emitting our custom one
+     throw error;
   }
 }
 
