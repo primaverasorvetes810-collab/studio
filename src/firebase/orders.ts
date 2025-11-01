@@ -78,7 +78,6 @@ export async function createOrderFromCart(
   const userId = user.uid;
 
   try {
-    let orderId: string | null = null;
     await runTransaction(firestore, async (transaction) => {
       // 1. Get user data for the order
       const userRef = doc(firestore, 'users', userId);
@@ -90,7 +89,6 @@ export async function createOrderFromCart(
 
       // 2. Create the new order document
       const newOrderRef = doc(collection(firestore, `users/${userId}/orders`));
-      orderId = newOrderRef.id; // Capture the new order ID
       
       const orderItems = cartItems.map((cartItem) => ({
         id: cartItem.id,
@@ -139,21 +137,17 @@ export async function createOrderFromCart(
         firestore,
         `users/${userId}/shoppingCarts/${cartId}/cartItems`
       );
+      // We need to get the docs to delete them inside the transaction
       const cartItemsSnapshot = await getDocs(query(cartItemsCollectionRef));
       cartItemsSnapshot.docs.forEach(doc => transaction.delete(doc.ref));
     });
-
-    // After transaction succeeds, dispatch event
-    if (orderId) {
-      document.dispatchEvent(new CustomEvent('new-order', { detail: { orderId, totalAmount } }));
-    }
 
   } catch (error: any) {
     // If the transaction fails, it will be because of read/write permissions or stock issues.
     errorEmitter.emit(
       'permission-error',
       new FirestorePermissionError({
-        path: `users/${userId}`, // A path abrangente da operação
+        path: `users/${userId}`, // A abrangente path da operação
         operation: 'write',
         requestResourceData: {
           order: { paymentMethod, totalAmount },
@@ -192,18 +186,28 @@ export function useUserOrders(userId?: string) {
     return query(collection(firestore, `users/${userId}/orders`));
   }, [userId, firestore]);
 
-  const { data: ordersData, isLoading, error } = useCollection<OrderWithItems>(ordersQuery);
+  const { data: ordersData, isLoading, error, setData: setOrders } = useCollection<OrderWithItems>(ordersQuery);
+
 
   // Add setOrders to allow local state updates
-  const [orders, setOrders] = useState<OrderWithItems[]>([]);
+  const [orders, setLocalOrders] = useState<OrderWithItems[]>([]);
 
   useEffect(() => {
     if (ordersData) {
         const sorted = [...ordersData].sort((a, b) => b.orderDate.toDate().getTime() - a.orderDate.toDate().getTime());
-        setOrders(sorted);
+        setLocalOrders(sorted);
     }
   }, [ordersData]);
 
+  // Expose a setter that wraps the local state update
+  const handleSetOrders = (newOrders: OrderWithItems[] | ((prev: OrderWithItems[]) => OrderWithItems[])) => {
+    if(typeof newOrders === 'function') {
+      setLocalOrders(newOrders);
+    } else {
+      setLocalOrders(newOrders);
+    }
+  }
 
-  return { orders, isLoading, error, setOrders };
+
+  return { orders, isLoading, error, setOrders: handleSetOrders };
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Loader2, ShieldAlert, KeyRound, Menu } from 'lucide-react';
@@ -65,67 +65,6 @@ export default function AdminGatePage() {
       setPassword('');
     }, 500);
   };
-
-  // Efeito para ouvir novos pedidos
-  useEffect(() => {
-    if (!isAdminAuthenticated) return;
-    
-    // Esta função só será definida no lado do cliente, dentro do useEffect.
-    const clientSideFormatPrice = (price: number) => {
-        return new Intl.NumberFormat("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-        }).format(price);
-    }
-
-    const showNotification = (totalAmount: number) => {
-      const audio = new Audio('/notification-sound.mp3');
-      audio.play().catch(e => console.error("Erro ao tocar som de notificação:", e));
-
-      const notification = new Notification("Novo Pedido Recebido!", {
-        body: `Um novo pedido no valor de ${clientSideFormatPrice(totalAmount)} acaba de chegar!`,
-        icon: "/favicon.ico",
-        requireInteraction: true,
-      });
-
-      notification.onclick = () => {
-        window.focus();
-        // Você pode adicionar uma navegação para a página de pedidos aqui se desejar
-        // Por exemplo: router.push('/admin/orders');
-      };
-    };
-
-    const handleNewOrder = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const { orderId, totalAmount } = customEvent.detail;
-      
-      console.log('Novo pedido recebido (evento):', orderId);
-
-      if (!("Notification" in window)) {
-        toast({
-          title: 'Novo Pedido!',
-          description: `Um pedido de ${clientSideFormatPrice(totalAmount)} foi criado.`,
-        });
-        return;
-      }
-
-      if (Notification.permission === "granted") {
-        showNotification(totalAmount);
-      } else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then((permission) => {
-          if (permission === "granted") {
-            showNotification(totalAmount);
-          }
-        });
-      }
-    };
-
-    document.addEventListener('new-order', handleNewOrder);
-
-    return () => {
-      document.removeEventListener('new-order', handleNewOrder);
-    };
-  }, [isAdminAuthenticated, toast]);
   
   if (isUserLoading) {
     return (
