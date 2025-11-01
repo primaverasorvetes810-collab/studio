@@ -60,6 +60,8 @@ export default function AdminHelpPage() {
         }
     
         if (Notification.permission === "granted") {
+          const audio = new Audio('/notification-sound.mp3');
+          audio.play().catch(e => console.log("Não foi possível tocar o som."));
           new Notification("Primavera Delivery", {
             body: "Este é um alarme de teste! Novos pedidos podem ser notificados assim.",
             icon: "/favicon.ico", 

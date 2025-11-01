@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { Loader2, ShieldAlert, KeyRound, Menu } from 'lucide-react';
@@ -20,6 +20,7 @@ import BirthdaysPage from '@/components/admin/pages/birthdays-page';
 import AdminHelpPage from './ajuda/page';
 import CarouselManagerPage from '@/components/admin/pages/carousel-manager-page';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { formatPrice } from '@/lib/utils';
 
 type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays" | "carousel" | "help";
 
@@ -33,6 +34,23 @@ const sectionTitles: Record<AdminSection, string> = {
   carousel: 'Carrossel',
   help: 'Ajuda',
 }
+
+const showNotification = (totalAmount: number) => {
+  const audio = new Audio('/notification-sound.mp3');
+  audio.play().catch(e => console.error("Erro ao tocar som de notificação:", e));
+
+  const notification = new Notification("Novo Pedido Recebido!", {
+    body: `Um novo pedido no valor de ${formatPrice(totalAmount)} acaba de chegar!`,
+    icon: "/favicon.ico",
+    requireInteraction: true,
+  });
+
+  notification.onclick = () => {
+    window.focus();
+    // Você pode adicionar uma navegação para a página de pedidos aqui se desejar
+    // Por exemplo: router.push('/admin/orders');
+  };
+};
 
 export default function AdminGatePage() {
   const { user, isUserLoading } = useUser();
@@ -65,6 +83,42 @@ export default function AdminGatePage() {
       setPassword('');
     }, 500);
   };
+
+  // Efeito para ouvir novos pedidos
+  useEffect(() => {
+    if (!isAdminAuthenticated) return;
+
+    const handleNewOrder = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { orderId, totalAmount } = customEvent.detail;
+      
+      console.log('Novo pedido recebido (evento):', orderId);
+
+      if (!("Notification" in window)) {
+        toast({
+          title: 'Novo Pedido!',
+          description: `Um pedido de ${formatPrice(totalAmount)} foi criado.`,
+        });
+        return;
+      }
+
+      if (Notification.permission === "granted") {
+        showNotification(totalAmount);
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then((permission) => {
+          if (permission === "granted") {
+            showNotification(totalAmount);
+          }
+        });
+      }
+    };
+
+    document.addEventListener('new-order', handleNewOrder);
+
+    return () => {
+      document.removeEventListener('new-order', handleNewOrder);
+    };
+  }, [isAdminAuthenticated, toast]);
   
   if (isUserLoading) {
     return (

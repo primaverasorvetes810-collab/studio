@@ -78,6 +78,7 @@ export async function createOrderFromCart(
   const userId = user.uid;
 
   try {
+    let orderId: string | null = null;
     await runTransaction(firestore, async (transaction) => {
       // 1. Get user data for the order
       const userRef = doc(firestore, 'users', userId);
@@ -89,6 +90,8 @@ export async function createOrderFromCart(
 
       // 2. Create the new order document
       const newOrderRef = doc(collection(firestore, `users/${userId}/orders`));
+      orderId = newOrderRef.id; // Capture the new order ID
+      
       const orderItems = cartItems.map((cartItem) => ({
         id: cartItem.id,
         productId: cartItem.productId,
@@ -139,6 +142,12 @@ export async function createOrderFromCart(
       const cartItemsSnapshot = await getDocs(query(cartItemsCollectionRef));
       cartItemsSnapshot.docs.forEach(doc => transaction.delete(doc.ref));
     });
+
+    // After transaction succeeds, dispatch event
+    if (orderId) {
+      document.dispatchEvent(new CustomEvent('new-order', { detail: { orderId, totalAmount } }));
+    }
+
   } catch (error: any) {
     // If the transaction fails, it will be because of read/write permissions or stock issues.
     errorEmitter.emit(
