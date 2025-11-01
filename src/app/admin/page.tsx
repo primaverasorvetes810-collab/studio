@@ -20,7 +20,6 @@ import BirthdaysPage from '@/components/admin/pages/birthdays-page';
 import AdminHelpPage from './ajuda/page';
 import CarouselManagerPage from '@/components/admin/pages/carousel-manager-page';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { formatPrice } from '@/lib/utils';
 
 type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays" | "carousel" | "help";
 
@@ -70,14 +69,21 @@ export default function AdminGatePage() {
   // Efeito para ouvir novos pedidos
   useEffect(() => {
     if (!isAdminAuthenticated) return;
+    
+    // Esta função só será definida no lado do cliente, dentro do useEffect.
+    const clientSideFormatPrice = (price: number) => {
+        return new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+        }).format(price);
+    }
 
-    // A função é definida e usada apenas dentro do useEffect (client-side)
     const showNotification = (totalAmount: number) => {
       const audio = new Audio('/notification-sound.mp3');
       audio.play().catch(e => console.error("Erro ao tocar som de notificação:", e));
 
       const notification = new Notification("Novo Pedido Recebido!", {
-        body: `Um novo pedido no valor de ${formatPrice(totalAmount)} acaba de chegar!`,
+        body: `Um novo pedido no valor de ${clientSideFormatPrice(totalAmount)} acaba de chegar!`,
         icon: "/favicon.ico",
         requireInteraction: true,
       });
@@ -98,7 +104,7 @@ export default function AdminGatePage() {
       if (!("Notification" in window)) {
         toast({
           title: 'Novo Pedido!',
-          description: `Um pedido de ${formatPrice(totalAmount)} foi criado.`,
+          description: `Um pedido de ${clientSideFormatPrice(totalAmount)} foi criado.`,
         });
         return;
       }
