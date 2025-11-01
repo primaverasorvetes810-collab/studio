@@ -15,9 +15,14 @@ import { Card, CardContent } from './ui/card';
 import { Loader2 } from 'lucide-react';
 import type { CarouselImage } from '@/firebase/carousel';
 import Autoplay from "embla-carousel-autoplay";
+import { useCallback, useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
+import type { EmblaCarouselType } from 'embla-carousel-react';
 
 export default function HomeCarousel() {
   const firestore = useFirestore();
+  const [emblaApi, setEmblaApi] = useState<EmblaCarouselType | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const carouselImagesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -25,6 +30,18 @@ export default function HomeCarousel() {
   }, [firestore]);
 
   const { data: images, isLoading } = useCollection<CarouselImage>(carouselImagesQuery);
+
+  const onSelect = useCallback((emblaApi: EmblaCarouselType) => {
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, []);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect(emblaApi);
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+  }, [emblaApi, onSelect]);
+
 
   if (isLoading) {
     return (
@@ -40,21 +57,28 @@ export default function HomeCarousel() {
 
   return (
     <Carousel 
+        setApi={setEmblaApi}
         className="w-full"
         plugins={[
             Autoplay({
               delay: 5000,
+              stopOnInteraction: true,
             }),
         ]}
         opts={{
             loop: true,
+            align: 'center',
+            slidesToScroll: 1,
         }}
     >
-      <CarouselContent>
-        {images.map((image) => (
-          <CarouselItem key={image.id}>
-             <Card>
-                <CardContent className="relative aspect-[21/9] p-0">
+      <CarouselContent className="-ml-4">
+        {images.map((image, index) => (
+          <CarouselItem key={image.id} className="basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4">
+             <Card className={cn(
+                "overflow-hidden transition-all duration-300 ease-in-out hover:glow",
+                selectedIndex === index ? "scale-100" : "scale-90 opacity-60"
+             )}>
+                <CardContent className="relative aspect-square p-0">
                     <Link href={image.link || '#'} target="_blank" rel="noopener noreferrer">
                          <Image
                             src={image.imageUrl}
