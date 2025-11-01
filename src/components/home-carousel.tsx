@@ -35,6 +35,11 @@ export default function HomeCarousel() {
     setSelectedIndex(emblaApi.selectedScrollSnap());
   }, []);
 
+  const scrollTo = useCallback((index: number) => {
+    emblaApi?.scrollTo(index);
+  }, [emblaApi]);
+
+
   useEffect(() => {
     if (!emblaApi) return;
     onSelect(emblaApi);
@@ -73,13 +78,13 @@ export default function HomeCarousel() {
     >
       <CarouselContent className="-ml-4">
         {images.map((image, index) => (
-          <CarouselItem key={image.id} className="basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4">
+          <CarouselItem key={image.id} className="basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4" onClick={() => scrollTo(index)}>
              <Card className={cn(
-                "overflow-hidden transition-all duration-300 ease-in-out hover:glow",
+                "overflow-hidden transition-all duration-300 ease-in-out hover:glow cursor-pointer",
                 selectedIndex === index ? "scale-100" : "scale-90 opacity-60"
              )}>
                 <CardContent className="relative aspect-square p-0">
-                    <Link href={image.link || '#'} target="_blank" rel="noopener noreferrer">
+                    <Link href={image.link || '#'} target="_blank" rel="noopener noreferrer" onClick={(e) => { if(selectedIndex !== index) e.preventDefault() }}>
                          <Image
                             src={image.imageUrl}
                             alt={image.altText || 'Carousel Image'}
