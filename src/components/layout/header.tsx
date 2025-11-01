@@ -125,11 +125,11 @@ export default function Header() {
                         />
                         <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
                       </Avatar>
-                      <div className="flex flex-col">
-                        <p className="text-sm font-medium leading-none">
+                      <div className="flex flex-col overflow-hidden">
+                        <p className="truncate text-sm font-medium leading-none">
                           {user.displayName || "Usuário"}
                         </p>
-                        <p className="text-xs leading-none text-muted-foreground">
+                        <p className="truncate text-xs leading-none text-muted-foreground">
                           {user.email}
                         </p>
                       </div>
