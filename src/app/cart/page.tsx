@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -126,8 +125,8 @@ export default function CartPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <PageHeader title="Carrinho de Compras" />
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <div className="mt-8 flex flex-col lg:flex-row gap-8">
+        <div className="flex-1">
           <Card>
             <CardContent className="p-6">
               <ul className="divide-y divide-border">
@@ -188,7 +187,7 @@ export default function CartPage() {
             </CardContent>
           </Card>
         </div>
-        <div>
+        <div className="w-full lg:w-96">
           <Card>
             <CardHeader>
               <CardTitle>Resumo do Pedido</CardTitle>
