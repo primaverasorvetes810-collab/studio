@@ -137,8 +137,8 @@ export default function CartPage() {
                   const imageUrl = item.product.image.startsWith('data:image') ? item.product.image : placeholder?.imageUrl;
                   const imageHint = item.product.image.startsWith('data:image') ? item.product.name : placeholder?.imageHint;
                   return (
-                    <li key={item.id} className="flex items-start gap-4 py-4">
-                      <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
+                     <li key={item.id} className="flex flex-col sm:flex-row items-start gap-4 py-4">
+                      <div className="relative h-24 w-24 flex-shrink-0 self-start overflow-hidden rounded-md">
                         {imageUrl && (
                           <Image
                             src={imageUrl}
@@ -149,21 +149,26 @@ export default function CartPage() {
                           />
                         )}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{item.product.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {formatPrice(item.product.price)}
-                        </p>
-                        <div className="mt-2 flex items-center gap-2">
-                          <Input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              handleQuantityChange(item.id, parseInt(e.target.value))
-                            }
-                            min={1}
-                            className="h-8 w-16"
-                          />
+                      <div className="flex-1 w-full">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-semibold pr-2">{item.product.name}</h3>
+                           <p className="text-sm font-medium whitespace-nowrap text-muted-foreground">
+                            {formatPrice(item.product.price)}
+                          </p>
+                        </div>
+
+                        <div className="mt-2 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                             <Input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) =>
+                                handleQuantityChange(item.id, parseInt(e.target.value))
+                              }
+                              min={1}
+                              className="h-8 w-16"
+                            />
+                          </div>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -171,6 +176,7 @@ export default function CartPage() {
                             onClick={() => handleRemoveItem(item.id)}
                           >
                             <Trash2 className="h-4 w-4" />
+                             <span className="sr-only">Remover item</span>
                           </Button>
                         </div>
                       </div>
