@@ -82,7 +82,7 @@ export default function HomeCarousel() {
               <CarouselItem key={image.id}>
                  <Card className="overflow-hidden">
                     <CardContent className="relative aspect-[2.5/1] p-0">
-                        <Link href={image.link || '#'} target="_blank" rel="noopener noreferrer">
+                        <Link href={image.link || '#'} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (!image.link) e.preventDefault();}}>
                              <Image
                                 src={image.imageUrl}
                                 alt={image.altText || 'Carousel Image'}
