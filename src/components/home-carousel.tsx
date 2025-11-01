@@ -54,7 +54,7 @@ export default function HomeCarousel() {
         {images.map((image) => (
           <CarouselItem key={image.id}>
              <Card>
-                <CardContent className="relative aspect-video p-0">
+                <CardContent className="relative aspect-[21/9] p-0">
                     <Link href={image.link || '#'} target="_blank" rel="noopener noreferrer">
                          <Image
                             src={image.imageUrl}
