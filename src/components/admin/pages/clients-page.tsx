@@ -53,6 +53,7 @@ export default function ClientsPage() {
   const fetchClientData = async () => {
       setIsLoading(true);
       setError(null);
+      if (!firestore) return;
       try {
         const usersRef = collection(firestore, 'users');
         const usersSnap = await getDocs(usersRef);

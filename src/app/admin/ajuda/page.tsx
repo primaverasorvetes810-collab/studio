@@ -1,6 +1,5 @@
 'use client';
 
-import PageHeader from "@/components/page-header";
 import {
   Accordion,
   AccordionContent,
@@ -59,10 +58,8 @@ export default function AdminHelpPage() {
         }
     
         if (Notification.permission === "granted") {
-          const audio = new Audio('/notification-sound.mp3');
-          audio.play().catch(e => console.log("Não foi possível tocar o som."));
           new Notification("Primavera Delivery", {
-            body: "Este é um alarme de teste! Novos pedidos podem ser notificados assim.",
+            body: "Este é um alarme de teste! Você está pronto para receber notificações.",
             icon: "/favicon.ico", 
           });
         } else if (Notification.permission !== "denied") {
@@ -88,57 +85,51 @@ export default function AdminHelpPage() {
     };
 
   return (
-    <>
-      <PageHeader
-        title="Guia do Painel de Administração"
-        description="Entenda o que cada seção do seu painel de controle faz."
-      />
-      <div className="mt-8 space-y-6">
-        <Card>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="text-primary" />
+            Funcionalidades do Painel
+          </CardTitle>
+          <CardDescription>Entenda o que cada seção do seu painel de controle faz.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            {adminFaqs.map((faq, index) => (
+              <AccordionItem value={`item-faq-${index}`} key={index} className="rounded-lg border bg-background/50 px-4">
+                <AccordionTrigger className="text-left font-semibold hover:no-underline">
+                  <div className="flex items-center gap-3">
+                    <faq.icon className="h-5 w-5 text-primary" />
+                    <span>{faq.title}</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground pt-2">
+                  {faq.content}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </CardContent>
+      </Card>
+
+      <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="text-primary" />
-              Funcionalidades do Painel
-            </CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                  <Bell className="text-primary" />
+                  Testar Notificações
+              </CardTitle>
+              <CardDescription>
+                  Permita notificações em seu navegador para receber alertas, como quando um novo pedido chegar.
+                  Clique no botão para pedir permissão e enviar uma notificação de teste para o seu dispositivo.
+              </CardDescription>
           </CardHeader>
           <CardContent>
-            <Accordion type="single" collapsible className="w-full space-y-4">
-              {adminFaqs.map((faq, index) => (
-                <AccordionItem value={`item-faq-${index}`} key={index} className="rounded-lg border bg-background/50 px-4">
-                  <AccordionTrigger className="text-left font-semibold hover:no-underline">
-                    <div className="flex items-center gap-3">
-                      <faq.icon className="h-5 w-5 text-primary" />
-                      <span>{faq.title}</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground pt-2">
-                    {faq.content}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+              <Button onClick={handleTestNotification}>
+                  Testar Notificação
+              </Button>
           </CardContent>
-        </Card>
-
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Bell className="text-primary" />
-                    Notificações Push (Alarmes)
-                </CardTitle>
-                <CardDescription>
-                    Permita notificações em seu navegador para receber alertas, como quando um novo pedido chegar.
-                    Clique no botão para pedir permissão e enviar uma notificação de teste para o seu dispositivo.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button onClick={handleTestNotification}>
-                    Testar Alarme
-                </Button>
-            </CardContent>
-        </Card>
-
-      </div>
-    </>
+      </Card>
+    </div>
   );
 }

@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/firebase';
-import { useRouter } from 'next/navigation';
-import { Loader2, ShieldAlert, KeyRound, Menu } from 'lucide-react';
+import { Loader2, ShieldAlert, KeyRound, Home, ShoppingCart, Truck, Package, Users, Gift, Settings, LifeBuoy, Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -11,7 +10,6 @@ import DashboardPage from '@/components/admin/pages/dashboard-page';
 import OrdersPage from '@/components/admin/pages/orders-page';
 import ProductsPage from '@/components/admin/pages/products-page';
 import ClientsPage from '@/components/admin/pages/clients-page';
-import PageHeader from '@/components/page-header';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
@@ -19,20 +17,28 @@ import DeliveriesPage from '@/components/admin/pages/deliveries-page';
 import BirthdaysPage from '@/components/admin/pages/birthdays-page';
 import AdminHelpPage from './ajuda/page';
 import CarouselManagerPage from '@/components/admin/pages/carousel-manager-page';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 
 type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays" | "carousel" | "help";
 
-const sectionTitles: Record<AdminSection, string> = {
-  dashboard: 'Dashboard',
-  orders: 'Pedidos',
-  deliveries: 'Entregas',
-  products: 'Produtos',
-  clients: 'Clientes',
-  birthdays: 'Aniversariantes',
-  carousel: 'Carrossel',
-  help: 'Ajuda',
-}
+const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: Home },
+    { id: 'orders', label: 'Pedidos', icon: ShoppingCart },
+    { id: 'deliveries', label: 'Entregas', icon: Truck },
+    { id: 'products', label: 'Produtos', icon: Package },
+    { id: 'clients', label: 'Clientes', icon: Users },
+    { id: 'birthdays', label: 'Aniversariantes', icon: Gift },
+    { id: 'carousel', label: 'Carrossel', icon: ImageIcon },
+    { id: 'help', label: 'Ajuda', icon: LifeBuoy },
+] as const;
+
 
 export default function AdminGatePage() {
   const { user, isUserLoading } = useUser();
@@ -40,16 +46,16 @@ export default function AdminGatePage() {
   const [password, setPassword] = useState('');
   const [isChecking, setIsChecking] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
   const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
 
   const correctPassword = "810Primavera*";
 
   const handlePasswordCheck = () => {
     setIsChecking(true);
-    setTimeout(() => { // Simula uma verificação
+    setTimeout(() => { 
       if (password === correctPassword) {
         setIsAdminAuthenticated(true);
+        sessionStorage.setItem('adminAuthenticated', 'true');
         toast({
           title: 'Acesso Concedido',
           description: 'Bem-vindo ao Painel de Administração.',
@@ -65,10 +71,16 @@ export default function AdminGatePage() {
       setPassword('');
     }, 500);
   };
+
+  useEffect(() => {
+    if (sessionStorage.getItem('adminAuthenticated') === 'true') {
+        setIsAdminAuthenticated(true);
+    }
+  }, []);
   
   if (isUserLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-muted/40">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
@@ -129,43 +141,57 @@ export default function AdminGatePage() {
 
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className='flex flex-col gap-4'>
-        <div className="flex justify-end">
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                <Button variant="outline" className='gap-2'>
-                    <Menu className="h-4 w-4" />
-                    <span>{sectionTitles[activeSection]}</span>
-                </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                <DropdownMenuRadioGroup value={activeSection} onValueChange={(value) => setActiveSection(value as AdminSection)}>
-                    {Object.entries(sectionTitles).map(([key, title]) => (
-                        <DropdownMenuRadioItem key={key} value={key}>{title}</DropdownMenuRadioItem>
-                    ))}
-                </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-            </DropdownMenu>
+    <TooltipProvider>
+    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+      <nav className="hidden border-r bg-muted/40 md:block">
+        <div className="flex h-full max-h-screen flex-col gap-2">
+          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+            <Link href="/" className="flex items-center gap-2 font-semibold">
+              <Shield className="h-6 w-6 text-primary" />
+              <span className="">Painel Admin</span>
+            </Link>
+          </div>
+          <div className="flex-1">
+            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+               {navItems.map(item => (
+                 <button
+                    key={item.id}
+                    onClick={() => setActiveSection(item.id as AdminSection)}
+                    className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                        activeSection === item.id && "bg-muted text-primary"
+                    )}
+                 >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                 </button>
+               ))}
+            </nav>
+          </div>
         </div>
-        <PageHeader
-          title="Painel de Administração"
-          description="Gerencie todos os aspectos da sua loja em um único lugar."
-        />
-      </div>
-
-      <div className="mt-8 space-y-8">
-        <div>
-            {activeSection === 'dashboard' && <DashboardPage />}
-            {activeSection === 'orders' && <OrdersPage />}
-            {activeSection === 'deliveries' && <DeliveriesPage />}
-            {activeSection === 'products' && <ProductsPage />}
-            {activeSection === 'clients' && <ClientsPage />}
-            {activeSection === 'birthdays' && <BirthdaysPage />}
-            {activeSection === 'carousel' && <CarouselManagerPage />}
-            {activeSection === 'help' && <AdminHelpPage />}
-        </div>
+      </nav>
+      <div className="flex flex-col">
+         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+            {/* Mobile Nav Trigger */}
+            <nav className="md:hidden">
+              {/* Replace with a Sheet component for mobile navigation if needed */}
+            </nav>
+            <div className="w-full flex-1">
+                <h1 className="text-lg font-semibold md:text-2xl">{navItems.find(item => item.id === activeSection)?.label}</h1>
+            </div>
+         </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
+          {activeSection === 'dashboard' && <DashboardPage />}
+          {activeSection === 'orders' && <OrdersPage />}
+          {activeSection === 'deliveries' && <DeliveriesPage />}
+          {activeSection === 'products' && <ProductsPage />}
+          {activeSection === 'clients' && <ClientsPage />}
+          {activeSection === 'birthdays' && <BirthdaysPage />}
+          {activeSection === 'carousel' && <CarouselManagerPage />}
+          {activeSection === 'help' && <AdminHelpPage />}
+        </main>
       </div>
     </div>
+    </TooltipProvider>
   );
 }
