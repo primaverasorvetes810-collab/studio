@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@/firebase';
-import { Loader2, ShieldAlert, KeyRound, Home, ShoppingCart, Truck, Package, Users, Gift, Settings, LifeBuoy, Image as ImageIcon, Shield } from 'lucide-react';
+import { Loader2, ShieldAlert, KeyRound, Home, ShoppingCart, Truck, Package, Users, Gift, Settings, LifeBuoy, Image as ImageIcon, Shield, Menu } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -25,6 +25,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 
 type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays" | "carousel" | "help";
@@ -173,10 +174,45 @@ export default function AdminGatePage() {
       </nav>
       <div className="flex flex-col">
          <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-            {/* Mobile Nav Trigger */}
-            <nav className="md:hidden">
-              {/* Replace with a Sheet component for mobile navigation if needed */}
-            </nav>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 md:hidden"
+                >
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle navigation menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="flex flex-col">
+                <nav className="grid gap-2 text-lg font-medium">
+                  <SheetClose asChild>
+                    <Link
+                      href="#"
+                      className="flex items-center gap-2 text-lg font-semibold mb-4"
+                    >
+                      <Shield className="h-6 w-6 text-primary" />
+                      <span >Painel Admin</span>
+                    </Link>
+                  </SheetClose>
+                  {navItems.map((item) => (
+                    <SheetClose asChild key={item.id}>
+                      <button
+                        onClick={() => setActiveSection(item.id as AdminSection)}
+                        className={cn(
+                            "flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
+                             activeSection === item.id && "bg-muted text-foreground"
+                        )}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        {item.label}
+                      </button>
+                    </SheetClose>
+                  ))}
+                </nav>
+              </SheetContent>
+            </Sheet>
             <div className="w-full flex-1">
                 <h1 className="text-lg font-semibold md:text-2xl">{navItems.find(item => item.id === activeSection)?.label}</h1>
             </div>
