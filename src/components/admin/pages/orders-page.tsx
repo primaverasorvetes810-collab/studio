@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -107,7 +108,7 @@ export default function OrdersPage() {
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
@@ -117,14 +118,17 @@ export default function OrdersPage() {
       <CardHeader>
         <CardTitle>Todos os Pedidos</CardTitle>
         <CardDescription>
-          Visualize e gerencie todos os pedidos de todos os clientes.
+            Gerencie os pedidos.
+            <span className="block mt-2 text-xs">
+                <b>Pendente:</b> Aguardando pagamento. | <b>Pago:</b> Pronto para preparo. | <b>Enviado:</b> Em trânsito. | <b>Entregue:</b> Finalizado. | <b>Cancelado:</b> Pedido interrompido. | <b>Atrasado:</b> Requer atenção.
+            </span>
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Cliente</TableHead>
+              <TableHead className='w-[40%]'>Cliente</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Total</TableHead>
               <TableHead>
@@ -137,8 +141,8 @@ export default function OrdersPage() {
               allOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell>
-                    <div className="font-medium">{order.userName || 'N/A'}</div>
-                    <div className="text-xs text-muted-foreground truncate max-w-[150px] hidden sm:block">
+                    <div className="font-medium truncate">{order.userName || 'N/A'}</div>
+                    <div className="text-xs text-muted-foreground truncate hidden sm:block">
                       {order.userEmail}
                     </div>
                   </TableCell>
