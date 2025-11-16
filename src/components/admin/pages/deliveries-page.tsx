@@ -53,9 +53,9 @@ export default function DeliveriesPage() {
             fetchedOrders.push({ id: orderDoc.id, ...orderDoc.data() } as Order);
         });
 
-        // Client-side filtering for statuses 'Pago' and 'Enviado'
+        // Client-side filtering for status 'Enviado' (since 'Pago' is now 'Entregue')
         const deliveryOrders = fetchedOrders.filter(order => 
-            order.status === 'Pago' || order.status === 'Enviado'
+            order.status === 'Enviado'
         );
 
         const sortedOrders = deliveryOrders.sort(
@@ -93,7 +93,7 @@ export default function DeliveriesPage() {
       <CardHeader>
         <CardTitle>Controle de Entregas</CardTitle>
         <CardDescription>
-          Visualize e gerencie todos os pedidos que estão aguardando para serem enviados ou já estão a caminho.
+          Visualize todos os pedidos que já estão a caminho do cliente.
         </CardDescription>
       </CardHeader>
       <CardContent>

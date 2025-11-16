@@ -164,7 +164,9 @@ export async function updateOrderStatus(userId: string, orderId: string, status:
   const { firestore } = getClientSdks();
   const orderRef = doc(firestore, `users/${userId}/orders`, orderId);
   try {
-    await updateDoc(orderRef, { status });
+    // Se o novo status for 'Entregue', substitui a lógica de 'Pago'
+    const finalStatus = status === 'Pago' ? 'Entregue' : status;
+    await updateDoc(orderRef, { status: finalStatus });
   } catch (e: any) {
      errorEmitter.emit(
       'permission-error',

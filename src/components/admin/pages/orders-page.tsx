@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -31,15 +30,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const statusColors: Record<OrderStatus, string> = {
   Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20',
-  Pago: 'bg-blue-500/20 text-blue-500 border-blue-500/20',
+  Pago: 'bg-blue-500/20 text-blue-500 border-blue-500/20', // Mantido para mapeamento de cores, mas não será uma opção
   Enviado: 'bg-teal-500/20 text-teal-500 border-teal-500/20',
   Entregue: 'bg-green-500/20 text-green-500 border-green-500/20',
   Cancelado: 'bg-gray-500/20 text-muted-foreground border-gray-500/20',
-  Atrasado: 'bg-red-500/20 text-red-500 border-red-500/20',
+  Atrasado: 'bg-red-500/20 text-red-500 border-red-500/20', // Usado para destaque visual
 };
+
+const selectableStatuses: OrderStatus[] = ['Pendente', 'Enviado', 'Entregue', 'Cancelado'];
 
 export default function OrdersPage() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
@@ -60,7 +62,9 @@ export default function OrdersPage() {
             fetchedOrders.push({ id: orderDoc.id, ...orderDoc.data() } as Order);
         });
 
-        const sortedOrders = fetchedOrders.sort(
+        // Filtra os pedidos cancelados e ordena o restante
+        const activeOrders = fetchedOrders.filter(order => order.status !== 'Cancelado');
+        const sortedOrders = activeOrders.sort(
           (a, b) => b.orderDate.toMillis() - a.orderDate.toMillis()
         );
         setAllOrders(sortedOrders);
@@ -86,11 +90,20 @@ export default function OrdersPage() {
     const orderRef = doc(firestore, `users/${userId}/orders`, orderId);
     try {
       await updateDoc(orderRef, { status: newStatus });
-      setAllOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order.id === orderId ? { ...order, status: newStatus } : order
-        )
-      );
+      
+      // Atualização otimista da UI
+      if (newStatus === 'Cancelado') {
+        // Remove da lista se for cancelado
+        setAllOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderId));
+      } else {
+        // Atualiza o status na lista
+        setAllOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.id === orderId ? { ...order, status: newStatus } : order
+          )
+        );
+      }
+      
       toast({
         title: 'Status atualizado',
         description: `O pedido foi marcado como ${newStatus}.`,
@@ -105,6 +118,16 @@ export default function OrdersPage() {
     }
   };
 
+  const isOrderDelayed = (order: Order): boolean => {
+    if ((order.status === 'Pendente' || order.status === 'Pago') && order.orderDate) {
+      const now = new Date();
+      const orderDate = order.orderDate.toDate();
+      const diffHours = (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60);
+      return diffHours > 24;
+    }
+    return false;
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center p-8">
@@ -116,12 +139,9 @@ export default function OrdersPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Todos os Pedidos</CardTitle>
+        <CardTitle>Todos os Pedidos Ativos</CardTitle>
         <CardDescription>
-            Gerencie os pedidos.
-            <span className="block mt-2 text-xs">
-                <b>Pendente:</b> Aguardando pagamento. | <b>Pago:</b> Pronto para preparo. | <b>Enviado:</b> Em trânsito. | <b>Entregue:</b> Finalizado. | <b>Cancelado:</b> Pedido interrompido. | <b>Atrasado:</b> Requer atenção.
-            </span>
+            Gerencie os pedidos. Pedidos pendentes ou pagos há mais de 24h são destacados em vermelho.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -129,7 +149,7 @@ export default function OrdersPage() {
           <TableHeader>
             <TableRow>
               <TableHead className='w-[40%]'>Cliente</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead className="text-right">Total</TableHead>
               <TableHead>
                 <span className="sr-only">Ações</span>
@@ -138,16 +158,21 @@ export default function OrdersPage() {
           </TableHeader>
           <TableBody>
             {allOrders.length > 0 ? (
-              allOrders.map((order) => (
-                <TableRow key={order.id}>
+              allOrders.map((order) => {
+                const isDelayed = isOrderDelayed(order);
+                return (
+                <TableRow 
+                    key={order.id}
+                    className={cn(isDelayed && 'bg-red-500/10 hover:bg-red-500/20')}
+                >
                   <TableCell>
                     <div className="font-medium truncate">{order.userName || 'N/A'}</div>
                     <div className="text-xs text-muted-foreground truncate hidden sm:block">
                       {order.userEmail}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge className={statusColors[order.status]} variant="outline">
+                  <TableCell className="hidden md:table-cell">
+                    <Badge className={cn(statusColors[order.status], isDelayed && 'border-red-500/50 text-red-500')} variant="outline">
                       {order.status}
                     </Badge>
                   </TableCell>
@@ -163,7 +188,7 @@ export default function OrdersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {Object.keys(statusColors).map((status) => (
+                        {selectableStatuses.map((status) => (
                           <DropdownMenuItem
                             key={status}
                             disabled={order.status === status}
@@ -178,7 +203,8 @@ export default function OrdersPage() {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))
+                )
+            })
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
