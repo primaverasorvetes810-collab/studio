@@ -42,6 +42,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type ClientWithStats = UserType & {
   totalOrders: number;
@@ -183,23 +184,25 @@ export default function ClientsPage() {
                 </DialogDescription>
             </DialogHeader>
             {selectedClient && (
-                 <div className="space-y-4 pt-4">
-                    <div className="space-y-2">
-                        <h3 className="font-semibold flex items-center gap-2 text-primary"><User size={16} /> Informações Pessoais</h3>
-                        <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Nome:</span> {selectedClient.fullName}</p>
-                        <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Email:</span> {selectedClient.email}</p>
-                        <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Telefone:</span> {selectedClient.phone || 'Não informado'}</p>
-                        <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Endereço:</span> {selectedClient.address ? `${selectedClient.address}, ${selectedClient.neighborhood} - ${selectedClient.city}` : 'Não informado'}</p>
-                    </div>
-                     <Separator />
-                    <div className="space-y-2">
-                         <h3 className="font-semibold flex items-center gap-2 text-primary"><Calendar size={16} /> Histórico e Atividade</h3>
-                         <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Cliente desde:</span> {selectedClient.registerTime.toDate().toLocaleDateString()}</p>
-                         <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Último pedido:</span> {selectedClient.lastOrderDate || 'Nenhum pedido'}</p>
-                         <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Total de pedidos:</span> {selectedClient.totalOrders}</p>
-                         <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Total gasto:</span> {formatPrice(selectedClient.totalSpent)}</p>
-                    </div>
-                 </div>
+                 <ScrollArea className="max-h-[70vh]">
+                     <div className="space-y-4 pr-6">
+                        <div className="space-y-2">
+                            <h3 className="font-semibold flex items-center gap-2 text-primary"><User size={16} /> Informações Pessoais</h3>
+                            <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Nome:</span> {selectedClient.fullName}</p>
+                            <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Email:</span> {selectedClient.email}</p>
+                            <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Telefone:</span> {selectedClient.phone || 'Não informado'}</p>
+                            <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Endereço:</span> {selectedClient.address ? `${selectedClient.address}, ${selectedClient.neighborhood} - ${selectedClient.city}` : 'Não informado'}</p>
+                        </div>
+                        <Separator />
+                        <div className="space-y-2">
+                            <h3 className="font-semibold flex items-center gap-2 text-primary"><Calendar size={16} /> Histórico e Atividade</h3>
+                            <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Cliente desde:</span> {selectedClient.registerTime.toDate().toLocaleDateString()}</p>
+                            <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Último pedido:</span> {selectedClient.lastOrderDate || 'Nenhum pedido'}</p>
+                            <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Total de pedidos:</span> {selectedClient.totalOrders}</p>
+                            <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Total gasto:</span> {formatPrice(selectedClient.totalSpent)}</p>
+                        </div>
+                     </div>
+                 </ScrollArea>
             )}
         </DialogContent>
       </Dialog>

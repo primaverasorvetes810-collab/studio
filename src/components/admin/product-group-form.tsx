@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { createProductGroup, updateProductGroup } from '@/firebase/product-groups';
 import type { ProductGroup } from '@/lib/data/products';
 import { Textarea } from '../ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const GroupPayloadSchema = z.object({
   name: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),
@@ -78,42 +79,44 @@ export function ProductGroupForm({ group, onOpenChange, onFormSubmit }: GroupFor
             Preencha os detalhes do grupo. Clique em salvar quando terminar.
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome do Grupo</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Açaí, Sorvetes, Bebidas" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição (Opcional)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Descreva a categoria..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit">Salvar</Button>
-            </DialogFooter>
-          </form>
-        </Form>
+        <ScrollArea className="max-h-[70vh] pr-6">
+            <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+                <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Nome do Grupo</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Ex: Açaí, Sorvetes, Bebidas" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Descrição (Opcional)</FormLabel>
+                    <FormControl>
+                        <Textarea placeholder="Descreva a categoria..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    Cancelar
+                </Button>
+                <Button type="submit">Salvar</Button>
+                </DialogFooter>
+            </form>
+            </Form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

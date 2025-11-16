@@ -27,6 +27,7 @@ import { createCarouselImage, updateCarouselImage } from '@/firebase/carousel';
 import { useState } from 'react';
 import Image from 'next/image';
 import { Upload } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ImagePayloadSchema = z.object({
   imageUrl: z.string().min(1, 'A imagem é obrigatória.'),
@@ -94,78 +95,80 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
             Faça o upload de uma imagem e preencha os detalhes. Clique em salvar quando terminar.
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
-            <FormField
-              control={form.control}
-              name="imageUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Imagem</FormLabel>
-                  <FormControl>
-                    <div>
-                      <Input
-                        id="image-upload"
-                        type="file"
-                        accept="image/png, image/jpeg, image/gif, image/webp"
-                        onChange={handleFileChange}
-                        className="hidden"
-                      />
-                      <label
-                        htmlFor="image-upload"
-                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted"
-                      >
-                        {preview ? (
-                          <Image src={preview} alt="Pré-visualização" width={100} height={100} className="object-contain h-full p-2" />
-                        ) : (
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                            <p className="mb-2 text-sm text-muted-foreground">
-                              <span className="font-semibold">Clique para fazer upload</span>
-                            </p>
-                          </div>
-                        )}
-                      </label>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="altText"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Texto Alternativo (Descrição)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Promoção de sorvetes" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="link"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Link (Opcional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://exemplo.com/pagina-da-promocao" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit">Salvar</Button>
-            </DialogFooter>
-          </form>
-        </Form>
+        <ScrollArea className="max-h-[70vh] pr-6">
+            <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+                <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Imagem</FormLabel>
+                    <FormControl>
+                        <div>
+                        <Input
+                            id="image-upload"
+                            type="file"
+                            accept="image/png, image/jpeg, image/gif, image/webp"
+                            onChange={handleFileChange}
+                            className="hidden"
+                        />
+                        <label
+                            htmlFor="image-upload"
+                            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted"
+                        >
+                            {preview ? (
+                            <Image src={preview} alt="Pré-visualização" width={100} height={100} className="object-contain h-full p-2" />
+                            ) : (
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                                <p className="mb-2 text-sm text-muted-foreground">
+                                <span className="font-semibold">Clique para fazer upload</span>
+                                </p>
+                            </div>
+                            )}
+                        </label>
+                        </div>
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="altText"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Texto Alternativo (Descrição)</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Ex: Promoção de sorvetes" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="link"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Link (Opcional)</FormLabel>
+                    <FormControl>
+                        <Input placeholder="https://exemplo.com/pagina-da-promocao" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    Cancelar
+                </Button>
+                <Button type="submit">Salvar</Button>
+                </DialogFooter>
+            </form>
+            </Form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
