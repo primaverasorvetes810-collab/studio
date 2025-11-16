@@ -119,11 +119,11 @@ export default function OrdersPage() {
   };
 
   const isOrderDelayed = (order: Order): boolean => {
-    if ((order.status === 'Pendente' || order.status === 'Pago') && order.orderDate) {
+    if (order.status === 'Pendente' && order.orderDate) {
       const now = new Date();
       const orderDate = order.orderDate.toDate();
-      const diffHours = (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60);
-      return diffHours > 24;
+      const diffMinutes = (now.getTime() - orderDate.getTime()) / (1000 * 60);
+      return diffMinutes > 30;
     }
     return false;
   };
@@ -141,15 +141,15 @@ export default function OrdersPage() {
       <CardHeader>
         <CardTitle>Todos os Pedidos Ativos</CardTitle>
         <CardDescription>
-            Gerencie os pedidos. Pedidos pendentes ou pagos há mais de 24h são destacados em vermelho.
+            Gerencie todos os pedidos que não foram cancelados. Pedidos pendentes por mais de 30 minutos são destacados em vermelho.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className='w-[40%]'>Cliente</TableHead>
-              <TableHead className="hidden md:table-cell">Status</TableHead>
+              <TableHead className='w-2/5 sm:w-auto'>Cliente</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Total</TableHead>
               <TableHead>
                 <span className="sr-only">Ações</span>
@@ -171,7 +171,7 @@ export default function OrdersPage() {
                       {order.userEmail}
                     </div>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
+                  <TableCell>
                     <Badge className={cn(statusColors[order.status], isDelayed && 'border-red-500/50 text-red-500')} variant="outline">
                       {order.status}
                     </Badge>
