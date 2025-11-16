@@ -71,11 +71,11 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
         <Table>
             <TableHeader>
                 <TableRow>
-                <TableHead className="hidden w-[80px] sm:table-cell">Imagem</TableHead>
-                <TableHead>Nome</TableHead>
-                <TableHead className='hidden md:table-cell'>Preço</TableHead>
-                <TableHead className='hidden md:table-cell'>Estoque</TableHead>
-                <TableHead><span className="sr-only">Ações</span></TableHead>
+                <TableHead className="hidden w-[64px] sm:table-cell px-2 py-2">Imagem</TableHead>
+                <TableHead className="px-2 py-2">Nome</TableHead>
+                <TableHead className='hidden md:table-cell px-2 py-2'>Preço</TableHead>
+                <TableHead className='hidden md:table-cell px-2 py-2'>Estoque</TableHead>
+                <TableHead className="px-2 py-2"><span className="sr-only">Ações</span></TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -84,22 +84,22 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
                 const imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
                 return (
                     <TableRow key={product.id}>
-                    <TableCell className="hidden sm:table-cell">
+                    <TableCell className="hidden sm:table-cell px-2 py-2">
                         {imageUrl && (
                         <Image
                             alt={product.name}
                             className="aspect-square rounded-md object-cover"
-                            height="48"
+                            height="40"
                             src={imageUrl}
-                            width="48"
+                            width="40"
                         />
                         )}
                     </TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell className="hidden md:table-cell">{formatPrice(product.price)}</TableCell>
-                    <TableCell className="hidden md:table-cell">{product.stock} un.</TableCell>
-                    <TableCell>
-                        <div className="flex justify-end gap-2">
+                    <TableCell className="font-medium px-2 py-2">{product.name}</TableCell>
+                    <TableCell className="hidden md:table-cell px-2 py-2">{formatPrice(product.price)}</TableCell>
+                    <TableCell className="hidden md:table-cell px-2 py-2">{product.stock} un.</TableCell>
+                    <TableCell className="px-2 py-2">
+                        <div className="flex justify-end">
                            <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -207,48 +207,48 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="p-4">
         <div className="flex items-center justify-between gap-4">
             <div>
                 <CardTitle>Produtos e Grupos</CardTitle>
                 <CardDescription>
-                Gerencie seus produtos dentro de seus respectivos grupos.
+                Gerencie seus produtos e grupos.
                 </CardDescription>
             </div>
-            <div className='flex gap-2'>
+            <div className='flex'>
                 <Button size="sm" className="h-8 gap-1" onClick={handleAddNewGroup}>
                     <PlusCircle className="h-3.5 w-3.5" />
                     <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Novo Grupo
+                    Grupo
                     </span>
                 </Button>
             </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-2 pt-0">
         {isLoading ? (
           <div className="flex items-center justify-center p-4">
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
         ) : (
-            <Accordion type="single" collapsible className="w-full space-y-2">
+            <Accordion type="single" collapsible className="w-full space-y-1">
             {productGroups?.map((group) => (
                 <AccordionItem value={group.id} key={group.id} className="border rounded-lg bg-muted/20">
-                  <div className='flex items-center w-full px-4'>
-                    <AccordionTrigger className="flex-1 py-3 text-md font-semibold hover:no-underline [&[data-state=open]>svg]:-rotate-90">
+                  <div className='flex items-center w-full pr-2 pl-4'>
+                    <AccordionTrigger className="flex-1 py-2 text-md font-semibold hover:no-underline [&[data-state=open]>svg]:-rotate-90">
                         <div className="flex items-center gap-3">
                             <span>{group.name}</span>
                             <ProductCountBadge groupId={group.id} />
                         </div>
                     </AccordionTrigger>
                     <div className="flex items-center gap-1 pl-2">
-                        <Button size="sm" variant="outline" className="h-8 gap-1" onClick={(e) => { e.stopPropagation(); onAddProductClick()}}>
+                        <Button size="sm" variant="outline" className="h-7 gap-1" onClick={(e) => { e.stopPropagation(); onAddProductClick()}}>
                             <PlusCircle className="h-3.5 w-3.5" />
                             <span className="sr-only sm:not-sr-only">Produto</span>
                         </Button>
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
                                     <MoreVertical className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -266,7 +266,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
                     </div>
                   </div>
                 <AccordionContent className="p-0">
-                    <div className='px-6 pb-4 border-b'>
+                    <div className='px-4 pb-2 border-b'>
                         <p className='text-sm text-muted-foreground'>{group.description}</p>
                     </div>
                     <ProductListForGroup groupId={group.id} onEdit={onEditProductClick} onAdd={onAddProductClick} />
