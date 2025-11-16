@@ -217,20 +217,24 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
     <Card>
       <CardHeader className="p-4 space-y-4">
         <div className="flex items-center justify-between gap-4">
-            <div>
-                <CardTitle>Produtos e Grupos</CardTitle>
-                <CardDescription>
-                Gerencie seus produtos e grupos.
-                </CardDescription>
-            </div>
-            <div className='flex'>
-                <Button size="sm" className="h-8 gap-1" onClick={handleAddNewGroup}>
-                    <PlusCircle className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                    Grupo
-                    </span>
-                </Button>
-            </div>
+          <div>
+            <CardTitle>Produtos e Grupos</CardTitle>
+            <CardDescription>Gerencie seus produtos e grupos.</CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant='outline' className="h-8 gap-1" onClick={onAddProductClick}>
+              <PlusCircle className="h-3.5 w-3.5" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Produto
+              </span>
+            </Button>
+            <Button size="sm" className="h-8 gap-1" onClick={handleAddNewGroup}>
+              <PlusCircle className="h-3.5 w-3.5" />
+              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                Grupo
+              </span>
+            </Button>
+          </div>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -248,47 +252,69 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
         ) : (
-            <Accordion type="single" collapsible className="w-full space-y-1">
+          <Accordion type="single" collapsible className="w-full space-y-1">
             {filteredGroups.map((group) => (
-                <AccordionItem value={group.id} key={group.id} className="border rounded-lg bg-muted/20">
-                  <div className='flex items-center w-full pr-2 pl-4'>
-                    <AccordionTrigger className="flex-1 py-2 text-md font-semibold hover:no-underline [&[data-state=open]>svg]:-rotate-90">
-                       <span className='truncate'>{group.name}</span>
-                    </AccordionTrigger>
-                    <div className="flex items-center gap-2 pl-2 flex-shrink-0">
-                        <ProductCountBadge groupId={group.id} />
-                        <Button size="sm" variant="outline" className="h-7 gap-1" onClick={(e) => { e.stopPropagation(); onAddProductClick()}}>
-                            <PlusCircle className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only">Produto</span>
+              <AccordionItem
+                value={group.id}
+                key={group.id}
+                className="border rounded-lg bg-muted/20"
+              >
+                <div className="flex items-center w-full pr-2 pl-4">
+                  <AccordionTrigger className="flex-1 py-2 text-md font-semibold hover:no-underline [&[data-state=open]>svg]:-rotate-90">
+                    <span className="truncate">{group.name}</span>
+                  </AccordionTrigger>
+                  <div className="flex items-center gap-2 pl-2 flex-shrink-0">
+                    <ProductCountBadge groupId={group.id} />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="h-4 w-4" />
                         </Button>
-                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
-                                    <MoreVertical className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={(e) => {e.stopPropagation(); handleEditGroup(group)}}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Editar Grupo
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={(e) => {e.stopPropagation(); handleDeleteGroup(group)}} className="text-destructive">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Deletar Grupo
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditGroup(group);
+                          }}
+                        >
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Editar Grupo
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteGroup(group);
+                          }}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Deletar Grupo
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
+                </div>
                 <AccordionContent className="p-0">
-                    <div className='px-4 pb-2 border-b'>
-                        <p className='text-sm text-muted-foreground'>{group.description}</p>
-                    </div>
-                    <ProductListForGroup groupId={group.id} onEdit={onEditProductClick} onAdd={onAddProductClick} />
+                  <div className="px-4 pb-2 border-b">
+                    <p className="text-sm text-muted-foreground">
+                      {group.description}
+                    </p>
+                  </div>
+                  <ProductListForGroup
+                    groupId={group.id}
+                    onEdit={onEditProductClick}
+                    onAdd={onAddProductClick}
+                  />
                 </AccordionContent>
-                </AccordionItem>
+              </AccordionItem>
             ))}
-            </Accordion>
+          </Accordion>
         )}
       </CardContent>
 
@@ -300,18 +326,25 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
         />
       )}
 
-      <AlertDialog open={!!deletingGroup} onOpenChange={() => setDeletingGroup(null)}>
+      <AlertDialog
+        open={!!deletingGroup}
+        onOpenChange={() => setDeletingGroup(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              Atenção: deletar o grupo "{deletingGroup?.name}" também irá deletar
-              permanentemente **todos os produtos** associados a ele. Essa ação não pode ser desfeita.
+              Atenção: deletar o grupo "{deletingGroup?.name}" também irá
+              deletar permanentemente **todos os produtos** associados a ele.
+              Essa ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteGroup} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={confirmDeleteGroup}
+              className="bg-destructive hover:bg-destructive/90"
+            >
               Sim, deletar grupo e produtos
             </AlertDialogAction>
           </AlertDialogFooter>
