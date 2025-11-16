@@ -44,6 +44,7 @@ const statusColors: Record<OrderStatus, string> = {
   Enviado: 'bg-teal-500/20 text-teal-500 border-teal-500/20 hover:bg-teal-500/30',
   Entregue: 'bg-green-500/20 text-green-500 border-green-500/20 hover:bg-green-500/30',
   Cancelado: 'bg-gray-500/20 text-muted-foreground border-gray-500/20',
+  Atrasado: 'bg-red-500/20 text-red-500 border-red-500/20',
 };
 
 const selectableStatuses: OrderStatus[] = ['Pendente', 'Enviado', 'Entregue'];
@@ -155,9 +156,9 @@ export default function OrdersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[40%]">Cliente</TableHead>
+                <TableHead className="w-[35%]">Cliente</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Produtos</TableHead>
+                <TableHead>Produtos</TableHead>
                 <TableHead>
                   <span className="sr-only">Ações</span>
                 </TableHead>
@@ -177,7 +178,7 @@ export default function OrdersPage() {
                         isDelayed && 'bg-red-500/10 hover:bg-red-500/20'
                       )}
                     >
-                      <TableCell className="w-[40%] font-medium truncate pr-2 py-2">
+                      <TableCell className="w-[35%] font-medium truncate pr-2 py-2">
                          <div className="truncate">{order.userName || 'N/A'}</div>
                       </TableCell>
                        <TableCell className="py-2">
@@ -202,7 +203,7 @@ export default function OrdersPage() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
-                      <TableCell className="text-right py-2 text-muted-foreground truncate">
+                      <TableCell className="py-2 text-muted-foreground truncate max-w-[120px] sm:max-w-xs">
                         {productNames}
                       </TableCell>
                       <TableCell className="py-2">
