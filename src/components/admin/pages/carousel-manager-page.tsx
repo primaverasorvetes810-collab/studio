@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, PlusCircle, Pencil, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, Pencil, Trash2, MoreVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import Image from 'next/image';
 import {
   AlertDialog,
@@ -23,6 +23,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import type { CarouselImage } from '@/firebase/carousel';
 import { deleteCarouselImage, updateCarouselImageOrder } from '@/firebase/carousel';
@@ -130,34 +136,35 @@ export default function CarouselManagerPage() {
                 <div className="flex-grow min-w-0">
                   <p className="text-sm text-muted-foreground truncate">Link: {image.link || 'Nenhum'}</p>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                   <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleMove(index, 'up')}
-                        disabled={index === 0}
-                    >
-                        ▲
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleMove(index, 'down')}
-                        disabled={index === images.length - 1}
-                    >
-                        ▼
-                    </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(image)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => handleDelete(image)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                 <div className="flex-shrink-0">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                                <MoreVertical className="h-4 w-4" />
+                                <span className="sr-only">Ações</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                onClick={() => handleMove(index, 'up')}
+                                disabled={index === 0}
+                            >
+                                <ArrowUp className="mr-2 h-4 w-4" /> Mover para Cima
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => handleMove(index, 'down')}
+                                disabled={index === images.length - 1}
+                            >
+                                <ArrowDown className="mr-2 h-4 w-4" /> Mover para Baixo
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEdit(image)}>
+                                <Pencil className="mr-2 h-4 w-4" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDelete(image)} className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" /> Deletar
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
               </Card>
             ))}
