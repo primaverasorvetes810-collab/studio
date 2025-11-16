@@ -139,7 +139,7 @@ export default function OrdersPage() {
                 <TableRow key={order.id}>
                   <TableCell>
                     <div className="font-medium">{order.userName || 'N/A'}</div>
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="text-xs text-muted-foreground truncate max-w-[150px]">
                       {order.userEmail}
                     </div>
                   </TableCell>
