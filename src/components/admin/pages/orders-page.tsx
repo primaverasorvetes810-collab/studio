@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -123,7 +124,7 @@ export default function OrdersPage() {
   };
 
   const isOrderDelayed = (order: Order): boolean => {
-    if (order.status === 'Pendente' && order.orderDate) {
+    if (order.status === 'Pendente') {
       const now = new Date();
       const orderDate = order.orderDate.toDate();
       const diffMinutes = (now.getTime() - orderDate.getTime()) / (1000 * 60);
@@ -160,9 +161,7 @@ export default function OrdersPage() {
         <CardHeader>
           <CardTitle>Todos os Pedidos Ativos</CardTitle>
           <CardDescription>
-            Gerencie todos os pedidos que não foram cancelados. Pedidos com status 'Pendente' por mais de 30 minutos são destacados em vermelho.
-            <br />
-            <b>Pendente:</b> Aguardando preparo. | <b>Enviado:</b> A caminho do cliente. | <b>Entregue:</b> Pedido finalizado.
+            Gerencie todos os pedidos ativos. Pedidos com status 'Pendente' por mais de 30 minutos são destacados em vermelho.
           </CardDescription>
         </CardHeader>
         <CardContent>
