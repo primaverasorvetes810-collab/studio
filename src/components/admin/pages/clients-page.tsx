@@ -18,24 +18,30 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { formatPrice } from '@/lib/utils';
 import {
   MoreVertical,
   Loader2,
   AlertCircle,
   User,
+  Phone,
+  Mail,
+  Calendar,
+  ShoppingBag,
+  CircleDollarSign,
+  MapPin,
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { User as UserType, Order } from '@/firebase/orders';
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
 
 type ClientWithStats = UserType & {
   totalOrders: number;
@@ -47,6 +53,7 @@ export default function ClientsPage() {
   const [clientsWithStats, setClientsWithStats] = useState<ClientWithStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedClient, setSelectedClient] = useState<ClientWithStats | null>(null);
   const { toast } = useToast();
   const firestore = useFirestore();
 
@@ -118,50 +125,84 @@ export default function ClientsPage() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Clientes</CardTitle>
-        <CardDescription>
-          Gerencie os usuários cadastrados no seu sistema.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Cliente</TableHead>
-              <TableHead className="hidden sm:table-cell">Total Gasto</TableHead>
-              <TableHead className="hidden md:table-cell">Último Pedido</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {clientsWithStats.length > 0 ? (
-              clientsWithStats.map((client) => (
-                <TableRow key={client.id}>
-                  <TableCell>
-                    <div className="font-medium">{client.fullName}</div>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">{formatPrice(client.totalSpent)}</TableCell>
-                  <TableCell className="hidden md:table-cell">{client.lastOrderDate || 'N/A'}</TableCell>
-                   <TableCell>
-                    <Badge variant="secondary">
-                        <User className="mr-1 h-3 w-3" />
-                        Cliente
-                    </Badge>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Clientes</CardTitle>
+          <CardDescription>
+            Gerencie os usuários cadastrados no seu sistema.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Cliente</TableHead>
+                <TableHead className="hidden sm:table-cell">Total Gasto</TableHead>
+                <TableHead className="hidden md:table-cell">Último Pedido</TableHead>
+                <TableHead className="text-right">
+                    <span className="sr-only">Ações</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {clientsWithStats.length > 0 ? (
+                clientsWithStats.map((client) => (
+                  <TableRow key={client.id}>
+                    <TableCell>
+                      <div className="font-medium">{client.fullName}</div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">{formatPrice(client.totalSpent)}</TableCell>
+                    <TableCell className="hidden md:table-cell">{client.lastOrderDate || 'N/A'}</TableCell>
+                    <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => setSelectedClient(client)}>
+                            <MoreVertical className="h-4 w-4" />
+                            <span className="sr-only">Ver Detalhes</span>
+                        </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center">
+                    Nenhum cliente encontrado.
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  Nenhum cliente encontrado.
-                </TableCell>
-              </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!selectedClient} onOpenChange={(open) => !open && setSelectedClient(null)}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Detalhes do Cliente</DialogTitle>
+                <DialogDescription>
+                    Informações completas e histórico do cliente.
+                </DialogDescription>
+            </DialogHeader>
+            {selectedClient && (
+                 <div className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                        <h3 className="font-semibold flex items-center gap-2 text-primary"><User size={16} /> Informações Pessoais</h3>
+                        <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Nome:</span> {selectedClient.fullName}</p>
+                        <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Email:</span> {selectedClient.email}</p>
+                        <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Telefone:</span> {selectedClient.phone || 'Não informado'}</p>
+                        <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Endereço:</span> {selectedClient.address ? `${selectedClient.address}, ${selectedClient.neighborhood} - ${selectedClient.city}` : 'Não informado'}</p>
+                    </div>
+                     <Separator />
+                    <div className="space-y-2">
+                         <h3 className="font-semibold flex items-center gap-2 text-primary"><Calendar size={16} /> Histórico e Atividade</h3>
+                         <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Cliente desde:</span> {selectedClient.registerTime.toDate().toLocaleDateString()}</p>
+                         <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Último pedido:</span> {selectedClient.lastOrderDate || 'Nenhum pedido'}</p>
+                         <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Total de pedidos:</span> {selectedClient.totalOrders}</p>
+                         <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Total gasto:</span> {formatPrice(selectedClient.totalSpent)}</p>
+                    </div>
+                 </div>
             )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
