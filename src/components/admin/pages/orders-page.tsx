@@ -163,18 +163,18 @@ export default function OrdersPage() {
                     key={order.id}
                     className={cn(isDelayed && 'bg-red-500/10 hover:bg-red-500/20')}
                 >
-                  <TableCell className="font-medium truncate pr-2 w-full">
+                  <TableCell className="w-[40%] font-medium truncate pr-2 py-2">
                     <div className="truncate">{order.userName || 'N/A'}</div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-2">
                     <Badge className={cn(statusColors[order.status], isDelayed && 'border-red-500/50 text-red-500')} variant="outline">
                       {order.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right py-2">
                     {formatPrice(order.totalAmount)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
