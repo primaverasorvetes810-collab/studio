@@ -254,7 +254,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
                     <AccordionTrigger className="flex-1 py-2 text-md font-semibold hover:no-underline [&[data-state=open]>svg]:-rotate-90">
                        {group.name}
                     </AccordionTrigger>
-                    <div className="flex items-center gap-2 pl-2 flex-shrink-0 ml-auto">
+                    <div className="flex items-center gap-2 pl-2 flex-shrink-0">
                         <ProductCountBadge groupId={group.id} />
                         <Button size="sm" variant="outline" className="h-7 gap-1" onClick={(e) => { e.stopPropagation(); onAddProductClick()}}>
                             <PlusCircle className="h-3.5 w-3.5" />
