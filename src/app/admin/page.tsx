@@ -25,7 +25,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 
 type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays" | "carousel" | "help";
@@ -186,6 +186,10 @@ export default function AdminGatePage() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="flex flex-col">
+                 <SheetHeader>
+                  <SheetTitle className="sr-only">Menu do Painel</SheetTitle>
+                  <SheetDescription className="sr-only">Navegue pelas seções do painel de administração.</SheetDescription>
+                </SheetHeader>
                 <nav className="grid gap-2 text-lg font-medium">
                   <SheetClose asChild>
                     <Link
