@@ -125,8 +125,8 @@ export default function OrdersPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Cliente</TableHead>
-              <TableHead className="hidden sm:table-cell">Data</TableHead>
-              <TableHead className="hidden md:table-cell">Status</TableHead>
+              <TableHead>Data</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Total</TableHead>
               <TableHead>
                 <span className="sr-only">Ações</span>
@@ -139,14 +139,14 @@ export default function OrdersPage() {
                 <TableRow key={order.id}>
                   <TableCell>
                     <div className="font-medium">{order.userName || 'N/A'}</div>
-                    <div className="text-xs text-muted-foreground truncate max-w-[150px]">
+                    <div className="text-xs text-muted-foreground truncate max-w-[150px] hidden sm:block">
                       {order.userEmail}
                     </div>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell">
+                  <TableCell>
                     {order.orderDate.toDate().toLocaleDateString()}
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
+                  <TableCell>
                     <Badge className={statusColors[order.status]} variant="outline">
                       {order.status}
                     </Badge>
