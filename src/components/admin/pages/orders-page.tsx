@@ -158,20 +158,20 @@ export default function OrdersPage() {
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle>Todos os Pedidos Ativos</CardTitle>
-          <CardDescription>
+        <CardHeader className="p-4 md:p-6">
+          <CardTitle className="text-xl md:text-2xl">Todos os Pedidos Ativos</CardTitle>
+          <CardDescription className="text-xs md:text-sm">
             Gerencie todos os pedidos ativos. Pedidos com status 'Pendente' por mais de 30 minutos são destacados em vermelho.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 md:p-6 md:pt-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[40%]">Cliente</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden sm:table-cell">Produtos</TableHead>
-                <TableHead>
+                <TableHead className="w-[40%] px-2 md:px-4">Cliente</TableHead>
+                <TableHead className="px-2 md:px-4">Status</TableHead>
+                <TableHead className="hidden sm:table-cell px-2 md:px-4">Produtos</TableHead>
+                <TableHead className="px-2 md:px-4">
                   <span className="sr-only">Ações</span>
                 </TableHead>
               </TableRow>
@@ -190,10 +190,10 @@ export default function OrdersPage() {
                         isDelayed && 'bg-red-500/10 hover:bg-red-500/20'
                       )}
                     >
-                      <TableCell className="w-[40%] pr-2 py-2">
+                      <TableCell className="w-[40%] pr-2 py-2 px-2 md:px-4">
                         {renderClientName(order.userName)}
                       </TableCell>
-                       <TableCell className="py-2">
+                       <TableCell className="py-2 px-2 md:px-4">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                              <Badge className={cn("cursor-pointer", statusColors[order.status], isDelayed && 'border-red-500/50 text-red-500')} variant="outline">
@@ -215,11 +215,11 @@ export default function OrdersPage() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
-                      <TableCell className="hidden sm:table-cell py-2 text-muted-foreground truncate max-w-xs">
+                      <TableCell className="hidden sm:table-cell py-2 px-2 md:px-4 text-muted-foreground truncate max-w-[150px]">
                         {productNames}
                       </TableCell>
-                      <TableCell className="py-2">
-                         <Button aria-haspopup="true" size="icon" variant="ghost" onClick={() => setSelectedOrder(order)}>
+                      <TableCell className="py-2 px-2 md:px-4">
+                         <Button aria-haspopup="true" size="icon" variant="ghost" className="h-8 w-8" onClick={() => setSelectedOrder(order)}>
                            <MoreVertical className="h-4 w-4" />
                            <span className="sr-only">Ver detalhes</span>
                          </Button>
