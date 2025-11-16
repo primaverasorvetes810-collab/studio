@@ -95,23 +95,24 @@ export default function OrdersPage() {
   }, [firestore, toast]);
 
   useEffect(() => {
-    const cancelOldPendingOrders = async () => {
+    const cancelOldOrders = async () => {
       if (!firestore || allOrders.length === 0) return;
 
       const now = new Date();
       const twentyFourHours = 24 * 60 * 60 * 1000;
       const ordersToCancel = allOrders.filter(order => {
-        if (order.status === 'Pendente' && order.orderDate) {
-          const orderTime = order.orderDate.toDate().getTime();
-          return now.getTime() - orderTime > twentyFourHours;
-        }
-        return false;
+        if (!order.orderDate) return false;
+        
+        const isOld = now.getTime() - order.orderDate.toDate().getTime() > twentyFourHours;
+        const isCancellable = order.status === 'Pendente' || order.status === 'Enviado';
+        
+        return isOld && isCancellable;
       });
 
       if (ordersToCancel.length > 0) {
         toast({
           title: 'Limpeza automática',
-          description: `Cancelando ${ordersToCancel.length} pedido(s) pendente(s) com mais de 24 horas.`,
+          description: `Cancelando ${ordersToCancel.length} pedido(s) com mais de 24 horas.`,
         });
 
         for (const order of ordersToCancel) {
@@ -127,7 +128,7 @@ export default function OrdersPage() {
     };
 
     if (!isLoading) {
-      cancelOldPendingOrders();
+        cancelOldOrders();
     }
   }, [allOrders, firestore, isLoading, toast]);
 
