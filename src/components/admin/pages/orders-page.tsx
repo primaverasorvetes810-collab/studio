@@ -166,11 +166,8 @@ export default function OrdersPage() {
                     key={order.id}
                     className={cn(isDelayed && 'bg-red-500/10 hover:bg-red-500/20')}
                 >
-                  <TableCell>
-                    <div className="font-medium truncate">{order.userName || 'N/A'}</div>
-                    <div className="text-xs text-muted-foreground truncate hidden sm:block">
-                      {order.userEmail}
-                    </div>
+                  <TableCell className="font-medium truncate pr-2">
+                    {order.userName || 'N/A'}
                   </TableCell>
                   <TableCell>
                     <Badge className={cn(statusColors[order.status], isDelayed && 'border-red-500/50 text-red-500')} variant="outline">
