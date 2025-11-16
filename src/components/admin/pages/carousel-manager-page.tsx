@@ -134,7 +134,7 @@ export default function CarouselManagerPage() {
                   className="aspect-video rounded-md object-cover"
                 />
                 <div className="flex-grow min-w-0">
-                  <p className="text-sm text-muted-foreground truncate">Link: {image.link || 'Nenhum'}</p>
+                  
                 </div>
                  <div className="flex-shrink-0">
                     <DropdownMenu>
