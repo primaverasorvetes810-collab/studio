@@ -26,7 +26,6 @@ import { useToast } from '@/hooks/use-toast';
 
 const statusColors: Record<OrderStatus, string> = {
   Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20',
-  Pago: 'bg-blue-500/20 text-blue-500 border-blue-500/20',
   Enviado: 'bg-teal-500/20 text-teal-500 border-teal-500/20',
   Entregue: 'bg-green-500/20 text-green-500 border-green-500/20',
   Cancelado: 'bg-gray-500/20 text-muted-foreground border-gray-500/20',
@@ -53,7 +52,7 @@ export default function DeliveriesPage() {
             fetchedOrders.push({ id: orderDoc.id, ...orderDoc.data() } as Order);
         });
 
-        // Client-side filtering for status 'Enviado' (since 'Pago' is now 'Entregue')
+        // Client-side filtering for status 'Enviado'
         const deliveryOrders = fetchedOrders.filter(order => 
             order.status === 'Enviado'
         );

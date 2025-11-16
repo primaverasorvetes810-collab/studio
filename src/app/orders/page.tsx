@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useUser } from '@/firebase';
-import { useUserOrders, type OrderWithItems, updateOrderStatus } from '@/firebase/orders';
+import { useUserOrders, type OrderWithItems, updateOrderStatus, OrderStatus } from '@/firebase/orders';
 import { formatPrice } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { Loader2 } from 'lucide-react';
@@ -32,12 +32,11 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 
-const statusColors: Record<OrderWithItems["status"], string> = {
+const statusColors: Record<OrderStatus, string> = {
   Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
-  Pago: "bg-green-500/20 text-green-500 border-green-500/20",
   Atrasado: "bg-red-500/20 text-red-500 border-red-500/20",
   Enviado: "bg-blue-500/20 text-blue-500 border-blue-500/20",
-  Entregue: "bg-primary/20 text-primary border-primary/20",
+  Entregue: "bg-green-500/20 text-green-500 border-green-500/20",
   Cancelado: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
 };
 

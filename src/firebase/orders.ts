@@ -23,7 +23,7 @@ import type { CartItemWithProduct } from './cart';
 import type { Product } from '@/lib/data/products';
 import type { User as AuthUser } from 'firebase/auth';
 
-export type OrderStatus = 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Atrasado';
+export type OrderStatus = 'Pendente' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Atrasado';
 
 export interface OrderItem {
   id: string;
@@ -164,9 +164,7 @@ export async function updateOrderStatus(userId: string, orderId: string, status:
   const { firestore } = getClientSdks();
   const orderRef = doc(firestore, `users/${userId}/orders`, orderId);
   try {
-    // Se o novo status for 'Entregue', substitui a lógica de 'Pago'
-    const finalStatus = status === 'Pago' ? 'Entregue' : status;
-    await updateDoc(orderRef, { status: finalStatus });
+    await updateDoc(orderRef, { status });
   } catch (e: any) {
      errorEmitter.emit(
       'permission-error',

@@ -20,17 +20,16 @@ import { useFirestore } from '@/firebase';
 import { formatPrice } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { CircleDollarSign, Package, ShoppingBag, Users, Loader2 } from 'lucide-react';
-import type { Order } from '@/firebase/orders';
+import type { Order, OrderStatus } from '@/firebase/orders';
 import { collection, getDocs, collectionGroup } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 
-const statusColors: Record<Order["status"], string> = {
+const statusColors: Record<OrderStatus, string> = {
   Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
-  Pago: "bg-green-500/20 text-green-500 border-green-500/20",
-  Atrasado: "bg-red-500/20 text-red-500 border-red-500/20",
   Enviado: "bg-blue-500/20 text-blue-500 border-blue-500/20",
-  Entregue: "bg-primary/20 text-primary border-primary/20",
+  Entregue: "bg-green-500/20 text-green-500 border-green-500/20",
   Cancelado: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
+  Atrasado: "bg-red-500/20 text-red-500 border-red-500/20",
 };
 
 
@@ -62,7 +61,7 @@ export default function DashboardPage() {
                 setAllOrders(sortedOrders);
 
                 // Calculate stats
-                const revenue = sortedOrders.reduce((acc, order) => acc + (order.status === 'Entregue' || order.status === 'Pago' ? order.totalAmount : 0), 0);
+                const revenue = sortedOrders.reduce((acc, order) => acc + (order.status === 'Entregue' ? order.totalAmount : 0), 0);
                 setTotalRevenue(revenue);
                 setTotalOrders(sortedOrders.length);
 
@@ -85,7 +84,7 @@ export default function DashboardPage() {
 
 
     const chartData = allOrders
-    .filter(order => (order.status === 'Entregue' || order.status === 'Pago') && order.orderDate)
+    .filter(order => order.status === 'Entregue' && order.orderDate)
     .reduce((acc, order) => {
         const month = order.orderDate.toDate().toLocaleString('default', { month: 'short' }).toUpperCase();
         const existingMonth = acc.find(item => item.name === month);

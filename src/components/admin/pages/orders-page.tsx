@@ -34,11 +34,10 @@ import { cn } from '@/lib/utils';
 
 const statusColors: Record<OrderStatus, string> = {
   Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20',
-  Pago: 'bg-blue-500/20 text-blue-500 border-blue-500/20', // Mantido para mapeamento de cores, mas não será uma opção
   Enviado: 'bg-teal-500/20 text-teal-500 border-teal-500/20',
   Entregue: 'bg-green-500/20 text-green-500 border-green-500/20',
   Cancelado: 'bg-gray-500/20 text-muted-foreground border-gray-500/20',
-  Atrasado: 'bg-red-500/20 text-red-500 border-red-500/20', // Usado para destaque visual
+  Atrasado: 'bg-red-500/20 text-red-500 border-red-500/20',
 };
 
 const selectableStatuses: OrderStatus[] = ['Pendente', 'Enviado', 'Entregue', 'Cancelado'];
@@ -141,7 +140,9 @@ export default function OrdersPage() {
       <CardHeader>
         <CardTitle>Todos os Pedidos Ativos</CardTitle>
         <CardDescription>
-            Gerencie todos os pedidos que não foram cancelados. Pedidos pendentes por mais de 30 minutos são destacados em vermelho.
+          Gerencie todos os pedidos que não foram cancelados. Pedidos com status 'Pendente' por mais de 30 minutos são destacados em vermelho.
+          <br />
+          <b>Pendente:</b> Aguardando preparo. | <b>Enviado:</b> A caminho do cliente. | <b>Entregue:</b> Pedido finalizado.
         </CardDescription>
       </CardHeader>
       <CardContent>
