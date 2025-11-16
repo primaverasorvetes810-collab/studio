@@ -128,7 +128,6 @@ export default function CarouselManagerPage() {
                   className="aspect-video rounded-md object-cover"
                 />
                 <div className="flex-grow">
-                  <p className="font-semibold">{image.altText || 'Imagem sem texto alternativo'}</p>
                   <p className="text-sm text-muted-foreground truncate">Link: {image.link || 'Nenhum'}</p>
                 </div>
                 <div className="flex items-center gap-2">
