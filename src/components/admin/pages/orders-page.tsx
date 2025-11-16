@@ -141,7 +141,7 @@ export default function OrdersPage() {
   }
 
   const renderClientName = (name: string | null) => {
-    if (!name) return 'N/A';
+    if (!name) return <div className="font-medium truncate">N/A</div>;
     const nameParts = name.split(' ');
     const firstName = nameParts[0];
     const lastName = nameParts.slice(1).join(' ');
@@ -169,9 +169,9 @@ export default function OrdersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[35%]">Cliente</TableHead>
+                <TableHead className="w-[40%]">Cliente</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Produtos</TableHead>
+                <TableHead className="hidden sm:table-cell">Produtos</TableHead>
                 <TableHead>
                   <span className="sr-only">Ações</span>
                 </TableHead>
@@ -191,7 +191,7 @@ export default function OrdersPage() {
                         isDelayed && 'bg-red-500/10 hover:bg-red-500/20'
                       )}
                     >
-                      <TableCell className="w-[35%] pr-2 py-2">
+                      <TableCell className="w-[40%] pr-2 py-2">
                         {renderClientName(order.userName)}
                       </TableCell>
                        <TableCell className="py-2">
@@ -216,7 +216,7 @@ export default function OrdersPage() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
-                      <TableCell className="py-2 text-muted-foreground truncate max-w-[120px] sm:max-w-xs">
+                      <TableCell className="hidden sm:table-cell py-2 text-muted-foreground truncate max-w-xs">
                         {productNames}
                       </TableCell>
                       <TableCell className="py-2">
