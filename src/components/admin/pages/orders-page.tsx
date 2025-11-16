@@ -20,7 +20,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { formatPrice } from '@/lib/utils';
 import { MoreVertical, Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -37,7 +36,6 @@ const statusColors: Record<OrderStatus, string> = {
   Enviado: 'bg-teal-500/20 text-teal-500 border-teal-500/20',
   Entregue: 'bg-green-500/20 text-green-500 border-green-500/20',
   Cancelado: 'bg-gray-500/20 text-muted-foreground border-gray-500/20',
-  Atrasado: 'bg-red-500/20 text-red-500 border-red-500/20',
 };
 
 const selectableStatuses: OrderStatus[] = ['Pendente', 'Enviado', 'Entregue'];
@@ -148,7 +146,7 @@ export default function OrdersPage() {
             <TableRow>
               <TableHead className="w-[40%]">Cliente</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Total</TableHead>
+              <TableHead className="text-right">Produtos</TableHead>
               <TableHead>
                 <span className="sr-only">Ações</span>
               </TableHead>
@@ -158,6 +156,7 @@ export default function OrdersPage() {
             {allOrders.length > 0 ? (
               allOrders.map((order) => {
                 const isDelayed = isOrderDelayed(order);
+                const productNames = order.items.map(item => `${item.product.name} (x${item.quantity})`).join(', ');
                 return (
                 <TableRow 
                     key={order.id}
@@ -171,8 +170,8 @@ export default function OrdersPage() {
                       {order.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right py-2">
-                    {formatPrice(order.totalAmount)}
+                  <TableCell className="text-right py-2 text-muted-foreground truncate">
+                    {productNames}
                   </TableCell>
                   <TableCell className="py-2">
                     <DropdownMenu>
