@@ -141,7 +141,6 @@ export default function ClientsPage() {
                 <TableRow key={client.id}>
                   <TableCell>
                     <div className="font-medium">{client.fullName}</div>
-                    <div className="text-sm text-muted-foreground">{client.email}</div>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">{formatPrice(client.totalSpent)}</TableCell>
                   <TableCell className="hidden md:table-cell">{client.lastOrderDate || 'N/A'}</TableCell>
