@@ -191,7 +191,7 @@ export default function AdminGatePage() {
                   <SheetTitle className="sr-only">Menu do Painel</SheetTitle>
                   <SheetDescription className="sr-only">Navegue pelas seções do painel de administração.</SheetDescription>
                 </SheetHeader>
-                <nav className="grid gap-2 text-lg font-medium">
+                <nav className="grid gap-2 text-base font-medium">
                   <SheetClose asChild>
                     <Link
                       href="#"
