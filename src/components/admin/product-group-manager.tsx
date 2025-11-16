@@ -216,12 +216,12 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
   return (
     <Card>
       <CardHeader className="p-4 space-y-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-4">
           <div>
             <CardTitle>Produtos e Grupos</CardTitle>
             <CardDescription>Gerencie seus produtos e grupos.</CardDescription>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-end sm:self-center">
             <Button size="sm" variant='outline' className="h-8 gap-1" onClick={onAddProductClick}>
               <PlusCircle className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
