@@ -40,7 +40,7 @@ const statusColors: Record<OrderStatus, string> = {
   Atrasado: 'bg-red-500/20 text-red-500 border-red-500/20',
 };
 
-const selectableStatuses: OrderStatus[] = ['Pendente', 'Enviado', 'Entregue', 'Cancelado'];
+const selectableStatuses: OrderStatus[] = ['Pendente', 'Enviado', 'Entregue'];
 
 export default function OrdersPage() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
@@ -90,12 +90,9 @@ export default function OrdersPage() {
     try {
       await updateDoc(orderRef, { status: newStatus });
       
-      // Atualização otimista da UI
       if (newStatus === 'Cancelado') {
-        // Remove da lista se for cancelado
         setAllOrders((prevOrders) => prevOrders.filter((order) => order.id !== orderId));
       } else {
-        // Atualiza o status na lista
         setAllOrders((prevOrders) =>
           prevOrders.map((order) =>
             order.id === orderId ? { ...order, status: newStatus } : order
@@ -149,7 +146,7 @@ export default function OrdersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Cliente</TableHead>
+              <TableHead className="w-[40%]">Cliente</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Total</TableHead>
               <TableHead>
@@ -167,7 +164,7 @@ export default function OrdersPage() {
                     className={cn(isDelayed && 'bg-red-500/10 hover:bg-red-500/20')}
                 >
                   <TableCell className="font-medium truncate pr-2 w-full">
-                    {order.userName || 'N/A'}
+                    <div className="truncate">{order.userName || 'N/A'}</div>
                   </TableCell>
                   <TableCell>
                     <Badge className={cn(statusColors[order.status], isDelayed && 'border-red-500/50 text-red-500')} variant="outline">
