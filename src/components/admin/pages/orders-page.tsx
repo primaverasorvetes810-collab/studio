@@ -149,7 +149,7 @@ export default function OrdersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className='w-2/5 sm:w-auto'>Cliente</TableHead>
+              <TableHead>Cliente</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Total</TableHead>
               <TableHead>
@@ -166,7 +166,7 @@ export default function OrdersPage() {
                     key={order.id}
                     className={cn(isDelayed && 'bg-red-500/10 hover:bg-red-500/20')}
                 >
-                  <TableCell className="font-medium truncate pr-2">
+                  <TableCell className="font-medium truncate pr-2 w-full">
                     {order.userName || 'N/A'}
                   </TableCell>
                   <TableCell>
