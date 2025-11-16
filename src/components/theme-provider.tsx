@@ -29,36 +29,33 @@ export function ThemeProvider({
   storageKey = "ui-theme",
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [theme, setTheme] = useState<Theme>(
+    () => (typeof window !== 'undefined' && localStorage.getItem(storageKey) as Theme) || defaultTheme
+  );
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem(storageKey) as Theme | null;
-    if (storedTheme) {
-      setTheme(storedTheme);
-    }
-  }, [storageKey]);
+    const root = window.document.documentElement
+    root.classList.remove("light", "dark")
 
-  useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-
-    let currentTheme = theme;
+    let systemTheme: Theme = 'light';
     if (theme === "system") {
-      currentTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+      systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
-        : "light";
+        : "light"
     }
-
+    
+    const currentTheme = theme === 'system' ? systemTheme : theme;
     root.classList.add(currentTheme);
-  }, [theme]);
+
+  }, [theme])
 
   const value = {
     theme,
     setTheme: (newTheme: Theme) => {
-      localStorage.setItem(storageKey, newTheme);
-      setTheme(newTheme);
+      localStorage.setItem(storageKey, newTheme)
+      setTheme(newTheme)
     },
-  };
+  }
 
   return (
     <ThemeProviderContext.Provider {...props} value={value}>

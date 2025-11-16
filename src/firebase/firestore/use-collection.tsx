@@ -23,6 +23,7 @@ export interface UseCollectionResult<T> {
   data: WithId<T>[] | null; // Document data with ID, or null.
   isLoading: boolean;       // True if loading.
   error: FirestoreError | Error | null; // Error object, or null.
+  setData: React.Dispatch<React.SetStateAction<WithId<T>[] | null>>; // Allow optimistic updates
 }
 
 /* Internal implementation of Query:
@@ -108,5 +109,5 @@ export function useCollection<T = any>(
     return () => unsubscribe();
   }, [memoizedTargetRefOrQuery]); // Re-run if the target query/reference changes.
   
-  return { data, isLoading, error };
+  return { data, isLoading, error, setData };
 }
