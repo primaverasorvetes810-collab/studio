@@ -70,12 +70,12 @@ export default function AccessibilityPage() {
             <p className="mb-4 text-muted-foreground">
               Aumente ou diminua o tamanho do texto em todo o site.
             </p>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:justify-start">
               <Button onClick={() => changeFontSize(-2)} variant="outline" size="icon">
                 <ZoomOut />
                 <span className="sr-only">Diminuir fonte</span>
               </Button>
-              <Label className="text-lg font-bold">{Math.round((fontSize / 16) * 100)}%</Label>
+              <Label className="text-lg font-bold w-20 text-center">{Math.round((fontSize / 16) * 100)}%</Label>
               <Button onClick={() => changeFontSize(2)} variant="outline" size="icon">
                 <ZoomIn />
                 <span className="sr-only">Aumentar fonte</span>
