@@ -125,7 +125,6 @@ export default function OrdersPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Cliente</TableHead>
-              <TableHead>Data</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Total</TableHead>
               <TableHead>
@@ -142,9 +141,6 @@ export default function OrdersPage() {
                     <div className="text-xs text-muted-foreground truncate max-w-[150px] hidden sm:block">
                       {order.userEmail}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    {order.orderDate.toDate().toLocaleDateString()}
                   </TableCell>
                   <TableCell>
                     <Badge className={statusColors[order.status]} variant="outline">
