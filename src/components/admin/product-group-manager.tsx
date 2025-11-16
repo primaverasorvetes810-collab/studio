@@ -252,12 +252,10 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
                 <AccordionItem value={group.id} key={group.id} className="border rounded-lg bg-muted/20">
                   <div className='flex items-center w-full pr-2 pl-4'>
                     <AccordionTrigger className="flex-1 py-2 text-md font-semibold hover:no-underline [&[data-state=open]>svg]:-rotate-90">
-                        <div className="flex items-center gap-3">
-                            <span>{group.name}</span>
-                            <ProductCountBadge groupId={group.id} />
-                        </div>
+                       {group.name}
                     </AccordionTrigger>
                     <div className="flex items-center gap-1 pl-2">
+                        <ProductCountBadge groupId={group.id} />
                         <Button size="sm" variant="outline" className="h-7 gap-1" onClick={(e) => { e.stopPropagation(); onAddProductClick()}}>
                             <PlusCircle className="h-3.5 w-3.5" />
                             <span className="sr-only sm:not-sr-only">Produto</span>
