@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { collectionGroup, doc, getDocs, updateDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import type { Order, OrderStatus } from '@/firebase/orders';
+import { Order, OrderStatus, updateOrderStatus } from '@/firebase/orders';
 import {
   Table,
   TableBody,
@@ -94,20 +94,63 @@ export default function OrdersPage() {
     }
   }, [firestore, toast]);
 
+  useEffect(() => {
+    const cancelOldPendingOrders = async () => {
+      if (!firestore || allOrders.length === 0) return;
+
+      const now = new Date();
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      const ordersToCancel = allOrders.filter(order => {
+        if (order.status === 'Pendente' && order.orderDate) {
+          const orderTime = order.orderDate.toDate().getTime();
+          return now.getTime() - orderTime > twentyFourHours;
+        }
+        return false;
+      });
+
+      if (ordersToCancel.length > 0) {
+        toast({
+          title: 'Limpeza automática',
+          description: `Cancelando ${ordersToCancel.length} pedido(s) pendente(s) com mais de 24 horas.`,
+        });
+
+        for (const order of ordersToCancel) {
+          try {
+            await updateOrderStatus(order.userId, order.id, 'Cancelado');
+            // Remove from local state to update UI instantly
+            setAllOrders(prev => prev.filter(o => o.id !== order.id));
+          } catch (error) {
+            console.error(`Failed to cancel order ${order.id}:`, error);
+          }
+        }
+      }
+    };
+
+    if (!isLoading) {
+      cancelOldPendingOrders();
+    }
+  }, [allOrders, firestore, isLoading, toast]);
+
+
   const handleStatusChange = async (
     order: Order,
     newStatus: OrderStatus
   ) => {
     if (!firestore) return;
-    const orderRef = doc(firestore, `users/${order.userId}/orders`, order.id);
+    
     try {
-      await updateDoc(orderRef, { status: newStatus });
-
-      setAllOrders((prevOrders) =>
-        prevOrders.map((o) =>
-          o.id === order.id ? { ...o, status: newStatus } : o
-        )
-      );
+      await updateOrderStatus(order.userId, order.id, newStatus);
+      
+      if (newStatus === 'Cancelado') {
+        // Optimistically remove from view if cancelled
+        setAllOrders((prevOrders) => prevOrders.filter(o => o.id !== order.id));
+      } else {
+        setAllOrders((prevOrders) =>
+          prevOrders.map((o) =>
+            o.id === order.id ? { ...o, status: newStatus } : o
+          )
+        );
+      }
 
       toast({
         title: 'Status atualizado',
@@ -168,10 +211,10 @@ export default function OrdersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[40%] px-2 md:px-4">Cliente</TableHead>
-                <TableHead className="px-2 md:px-4">Status</TableHead>
-                <TableHead className="hidden sm:table-cell px-2 md:px-4">Produtos</TableHead>
-                <TableHead className="px-2 md:px-4">
+                <TableHead className="w-[40%] px-2 py-2 md:px-4">Cliente</TableHead>
+                <TableHead className="px-2 py-2 md:px-4">Status</TableHead>
+                <TableHead className="hidden sm:table-cell px-2 py-2 md:px-4 max-w-[120px] truncate">Produtos</TableHead>
+                <TableHead className="px-2 py-2 md:px-4">
                   <span className="sr-only">Ações</span>
                 </TableHead>
               </TableRow>
