@@ -138,8 +138,8 @@ export default function OrdersPage() {
               allOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell>
-                    <div className="font-medium">{order.userName}</div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="font-medium">{order.userName || 'N/A'}</div>
+                    <div className="text-xs text-muted-foreground truncate">
                       {order.userEmail}
                     </div>
                   </TableCell>
