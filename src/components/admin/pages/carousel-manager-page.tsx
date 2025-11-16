@@ -127,10 +127,10 @@ export default function CarouselManagerPage() {
                   height={72}
                   className="aspect-video rounded-md object-cover"
                 />
-                <div className="flex-grow">
+                <div className="flex-grow min-w-0">
                   <p className="text-sm text-muted-foreground truncate">Link: {image.link || 'Nenhum'}</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                    <Button
                         variant="ghost"
                         size="icon"
