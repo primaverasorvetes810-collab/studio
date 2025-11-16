@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -205,8 +206,8 @@ export default function AdminGatePage() {
                       <button
                         onClick={() => setActiveSection(item.id as AdminSection)}
                         className={cn(
-                            "flex items-center gap-4 rounded-xl px-3 py-2 text-muted-foreground hover:text-foreground",
-                             activeSection === item.id && "bg-muted text-foreground"
+                            "flex items-center gap-4 rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground",
+                            activeSection === item.id && "bg-muted text-foreground"
                         )}
                       >
                         <item.icon className="h-5 w-5" />
