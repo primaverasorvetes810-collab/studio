@@ -5,7 +5,7 @@ import type { Product, ProductGroup } from '@/lib/data/products';
 import { useMemo, useState } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import { Loader2, Pencil, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, PlusCircle, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from '../ui/card';
 import {
@@ -35,6 +35,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { formatPrice } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { deleteProduct } from '@/firebase/products';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu';
 
 
 function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEdit: (product: Product) => void, onAdd: () => void }) {
@@ -99,12 +100,23 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
                     <TableCell className="hidden md:table-cell">{product.stock} un.</TableCell>
                     <TableCell>
                         <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => onEdit(product)}>
-                                <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setDeletingProduct(product)}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+                           <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => onEdit(product)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setDeletingProduct(product)} className="text-destructive">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Deletar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
                     </TableCell>
                     </TableRow>
@@ -131,6 +143,16 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
         </AlertDialog>
     </div>
   )
+}
+
+function ProductCountBadge({ groupId }: { groupId: string }) {
+    const firestore = useFirestore();
+    const productsQuery = useMemoFirebase(
+      () => (firestore ? query(collection(firestore, 'products'), where('groupId', '==', groupId)) : null),
+      [firestore, groupId]
+    );
+    const { data: products } = useCollection<Product>(productsQuery);
+    return <Badge variant="secondary">{products?.length || 0}</Badge>;
 }
 
 
@@ -212,30 +234,40 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
             <Accordion type="single" collapsible className="w-full space-y-2">
             {productGroups?.map((group) => (
                 <AccordionItem value={group.id} key={group.id} className="border rounded-lg bg-muted/20">
-                  <div className='flex items-center w-full px-4 py-1'>
-                    <AccordionTrigger className="flex-1 py-2 text-md font-semibold hover:no-underline">
-                        <span>{group.name}</span>
+                  <div className='flex items-center w-full px-4'>
+                    <AccordionTrigger className="flex-1 py-3 text-md font-semibold hover:no-underline [&[data-state=open]>svg]:-rotate-90">
+                        <div className="flex items-center gap-3">
+                            <span>{group.name}</span>
+                            <ProductCountBadge groupId={group.id} />
+                        </div>
                     </AccordionTrigger>
-                    <div className="flex items-center gap-2 pl-4">
-                          <Button variant="ghost" size="icon" className='h-8 w-8' onClick={(e) => { e.stopPropagation(); handleEditGroup(group)}}>
-                            <Pencil className="h-4 w-4" />
-                            <span className="sr-only">Editar Grupo</span>
+                    <div className="flex items-center gap-1 pl-2">
+                        <Button size="sm" variant="outline" className="h-8 gap-1" onClick={(e) => { e.stopPropagation(); onAddProductClick()}}>
+                            <PlusCircle className="h-3.5 w-3.5" />
+                            <span className="sr-only sm:not-sr-only">Produto</span>
                         </Button>
-                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive h-8 w-8" onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group)}}>
-                            <Trash2 className="h-4 w-4" />
-                            <span className="sr-only">Deletar Grupo</span>
-                        </Button>
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                    <MoreVertical className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={(e) => {e.stopPropagation(); handleEditGroup(group)}}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Editar Grupo
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={(e) => {e.stopPropagation(); handleDeleteGroup(group)}} className="text-destructive">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Deletar Grupo
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                   </div>
                 <AccordionContent className="p-0">
-                    <div className='px-4 pb-4 border-b flex justify-between items-start'>
-                        <p className='text-sm text-muted-foreground pt-1'>{group.description}</p>
-                         <Button size="sm" variant="outline" className="h-8 gap-1" onClick={onAddProductClick}>
-                            <PlusCircle className="h-3.5 w-3.5" />
-                            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                            Novo Produto
-                            </span>
-                        </Button>
+                    <div className='px-6 pb-4 border-b'>
+                        <p className='text-sm text-muted-foreground'>{group.description}</p>
                     </div>
                     <ProductListForGroup groupId={group.id} onEdit={onEditProductClick} onAdd={onAddProductClick} />
                 </AccordionContent>
