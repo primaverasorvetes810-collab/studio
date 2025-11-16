@@ -5,7 +5,7 @@ import type { Product, ProductGroup } from '@/lib/data/products';
 import { useMemo, useState } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
-import { Loader2, Pencil, PlusCircle, Trash2, MoreVertical } from 'lucide-react';
+import { Loader2, Pencil, PlusCircle, Trash2, MoreVertical, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from '../ui/card';
 import {
@@ -36,6 +36,7 @@ import { formatPrice } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { deleteProduct } from '@/firebase/products';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu';
+import { Input } from '../ui/input';
 
 
 function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEdit: (product: Product) => void, onAdd: () => void }) {
@@ -163,6 +164,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<ProductGroup | null>(null);
   const [deletingGroup, setDeletingGroup] = useState<ProductGroup | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const productGroupsQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'productGroups') : null),
@@ -171,6 +173,11 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
   const { data: productGroups, isLoading, setData: setProductGroups } =
     useCollection<ProductGroup>(productGroupsQuery);
     
+  const filteredGroups = useMemo(() => {
+    if (!productGroups) return [];
+    return productGroups.filter(group => group.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  }, [productGroups, searchTerm]);
+
   const handleAddNewGroup = () => {
     setEditingGroup(null);
     setIsFormOpen(true);
@@ -207,7 +214,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
 
   return (
     <Card>
-      <CardHeader className="p-4">
+      <CardHeader className="p-4 space-y-4">
         <div className="flex items-center justify-between gap-4">
             <div>
                 <CardTitle>Produtos e Grupos</CardTitle>
@@ -224,6 +231,15 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
                 </Button>
             </div>
         </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por grupo..."
+            className="w-full pl-9 h-9"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </CardHeader>
       <CardContent className="p-2 pt-0">
         {isLoading ? (
@@ -232,7 +248,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
           </div>
         ) : (
             <Accordion type="single" collapsible className="w-full space-y-1">
-            {productGroups?.map((group) => (
+            {filteredGroups.map((group) => (
                 <AccordionItem value={group.id} key={group.id} className="border rounded-lg bg-muted/20">
                   <div className='flex items-center w-full pr-2 pl-4'>
                     <AccordionTrigger className="flex-1 py-2 text-md font-semibold hover:no-underline [&[data-state=open]>svg]:-rotate-90">
@@ -305,5 +321,3 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
     </Card>
   );
 }
-
-    
