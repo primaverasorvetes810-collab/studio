@@ -125,16 +125,15 @@ export default function CarouselManagerPage() {
           )}
           <div className="space-y-4">
             {images?.map((image, index) => (
-              <Card key={image.id} className="flex items-center p-4 gap-4">
-                <Image
-                  src={image.imageUrl}
-                  alt={image.altText || ''}
-                  width={128}
-                  height={72}
-                  className="aspect-video rounded-md object-cover"
-                />
-                <div className="flex-grow min-w-0">
-                  
+              <Card key={image.id} className="flex items-center justify-between p-4 gap-4">
+                <div className="flex items-center gap-4">
+                  <Image
+                    src={image.imageUrl}
+                    alt={image.altText || ''}
+                    width={128}
+                    height={72}
+                    className="aspect-video rounded-md object-cover"
+                  />
                 </div>
                  <div className="flex-shrink-0">
                     <DropdownMenu>
