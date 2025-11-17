@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { collectionGroup, doc, getDocs, updateDoc } from 'firebase/firestore';
+import { useEffect, useState, useRef } from 'react';
+import { collectionGroup, doc, onSnapshot, query, updateDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { Order, OrderStatus, updateOrderStatus } from '@/firebase/orders';
 import {
@@ -43,6 +43,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 const statusColors: Record<OrderStatus, string> = {
   Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/30',
+  Atrasado: "bg-red-500/20 text-red-500 border-red-500/20",
   Enviado: 'bg-teal-500/20 text-teal-500 border-teal-500/20 hover:bg-teal-500/30',
   Entregue: 'bg-green-500/20 text-green-500 border-green-500/20 hover:bg-green-500/30',
   Cancelado: 'bg-gray-500/20 text-muted-foreground border-gray-500/20',
@@ -50,50 +51,78 @@ const statusColors: Record<OrderStatus, string> = {
 
 const selectableStatuses: OrderStatus[] = ['Pendente', 'Enviado', 'Entregue'];
 
+function sendNotification(title: string, options: NotificationOptions) {
+  if (!('Notification' in window)) return;
+
+  if (Notification.permission === 'granted') {
+    new Notification(title, options);
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        new Notification(title, options);
+      }
+    });
+  }
+}
+
 export default function OrdersPage() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const firestore = useFirestore();
   const { toast } = useToast();
+  const previousOrdersRef = useRef<Order[]>([]);
 
   useEffect(() => {
-    const fetchAllOrders = async () => {
-      setIsLoading(true);
-      if (!firestore) return;
-      try {
-        const ordersQuery = collectionGroup(firestore, 'orders');
-        const ordersSnapshot = await getDocs(ordersQuery);
+    if (!firestore) return;
 
+    const ordersQuery = collectionGroup(firestore, 'orders');
+    const q = query(ordersQuery);
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
         let fetchedOrders: Order[] = [];
-        ordersSnapshot.forEach((orderDoc) => {
-          fetchedOrders.push({ id: orderDoc.id, ...orderDoc.data() } as Order);
+        snapshot.forEach((doc) => {
+            fetchedOrders.push({ id: doc.id, ...doc.data() } as Order);
         });
 
         const activeOrders = fetchedOrders.filter(
-          (order) => order.status !== 'Cancelado'
+            (order) => order.status !== 'Cancelado'
         );
         const sortedOrders = activeOrders.sort(
-          (a, b) => b.orderDate.toMillis() - a.orderDate.toMillis()
+            (a, b) => b.orderDate.toMillis() - a.orderDate.toMillis()
         );
-        setAllOrders(sortedOrders);
-      } catch (error) {
-        console.error('Error fetching all orders:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Erro ao carregar pedidos',
-          description:
-            'Não foi possível buscar os pedidos. Verifique as permissões do Firestore.',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
-    if (firestore) {
-      fetchAllOrders();
-    }
-  }, [firestore, toast]);
+        // Check for new orders only after the initial load
+        if (previousOrdersRef.current.length > 0) {
+            const previousOrderIds = new Set(previousOrdersRef.current.map(o => o.id));
+            const newOrders = sortedOrders.filter(
+                o => !previousOrderIds.has(o.id) && o.status === 'Pendente'
+            );
+
+            newOrders.forEach(order => {
+                sendNotification('Novo Pedido Recebido!', {
+                    body: `Cliente: ${order.userName}\nTotal: ${formatPrice(order.totalAmount)}`,
+                    icon: '/icons/icon-192x192.png',
+                });
+            });
+        }
+        
+        setAllOrders(sortedOrders);
+        previousOrdersRef.current = sortedOrders;
+        setIsLoading(false);
+    }, (error) => {
+        console.error("Error fetching all orders:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Erro ao carregar pedidos',
+            description: 'Não foi possível buscar os pedidos. Verifique as permissões do Firestore.',
+        });
+        setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+}, [firestore, toast]);
+
 
   useEffect(() => {
     const cancelOldOrders = async () => {
@@ -119,8 +148,6 @@ export default function OrdersPage() {
         for (const order of ordersToCancel) {
           try {
             await updateOrderStatus(order.userId, order.id, 'Cancelado');
-            // Remove from local state to update UI instantly
-            setAllOrders(prev => prev.filter(o => o.id !== order.id));
           } catch (error) {
             console.error(`Failed to cancel order ${order.id}:`, error);
           }
@@ -143,17 +170,6 @@ export default function OrdersPage() {
     try {
       await updateOrderStatus(order.userId, order.id, newStatus);
       
-      if (newStatus === 'Cancelado') {
-        // Optimistically remove from view if cancelled
-        setAllOrders((prevOrders) => prevOrders.filter(o => o.id !== order.id));
-      } else {
-        setAllOrders((prevOrders) =>
-          prevOrders.map((o) =>
-            o.id === order.id ? { ...o, status: newStatus } : o
-          )
-        );
-      }
-
       toast({
         title: 'Status atualizado',
         description: `O pedido foi marcado como ${newStatus}.`,
@@ -336,3 +352,5 @@ export default function OrdersPage() {
     </>
   );
 }
+
+    
