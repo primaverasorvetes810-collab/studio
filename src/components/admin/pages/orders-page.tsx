@@ -203,7 +203,7 @@ export default function OrdersPage() {
   return (
     <>
       <Card>
-        <CardHeader className="p-4 md:p-6">
+        <CardHeader className="p-4">
           <CardTitle className="text-xl md:text-2xl">Todos os Pedidos Ativos</CardTitle>
           <CardDescription className="text-xs md:text-sm">
             Gerencie todos os pedidos ativos. Pedidos com status 'Pendente' por mais de 30 minutos são destacados em vermelho.
