@@ -92,7 +92,7 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
                     </TableCell>
                     <TableCell className="font-medium px-2 py-2">{product.name}</TableCell>
                     <TableCell className="hidden md:table-cell px-2 py-2">{formatPrice(product.price)}</TableCell>
-                    <TableCell className="hidden md-table-cell px-2 py-2">{product.stock} un.</TableCell>
+                    <TableCell className="hidden md:table-cell px-2 py-2">{product.stock} un.</TableCell>
                     <TableCell className="px-2 py-2">
                         <div className="flex justify-end">
                            <DropdownMenu>
@@ -214,7 +214,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
         setProductGroups(productGroups.filter(g => g.id !== deletingGroup.id));
     }
     setDeletingGroup(null);
-  }
+  };
 
   const handleFormClose = () => {
     setIsFormOpen(false);
