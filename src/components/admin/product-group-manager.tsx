@@ -223,8 +223,8 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
 
   return (
     <Card>
-      <CardHeader className="p-4 space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-4">
+      <CardHeader className="p-4 space-y-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2">
           <div>
             <CardTitle>Produtos e Grupos</CardTitle>
             <CardDescription>Gerencie seus produtos e grupos.</CardDescription>
