@@ -31,7 +31,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { ProductPayloadSchema, createProduct, updateProduct } from '@/firebase/products';
-import type { Product, ProductGroup } from '@/lib/data/products';
+import type { Product } from '@/lib/data/products';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState } from 'react';
 import Image from 'next/image';
@@ -39,12 +39,12 @@ import { Upload } from 'lucide-react';
 
 type ProductFormProps = {
   product: Product | null;
-  productGroups: ProductGroup[];
+  groupId: string;
   onOpenChange: (open: boolean) => void;
   onFormSubmit: () => void;
 };
 
-export function ProductForm({ product, productGroups, onOpenChange, onFormSubmit }: ProductFormProps) {
+export function ProductForm({ product, groupId, onOpenChange, onFormSubmit }: ProductFormProps) {
   const { toast } = useToast();
   const [preview, setPreview] = useState<string | null>(product?.image ?? null);
   
@@ -56,7 +56,7 @@ export function ProductForm({ product, productGroups, onOpenChange, onFormSubmit
       price: product?.price ?? 0,
       image: product?.image ?? '',
       stock: product?.stock ?? 0,
-      groupId: product?.groupId ?? '',
+      groupId: product?.groupId ?? groupId, // Pre-fill with groupId
     },
   });
 
@@ -156,28 +156,7 @@ export function ProductForm({ product, productGroups, onOpenChange, onFormSubmit
                     </FormItem>
                 )}
                 />
-                <FormField
-                control={form.control}
-                name="groupId"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Grupo do Produto</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Selecione um grupo" />
-                            </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                            {productGroups.map(group => (
-                                <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
+                
                 <FormField
                 control={form.control}
                 name="image"

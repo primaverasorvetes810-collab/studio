@@ -50,6 +50,7 @@ export default function ProductsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
 
   const productsQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'products') : null),
@@ -63,17 +64,15 @@ export default function ProductsPage() {
   );
   const { data: productGroups } = useCollection<ProductGroup>(productGroupsQuery);
 
-  const getGroupName = (groupId: string) => {
-    return productGroups?.find((g) => g.id === groupId)?.name || 'N/A';
-  };
-
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
+    setActiveGroupId(product.groupId); // Ensure group ID is set for editing
     setIsFormOpen(true);
   };
 
-  const handleAddNew = () => {
+  const handleAddNew = (groupId: string) => {
     setEditingProduct(null);
+    setActiveGroupId(groupId);
     setIsFormOpen(true);
   };
   
@@ -99,6 +98,7 @@ export default function ProductsPage() {
   const handleFormClose = () => {
     setIsFormOpen(false);
     setEditingProduct(null);
+    setActiveGroupId(null);
   };
 
   return (
@@ -110,10 +110,10 @@ export default function ProductsPage() {
 
       </div>
 
-      {isFormOpen && (
+      {isFormOpen && activeGroupId && (
         <ProductForm
           product={editingProduct}
-          productGroups={productGroups || []}
+          groupId={activeGroupId}
           onOpenChange={setIsFormOpen}
           onFormSubmit={handleFormClose}
         />

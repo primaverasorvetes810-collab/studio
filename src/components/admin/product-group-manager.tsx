@@ -38,9 +38,10 @@ import { Badge } from '../ui/badge';
 import { deleteProduct } from '@/firebase/products';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu';
 import { Input } from '../ui/input';
+import { cn } from '@/lib/utils';
 
 
-function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEdit: (product: Product) => void, onAdd: () => void }) {
+function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEdit: (product: Product) => void, onAdd: (groupId: string) => void }) {
   const firestore = useFirestore();
   const productsQuery = useMemoFirebase(
     () => (firestore ? query(collection(firestore, 'products'), where('groupId', '==', groupId)) : null),
@@ -127,7 +128,7 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
         </Table>
 
         <div className="flex justify-start border-t px-4 py-2">
-             <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={onAdd}>
+             <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={() => onAdd(groupId)}>
               <PlusCircle className="h-4 w-4" />
               <span className="sm:whitespace-nowrap">
                 Adicionar Produto
@@ -166,7 +167,7 @@ function ProductCountBadge({ groupId }: { groupId: string }) {
 }
 
 
-export function ProductGroupManager({ onAddProductClick, onEditProductClick }: { onAddProductClick: () => void, onEditProductClick: (product: Product) => void }) {
+export function ProductGroupManager({ onAddProductClick, onEditProductClick }: { onAddProductClick: (groupId: string) => void, onEditProductClick: (product: Product) => void }) {
   const firestore = useFirestore();
   const { toast } = useToast();
 
@@ -265,7 +266,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
                   <AccordionTrigger className="flex-1 py-2 text-md font-semibold hover:no-underline [&[data-state=open]>svg]:-rotate-90">
                     <span className="truncate text-left">{group.name}</span>
                   </AccordionTrigger>
-                  <div className="flex items-center gap-2 pl-2 flex-shrink-0">
+                   <div className="flex items-center gap-2 pl-2 flex-shrink-0">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
