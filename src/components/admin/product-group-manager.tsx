@@ -266,7 +266,6 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
                     <span className="truncate">{group.name}</span>
                   </AccordionTrigger>
                   <div className="flex items-center gap-2 pl-2 flex-shrink-0">
-                    <ProductCountBadge groupId={group.id} />
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -300,6 +299,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    <ProductCountBadge groupId={group.id} />
                   </div>
                 </div>
                 <AccordionContent className="p-0">
