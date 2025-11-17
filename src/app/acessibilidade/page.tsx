@@ -12,14 +12,22 @@ export default function AccessibilityPage() {
   const { theme, setTheme } = useTheme();
   const [fontSize, setFontSize] = useState(16); // Base font size in px
 
-  // Load saved font size from local storage
+  // Load saved font size from local storage and apply it.
+  // Add a cleanup function to reset the font size when the component unmounts.
   useEffect(() => {
     const savedSize = localStorage.getItem('font-size');
+    const originalSize = document.documentElement.style.fontSize;
+
     if (savedSize) {
       const newSize = parseInt(savedSize, 10);
       setFontSize(newSize);
       document.documentElement.style.fontSize = `${newSize}px`;
     }
+
+    // Cleanup function: This runs when the component unmounts (e.g., user navigates away)
+    return () => {
+      document.documentElement.style.fontSize = originalSize;
+    };
   }, []);
 
   const changeFontSize = (amount: number) => {
