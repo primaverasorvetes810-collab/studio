@@ -11,6 +11,7 @@ import { useTheme } from '@/components/theme-provider';
 export default function AccessibilityPage() {
   const { theme, setTheme } = useTheme();
   const [fontSize, setFontSize] = useState(16); // Base font size in px
+  const [mounted, setMounted] = useState(false);
 
   // Load saved font size from local storage and apply it.
   // Add a cleanup function to reset the font size when the component unmounts.
@@ -29,6 +30,11 @@ export default function AccessibilityPage() {
       document.documentElement.style.fontSize = originalSize;
     };
   }, []);
+  
+  // useEffect to track mounting state for hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const changeFontSize = (amount: number) => {
     setFontSize(prevSize => {
@@ -42,6 +48,10 @@ export default function AccessibilityPage() {
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
+  
+  if (!mounted) {
+    return null; // or a loading skeleton
+  }
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
