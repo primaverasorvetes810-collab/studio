@@ -60,13 +60,6 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
   }
 
   if (isLoading) return <div className="flex items-center justify-center p-4"><Loader2 className="h-5 w-5 animate-spin" /></div>;
-  if (!products || products.length === 0) {
-    return (
-        <div className="px-4 py-4 text-center border-t">
-             <p className="text-sm text-muted-foreground mb-4">Nenhum produto neste grupo.</p>
-        </div>
-    );
-  }
 
   return (
     <div className="w-full">
@@ -81,7 +74,7 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {products.map((product) => {
+                {products && products.length > 0 ? products.map((product) => {
                 const placeholder = PlaceHolderImages.find((p) => p.id === product.image);
                 const imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
                 return (
@@ -99,7 +92,7 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
                     </TableCell>
                     <TableCell className="font-medium px-2 py-2">{product.name}</TableCell>
                     <TableCell className="hidden md:table-cell px-2 py-2">{formatPrice(product.price)}</TableCell>
-                    <TableCell className="hidden md:table-cell px-2 py-2">{product.stock} un.</TableCell>
+                    <TableCell className="hidden md-table-cell px-2 py-2">{product.stock} un.</TableCell>
                     <TableCell className="px-2 py-2">
                         <div className="flex justify-end">
                            <DropdownMenu>
@@ -123,9 +116,24 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
                     </TableCell>
                     </TableRow>
                 )
-                })}
+                }) : (
+                     <TableRow>
+                        <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+                            Nenhum produto neste grupo.
+                        </TableCell>
+                    </TableRow>
+                )}
             </TableBody>
         </Table>
+
+        <div className="flex justify-start border-t px-4 py-2">
+             <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={onAdd}>
+              <PlusCircle className="h-4 w-4" />
+              <span className="sm:whitespace-nowrap">
+                Adicionar Produto
+              </span>
+            </Button>
+        </div>
 
          <AlertDialog open={!!deletingProduct} onOpenChange={() => setDeletingProduct(null)}>
             <AlertDialogContent>
@@ -222,16 +230,10 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
             <CardDescription>Gerencie seus produtos e grupos.</CardDescription>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-center">
-            <Button size="sm" variant='outline' className="h-8 gap-1" onClick={onAddProductClick}>
-              <PlusCircle className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Produto
-              </span>
-            </Button>
             <Button size="sm" className="h-8 gap-1" onClick={handleAddNewGroup}>
               <PlusCircle className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Grupo
+                Adicionar Grupo
               </span>
             </Button>
           </div>
