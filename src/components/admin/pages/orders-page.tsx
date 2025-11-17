@@ -51,14 +51,25 @@ const statusColors: Record<OrderStatus, string> = {
 
 const selectableStatuses: OrderStatus[] = ['Pendente', 'Enviado', 'Entregue'];
 
+function playNotificationSound() {
+    // Som de alerta alto de um recurso público
+    const audio = new Audio('https://www.soundjay.com/misc/sounds/sonar-ping-sound-effect.mp3');
+    audio.play().catch(error => {
+      // A reprodução automática pode ser bloqueada pelo navegador até que o usuário interaja com a página.
+      console.log("Falha ao reproduzir som de notificação:", error);
+    });
+}
+
 function sendNotification(title: string, options: NotificationOptions) {
   if (!('Notification' in window)) return;
 
   if (Notification.permission === 'granted') {
+    playNotificationSound();
     new Notification(title, options);
   } else if (Notification.permission !== 'denied') {
     Notification.requestPermission().then((permission) => {
       if (permission === 'granted') {
+        playNotificationSound();
         new Notification(title, options);
       }
     });
@@ -352,5 +363,7 @@ export default function OrdersPage() {
     </>
   );
 }
+
+    
 
     
