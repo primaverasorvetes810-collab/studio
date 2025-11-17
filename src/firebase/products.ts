@@ -14,12 +14,12 @@ import { z } from 'zod';
 
 // Zod schema for creating/updating a product, including groupId
 export const ProductPayloadSchema = z.object({
-    name: z.string(),
-    description: z.string(),
-    price: z.number(),
-    image: z.string(),
-    stock: z.number(),
-    groupId: z.string(),
+    name: z.string().min(1, 'O nome é obrigatório.'),
+    description: z.string().min(1, 'A descrição é obrigatória.'),
+    price: z.number().min(0.01, 'O preço deve ser maior que zero.'),
+    image: z.string().min(1, 'A imagem é obrigatória.'),
+    stock: z.number().min(0, 'O estoque não pode ser negativo.'),
+    groupId: z.string().min(1, 'O grupo é obrigatório.'),
 });
 
 export type ProductPayload = z.infer<typeof ProductPayloadSchema>;

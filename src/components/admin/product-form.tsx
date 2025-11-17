@@ -33,6 +33,9 @@ import { useToast } from '@/hooks/use-toast';
 import { ProductPayloadSchema, createProduct, updateProduct } from '@/firebase/products';
 import type { Product, ProductGroup } from '@/lib/data/products';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useState } from 'react';
+import Image from 'next/image';
+import { Upload } from 'lucide-react';
 
 type ProductFormProps = {
   product: Product | null;
@@ -43,6 +46,8 @@ type ProductFormProps = {
 
 export function ProductForm({ product, productGroups, onOpenChange, onFormSubmit }: ProductFormProps) {
   const { toast } = useToast();
+  const [preview, setPreview] = useState<string | null>(product?.image ?? null);
+  
   const form = useForm<z.infer<typeof ProductPayloadSchema>>({
     resolver: zodResolver(ProductPayloadSchema),
     defaultValues: {
@@ -54,6 +59,20 @@ export function ProductForm({ product, productGroups, onOpenChange, onFormSubmit
       groupId: product?.groupId ?? '',
     },
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setPreview(dataUrl);
+        form.setValue('image', dataUrl, { shouldValidate: true });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   const onSubmit = (data: z.infer<typeof ProductPayloadSchema>) => {
     try {
@@ -162,16 +181,40 @@ export function ProductForm({ product, productGroups, onOpenChange, onFormSubmit
                 <FormField
                 control={form.control}
                 name="image"
-                render={({ field }) => (
+                render={() => (
                     <FormItem>
-                    <FormLabel>ID da Imagem Placeholder</FormLabel>
+                    <FormLabel>Imagem do Produto</FormLabel>
                     <FormControl>
-                        <Input placeholder="Ex: 'burger', 'pizza'" {...field} />
+                        <div>
+                        <Input
+                            id="image-upload"
+                            type="file"
+                            accept="image/png, image/jpeg, image/gif, image/webp"
+                            onChange={handleFileChange}
+                            className="hidden"
+                        />
+                        <label
+                            htmlFor="image-upload"
+                            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted"
+                        >
+                            {preview ? (
+                            <Image src={preview} alt="Pré-visualização" width={100} height={100} className="object-contain h-full p-2" />
+                            ) : (
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                                <p className="mb-2 text-sm text-muted-foreground">
+                                <span className="font-semibold">Clique para fazer upload</span>
+                                </p>
+                            </div>
+                            )}
+                        </label>
+                        </div>
                     </FormControl>
                     <FormMessage />
                     </FormItem>
                 )}
                 />
+
                 <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
                     <Button type="submit">Salvar</Button>
