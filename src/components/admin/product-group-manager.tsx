@@ -261,9 +261,9 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
                 key={group.id}
                 className="border rounded-lg bg-muted/20"
               >
-                <div className="flex items-center w-full pr-2 pl-4">
+                <div className="flex items-center justify-between w-full pr-2 pl-4">
                   <AccordionTrigger className="flex-1 py-2 text-md font-semibold hover:no-underline [&[data-state=open]>svg]:-rotate-90">
-                    <span className="truncate">{group.name}</span>
+                    <span className="truncate text-left">{group.name}</span>
                   </AccordionTrigger>
                   <div className="flex items-center gap-2 pl-2 flex-shrink-0">
                     <DropdownMenu>
