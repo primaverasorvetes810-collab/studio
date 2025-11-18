@@ -20,9 +20,13 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Qualquer usuário conectado pode criar um perfil para si mesmo.
       // Os usuários só podem ler/atualizar seus próprios perfis.
-      allow create, read, update: if isSignedIn() && isOwner(userId);
+      allow read, update: if isSignedIn() && isOwner(userId);
+      
+      // Permitir a criação do documento do usuário durante o cadastro
+      // e permitir a transação de criação de pedido (que é uma 'escrita' no escopo do usuário).
+      allow write: if isSignedIn() && isOwner(userId);
+
       // Qualquer usuário autenticado (que passou pelo portão de senha) pode listar usuários.
       allow list: if canPerformAdminAction();
 
