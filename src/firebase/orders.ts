@@ -15,6 +15,7 @@ import {
   getDoc,
   updateDoc,
   increment,
+  writeBatch,
 } from 'firebase/firestore';
 import { getClientSdks, useCollection, useMemoFirebase } from '@/firebase';
 import { errorEmitter } from './error-emitter';
@@ -78,80 +79,78 @@ export async function createOrderFromCart(
   const userId = user.uid;
 
   try {
-    await runTransaction(firestore, async (transaction) => {
-      // 1. Get user data for the order
-      const userRef = doc(firestore, 'users', userId);
-      const userSnap = await transaction.get(userRef);
-      if (!userSnap.exists()) {
-        throw new Error("Documento do usuário não encontrado!");
+    // 1. Get user data for the order
+    const userRef = doc(firestore, 'users', userId);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) {
+      throw new Error("Documento do usuário não encontrado!");
+    }
+    const userData = userSnap.data() as User;
+
+    // 2. Prepare the order data
+    const orderItems = cartItems.map((cartItem) => ({
+      id: cartItem.id, // This is cartItemId, might be confusing
+      productId: cartItem.productId,
+      quantity: cartItem.quantity,
+      itemPrice: cartItem.product.price,
+      product: { // Denormalize product data
+        id: cartItem.product.id,
+        name: cartItem.product.name,
+        description: cartItem.product.description,
+        price: cartItem.product.price,
+        image: cartItem.product.image,
+        stock: cartItem.product.stock,
+        groupId: cartItem.product.groupId
       }
-      const userData = userSnap.data() as User;
+    }));
+    
+    const newOrderData = {
+      userId,
+      userName: userData.fullName || user.displayName || 'N/A',
+      userEmail: userData.email || 'N/A',
+      userPhone: userData.phone,
+      userAddress: userData.address,
+      userNeighborhood: userData.neighborhood,
+      userCity: userData.city,
+      orderDate: serverTimestamp(),
+      paymentMethod,
+      totalAmount,
+      status: 'Pendente' as const,
+      items: orderItems,
+    };
 
-      // 2. Create the new order document
-      const newOrderRef = doc(collection(firestore, `users/${userId}/orders`));
-      
-      const orderItems = cartItems.map((cartItem) => ({
-        id: cartItem.id,
-        productId: cartItem.productId,
-        quantity: cartItem.quantity,
-        itemPrice: cartItem.product.price,
-        product: {
-          id: cartItem.product.id,
-          name: cartItem.product.name,
-          description: cartItem.product.description,
-          price: cartItem.product.price,
-          image: cartItem.product.image,
-          stock: cartItem.product.stock,
-          groupId: cartItem.product.groupId
-        }
-      }));
+    // 3. Create the order
+    const newOrderRef = await addDoc(collection(firestore, `users/${userId}/orders`), newOrderData);
 
-      const newOrderData = {
-        userId,
-        userName: userData.fullName || user.displayName || 'N/A',
-        userEmail: userData.email || 'N/A',
-        userPhone: userData.phone,
-        userAddress: userData.address,
-        userNeighborhood: userData.neighborhood,
-        userCity: userData.city,
-        orderDate: serverTimestamp(),
-        paymentMethod,
-        totalAmount,
-        status: 'Pendente' as const,
-        items: orderItems,
-      };
+    // 4. Use a batch write for atomic stock updates and cart deletion
+    const batch = writeBatch(firestore);
 
-      transaction.set(newOrderRef, newOrderData);
+    // Update stock for each product
+    for (const item of cartItems) {
+      const productRef = doc(firestore, 'products', item.productId);
+      batch.update(productRef, { 
+        stock: increment(-item.quantity)
+      });
+    }
 
-      // 3. Update stock for each product
-      for (const item of cartItems) {
-        const productRef = doc(firestore, 'products', item.productId);
-        // Atomically decrement the stock by the quantity purchased
-        transaction.update(productRef, { 
-          stock: increment(-item.quantity)
-        });
-      }
-
-      // 4. Delete all items from the user's cart
-      const cartItemsCollectionRef = collection(
-        firestore,
-        `users/${userId}/shoppingCarts/${cartId}/cartItems`
-      );
-      // We need to get the docs to delete them inside the transaction
-      const cartItemsSnapshot = await getDocs(query(cartItemsCollectionRef));
-      cartItemsSnapshot.docs.forEach(doc => transaction.delete(doc.ref));
-    });
+    // Delete all items from the user's cart
+    for (const item of cartItems) {
+        const cartItemRef = doc(firestore, `users/${userId}/shoppingCarts/${cartId}/cartItems`, item.id);
+        batch.delete(cartItemRef);
+    }
+    
+    // 5. Commit the batch
+    await batch.commit();
 
   } catch (error: any) {
-    // If the transaction fails, it will be because of read/write permissions or stock issues.
+    // If any operation fails, emit a generic but informative error
     errorEmitter.emit(
       'permission-error',
       new FirestorePermissionError({
-        path: `users/${userId}`, // A abrangente path da operação
+        path: `users/${userId}/orders`, // A representative path
         operation: 'write',
         requestResourceData: {
-          order: { paymentMethod, totalAmount },
-          cartItems: cartItems.map(i => ({ id: i.productId, quantity: i.quantity })),
+          error: `Falha na transação de criação de pedido: ${error.message}`,
         },
       })
     );
