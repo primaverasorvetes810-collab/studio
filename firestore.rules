@@ -3,15 +3,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    // Simplificação radical: Qualquer usuário autenticado pode ler e escrever em qualquer lugar.
-    // Isso resolve o problema de permissão na transação, mas remove as barreiras de segurança.
-    // Esta é uma abordagem ampla para garantir que a funcionalidade não seja bloqueada.
+    // AVISO: As regras a seguir tornam seu banco de dados público.
+    // Qualquer pessoa pode ler, escrever e deletar seus dados.
+    // Use esta configuração apenas para depuração e nunca em produção.
     match /{path=**} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
   }
 }
