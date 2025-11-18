@@ -79,17 +79,20 @@ export async function createOrderFromCart(
   const userId = user.uid;
 
   try {
-    // 1. Get user data for the order
+    // 1. Get user data from auth, not from a separate doc
+    // This is more robust as the auth user object is always available if they are logged in.
     const userRef = doc(firestore, 'users', userId);
     const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) {
-      throw new Error("Documento do usuário não encontrado!");
+    
+    let userData: Partial<User> = {};
+    if (userSnap.exists()) {
+        userData = userSnap.data() as User;
     }
-    const userData = userSnap.data() as User;
+
 
     // 2. Prepare the order data
     const orderItems = cartItems.map((cartItem) => ({
-      id: cartItem.id, // This is cartItemId, might be confusing
+      id: cartItem.id, // This is cartItemId
       productId: cartItem.productId,
       quantity: cartItem.quantity,
       itemPrice: cartItem.product.price,
@@ -107,11 +110,11 @@ export async function createOrderFromCart(
     const newOrderData = {
       userId,
       userName: userData.fullName || user.displayName || 'N/A',
-      userEmail: userData.email || 'N/A',
-      userPhone: userData.phone,
-      userAddress: userData.address,
-      userNeighborhood: userData.neighborhood,
-      userCity: userData.city,
+      userEmail: user.email || 'N/A',
+      userPhone: userData.phone || '',
+      userAddress: userData.address || '',
+      userNeighborhood: userData.neighborhood || '',
+      userCity: userData.city || '',
       orderDate: serverTimestamp(),
       paymentMethod,
       totalAmount,

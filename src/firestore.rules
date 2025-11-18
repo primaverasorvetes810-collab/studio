@@ -3,58 +3,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    // Admin logic is now handled by a password gate on the client.
-    // The rules trust that if a user is authenticated, they have passed
-    // the password check to perform admin actions.
-    // This is NOT secure for production but follows the user's request.
-    function canPerformAdminAction() {
-      return isSignedIn();
-    }
-
-    match /users/{userId} {
-      // Any signed-in user can create a profile for themselves.
-      // Users can only read/update their own profiles.
-      allow create, read, update: if isSignedIn() && isOwner(userId);
-      // Any authenticated user (who has passed the password gate) can list users.
-      allow list: if canPerformAdminAction();
-
-      match /orders/{orderId} {
-        // Users can create/read their own orders.
-        allow read, create: if isSignedIn() && isOwner(userId);
-        // Authenticated users (admins) can update any order.
-        allow update: if canPerformAdminAction();
-      }
-
-      match /shoppingCarts/{cartId} {
-        allow read, create, update, delete: if isSignedIn() && isOwner(userId);
-
-        match /cartItems/{cartItemId} {
-          allow read, create, update, delete: if isSignedIn() && isOwner(userId);
-        }
-      }
-    }
-    
-    // Authenticated users (admins) can read all orders via collection group query.
-    match /{path=**}/orders/{orderId} {
-       allow list, read: if canPerformAdminAction();
-    }
-    
-    match /productGroups/{productGroupId} {
-      allow read: if true;
-      allow write: if canPerformAdminAction(); // Write allowed for authenticated users (admins)
-    }
-
-    match /products/{productId} {
-      allow read: if true;
-      allow write: if canPerformAdminAction(); // Write allowed for authenticated users (admins)
+    // AVISO: As regras a seguir tornam seu banco de dados público.
+    // Qualquer pessoa pode ler, escrever e deletar seus dados.
+    // Use esta configuração apenas para depuração e nunca em produção.
+    match /{path=**} {
+      allow read, write: if true;
     }
   }
 }
