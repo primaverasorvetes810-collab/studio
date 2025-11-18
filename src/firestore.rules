@@ -1,13 +1,61 @@
-
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
 
-    // AVISO: As regras a seguir tornam seu banco de dados público.
-    // Qualquer pessoa pode ler, escrever e deletar seus dados.
-    // Use esta configuração apenas para depuração e nunca em produção.
-    match /{path=**} {
-      allow read, write: if true;
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Users can only access their own data.
+    // Anyone can create a user document (for sign-up).
+    match /users/{userId} {
+      allow read, update: if isOwner(userId);
+      allow create: if isSignedIn();
+    }
+
+    // Product groups are publicly readable. Only admins (via backend) should write.
+    // For now, let's lock it down to reads only for clients.
+    match /productGroups/{productGroupId} {
+      allow read: if true;
+      allow write: if false; // Protect this collection from client-side writes
+    }
+
+    // Products are publicly readable. Stock updates happen during order creation.
+    match /products/{productId} {
+      allow read: if true;
+      // Allow updates only if the user is authenticated (for stock decrement during order placement)
+      allow update: if isSignedIn(); 
+      allow create, delete: if false; // Protect from client-side creation/deletion
+    }
+    
+    // Carousel images are publicly readable.
+    match /carouselImages/{imageId} {
+        allow read: if true;
+        allow write: if false; // Protect from client-side writes
+    }
+
+    // Shopping cart and its items are private to the user.
+    match /users/{userId}/shoppingCarts/{cartId} {
+      allow read, write, delete: if isOwner(userId);
+    }
+    
+    match /users/{userId}/shoppingCarts/{cartId}/cartItems/{itemId} {
+      allow read, write, delete: if isOwner(userId);
+    }
+
+    // Orders are private to the user.
+    // Users can create their own orders. They can read their own orders.
+    // They can update their own orders only to change the status to 'Cancelado'.
+    match /users/{userId}/orders/{orderId} {
+      allow create: if isOwner(userId);
+      allow read: if isOwner(userId);
+      allow update: if isOwner(userId) && request.resource.data.status == 'Cancelado';
     }
   }
 }
