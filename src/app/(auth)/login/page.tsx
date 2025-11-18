@@ -51,8 +51,8 @@ export default function LoginPage() {
       // A navegação ou atualização do estado da UI após o login bem-sucedido
       // é gerenciada pelo listener onAuthStateChanged no FirebaseProvider.
       toast({
-        title: "Verificando...",
-        description: "Tentando fazer login.",
+        title: "Conexão Segura",
+        description: "Estamos verificando suas credenciais com segurança.",
       });
     } catch (error: any) {
       let title = "Ocorreu um erro";
