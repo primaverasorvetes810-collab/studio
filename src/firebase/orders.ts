@@ -72,41 +72,45 @@ export async function createOrderFromCart(
   user: AuthUser,
   cartId: string,
   cartItems: CartItemWithProduct[],
-  paymentMethod: string,
-  totalAmount: number
+  paymentMethod: string
 ) {
   const { firestore } = getClientSdks();
   const userId = user.uid;
 
   try {
-    // 1. Get user data from auth, not from a separate doc
-    // This is more robust as the auth user object is always available if they are logged in.
     const userRef = doc(firestore, 'users', userId);
     const userSnap = await getDoc(userRef);
-    
     let userData: Partial<User> = {};
     if (userSnap.exists()) {
         userData = userSnap.data() as User;
     }
 
+    // --- Validação de Preços no Servidor ---
+    let validatedTotalAmount = 0;
+    const validatedOrderItems = [];
 
-    // 2. Prepare the order data
-    const orderItems = cartItems.map((cartItem) => ({
-      id: cartItem.id, // This is cartItemId
-      productId: cartItem.productId,
-      quantity: cartItem.quantity,
-      itemPrice: cartItem.product.price,
-      product: { // Denormalize product data
-        id: cartItem.product.id,
-        name: cartItem.product.name,
-        description: cartItem.product.description,
-        price: cartItem.product.price,
-        image: cartItem.product.image,
-        stock: cartItem.product.stock,
-        groupId: cartItem.product.groupId
+    for (const cartItem of cartItems) {
+      const productRef = doc(firestore, 'products', cartItem.productId);
+      const productSnap = await getDoc(productRef);
+
+      if (!productSnap.exists()) {
+        throw new Error(`Produto com ID ${cartItem.productId} não encontrado.`);
       }
-    }));
-    
+
+      const serverProduct = productSnap.data() as Product;
+      const itemPrice = serverProduct.price; // Usar o preço do servidor
+      validatedTotalAmount += itemPrice * cartItem.quantity;
+      
+      validatedOrderItems.push({
+        id: cartItem.id, // cartItemId
+        productId: cartItem.productId,
+        quantity: cartItem.quantity,
+        itemPrice: itemPrice, // Preço validado
+        product: { ...serverProduct, id: cartItem.productId }
+      });
+    }
+    // --- Fim da Validação de Preços ---
+
     const newOrderData = {
       userId,
       userName: userData.fullName || user.displayName || 'N/A',
@@ -117,18 +121,15 @@ export async function createOrderFromCart(
       userCity: userData.city || '',
       orderDate: serverTimestamp(),
       paymentMethod,
-      totalAmount,
+      totalAmount: validatedTotalAmount, // Usar o total validado
       status: 'Pendente' as const,
-      items: orderItems,
+      items: validatedOrderItems,
     };
 
-    // 3. Create the order
     const newOrderRef = await addDoc(collection(firestore, `users/${userId}/orders`), newOrderData);
 
-    // 4. Use a batch write for atomic stock updates and cart deletion
     const batch = writeBatch(firestore);
 
-    // Update stock for each product
     for (const item of cartItems) {
       const productRef = doc(firestore, 'products', item.productId);
       batch.update(productRef, { 
@@ -136,28 +137,24 @@ export async function createOrderFromCart(
       });
     }
 
-    // Delete all items from the user's cart
     for (const item of cartItems) {
         const cartItemRef = doc(firestore, `users/${userId}/shoppingCarts/${cartId}/cartItems`, item.id);
         batch.delete(cartItemRef);
     }
     
-    // 5. Commit the batch
     await batch.commit();
 
   } catch (error: any) {
-    // If any operation fails, emit a generic but informative error
     errorEmitter.emit(
       'permission-error',
       new FirestorePermissionError({
-        path: `users/${userId}/orders`, // A representative path
+        path: `users/${userId}/orders`,
         operation: 'write',
         requestResourceData: {
           error: `Falha na transação de criação de pedido: ${error.message}`,
         },
       })
     );
-     // Re-throw the original error after emitting our custom one
      throw error;
   }
 }
@@ -191,7 +188,6 @@ export function useUserOrders(userId?: string) {
   const { data: ordersData, isLoading, error, setData: setOrders } = useCollection<OrderWithItems>(ordersQuery);
 
 
-  // Add setOrders to allow local state updates
   const [orders, setLocalOrders] = useState<OrderWithItems[]>([]);
 
   useEffect(() => {
@@ -201,7 +197,6 @@ export function useUserOrders(userId?: string) {
     }
   }, [ordersData]);
 
-  // Expose a setter that wraps the local state update
   const handleSetOrders = (newOrders: OrderWithItems[] | ((prev: OrderWithItems[]) => OrderWithItems[])) => {
     if(typeof newOrders === 'function') {
       setLocalOrders(newOrders);

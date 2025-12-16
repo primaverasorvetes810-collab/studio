@@ -72,7 +72,7 @@ export default function CartPage() {
     }
     setIsPlacingOrder(true);
     try {
-      await createOrderFromCart(user, cartId, cartItems, paymentMethod, total);
+      await createOrderFromCart(user, cartId, cartItems, paymentMethod);
       toast({
         title: 'Pedido realizado!',
         description: 'Seu pedido foi criado com sucesso.',
