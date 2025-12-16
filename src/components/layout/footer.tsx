@@ -18,10 +18,10 @@ export default function Footer() {
           <Link href="/acessibilidade" className="hover:text-primary hover:underline">
             Acessibilidade
           </Link>
-           <Link href="#" className="hover:text-primary hover:underline">
+           <Link href="/termos-de-servico" className="hover:text-primary hover:underline">
             Termos de Serviço
           </Link>
-          <Link href="#" className="hover:text-primary hover:underline">
+          <Link href="/politica-de-privacidade" className="hover:text-primary hover:underline">
             Política de Privacidade
           </Link>
         </div>
