@@ -79,11 +79,19 @@ export async function createOrderFromCart(
 
   try {
     const userRef = doc(firestore, 'users', userId);
-    const userSnap = await getDoc(userRef);
     let userData: Partial<User> = {};
-    if (userSnap.exists()) {
-        userData = userSnap.data() as User;
+    
+    // Tenta buscar os dados do perfil do usuário, mas não falha se não existirem
+    try {
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            userData = userSnap.data() as User;
+        }
+    } catch (e) {
+        // Registra o erro, mas continua, pois os dados do usuário não são críticos para a criação do pedido
+        console.warn("Não foi possível buscar o perfil do usuário durante a criação do pedido:", e);
     }
+
 
     // --- Validação de Preços no Servidor ---
     let validatedTotalAmount = 0;
@@ -113,7 +121,7 @@ export async function createOrderFromCart(
 
     const newOrderData = {
       userId,
-      userName: userData.fullName || user.displayName || 'N/A',
+      userName: userData.fullName || user.displayName || user.email || 'N/A',
       userEmail: user.email || 'N/A',
       userPhone: userData.phone || '',
       userAddress: userData.address || '',
@@ -121,7 +129,7 @@ export async function createOrderFromCart(
       userCity: userData.city || '',
       orderDate: serverTimestamp(),
       paymentMethod,
-      totalAmount: validatedTotalAmount, // Usar o total validado
+      totalAmount: validatedTotalAmount,
       status: 'Pendente' as const,
       items: validatedOrderItems,
     };
