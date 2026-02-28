@@ -60,13 +60,14 @@ export default function AdminHelpPage() {
         if (Notification.permission === "granted") {
           new Notification("Primavera Delivery", {
             body: "Este é um alarme de teste! Você está pronto para receber notificações.",
-            icon: "/favicon.ico", 
+            icon: "/icons/icon-192x192.png",
           });
         } else if (Notification.permission !== "denied") {
           Notification.requestPermission().then((permission) => {
             if (permission === "granted") {
               new Notification("Permissão concedida!", {
                 body: "Agora você pode receber notificações.",
+                icon: "/icons/icon-192x192.png",
               });
             } else {
                 toast({
