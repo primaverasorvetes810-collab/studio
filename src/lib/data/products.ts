@@ -14,6 +14,8 @@ export type Product = {
   image: string;
   stock: number;
   groupId: string; // Adicionado para associar ao ProductGroup
+  isActive?: boolean;
+  subgroup?: string;
 };
 
 export const products: Product[] = productsData.products as Product[];

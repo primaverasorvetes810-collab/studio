@@ -32,8 +32,10 @@ export function ProductGrid({ groupId }: ProductGridProps) {
       return;
     }
     const lowercasedFilter = searchTerm.toLowerCase();
-    const filtered = initialProducts.filter((product) =>
-      product.name.toLowerCase().includes(lowercasedFilter)
+    const filtered = initialProducts.filter(
+      (product) =>
+        product.isActive !== false && // Apenas produtos ativos
+        product.name.toLowerCase().includes(lowercasedFilter)
     );
     setFilteredProducts(filtered);
   }, [searchTerm, initialProducts]);

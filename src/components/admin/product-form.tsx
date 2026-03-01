@@ -36,6 +36,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState } from 'react';
 import Image from 'next/image';
 import { Upload } from 'lucide-react';
+import { Switch } from '../ui/switch';
+import { Separator } from '../ui/separator';
 
 type ProductFormProps = {
   product: Product | null;
@@ -56,7 +58,9 @@ export function ProductForm({ product, groupId, onOpenChange, onFormSubmit }: Pr
       price: product?.price ?? 0,
       image: product?.image ?? '',
       stock: product?.stock ?? 0,
-      groupId: product?.groupId ?? groupId, // Pre-fill with groupId
+      groupId: product?.groupId ?? groupId,
+      isActive: product?.isActive ?? true,
+      subgroup: product?.subgroup ?? '',
     },
   });
 
@@ -114,6 +118,19 @@ export function ProductForm({ product, groupId, onOpenChange, onFormSubmit }: Pr
                         <Input placeholder="Ex: Pote de Açaí 500ml" {...field} />
                     </FormControl>
                     <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="subgroup"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Subgrupo (Opcional)</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Ex: Marca, Linha, etc." {...field} />
+                    </FormControl>
+                     <FormMessage />
                     </FormItem>
                 )}
                 />
@@ -194,7 +211,31 @@ export function ProductForm({ product, groupId, onOpenChange, onFormSubmit }: Pr
                 )}
                 />
 
-                <DialogFooter>
+                <Separator className="my-2" />
+                
+                <FormField
+                  control={form.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                      <div className="space-y-0.5">
+                        <FormLabel>Produto Ativo</FormLabel>
+                        <FormDescription>
+                          Se desativado, o produto não aparecerá na loja.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+
+                <DialogFooter className="pt-4">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
                     <Button type="submit">Salvar</Button>
                 </DialogFooter>

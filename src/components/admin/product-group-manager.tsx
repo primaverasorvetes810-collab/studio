@@ -35,10 +35,10 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { formatPrice } from '@/lib/utils';
 import { Badge } from '../ui/badge';
-import { deleteProduct } from '@/firebase/products';
+import { deleteProduct, updateProduct } from '@/firebase/products';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu';
 import { Input } from '../ui/input';
-import { cn } from '@/lib/utils';
+import { Switch } from '../ui/switch';
 
 
 function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEdit: (product: Product) => void, onAdd: (groupId: string) => void }) {
@@ -50,6 +50,26 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
   const { data: products, isLoading } = useCollection<Product>(productsQuery);
   const { toast } = useToast();
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  
+  const groupedProducts = useMemo(() => {
+    if (!products) return {};
+    return products.reduce((acc, product) => {
+        const subgroup = product.subgroup || 'Geral';
+        if (!acc[subgroup]) {
+            acc[subgroup] = [];
+        }
+        acc[subgroup].push(product);
+        return acc;
+    }, {} as Record<string, Product[]>);
+  }, [products]);
+
+  const handleToggleActive = (product: Product) => {
+    const newStatus = !(product.isActive ?? true);
+    updateProduct(product.id, { isActive: newStatus });
+    toast({
+        title: `Produto ${newStatus ? 'ativado' : 'desativado'}`,
+    });
+  };
 
   const confirmDeleteProduct = (product: Product) => {
     deleteProduct(product.id);
@@ -61,95 +81,92 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
   }
 
   if (isLoading) return <div className="flex items-center justify-center p-4"><Loader2 className="h-5 w-5 animate-spin" /></div>;
+  
+  if (!products || products.length === 0) {
+    return (
+        <div className="w-full">
+             <div className="py-8 text-center text-sm text-muted-foreground">
+                Nenhum produto neste grupo.
+            </div>
+            <div className="flex justify-start border-t px-4 py-2">
+                <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={() => onAdd(groupId)}>
+                    <PlusCircle className="h-4 w-4" />
+                    <span>Adicionar Produto</span>
+                </Button>
+            </div>
+        </div>
+    );
+  }
 
   return (
     <div className="w-full">
-        <Table>
-            <TableHeader>
-                <TableRow>
-                <TableHead className="hidden w-[64px] sm:table-cell px-2 py-2">Imagem</TableHead>
-                <TableHead className="px-2 py-2">Nome</TableHead>
-                <TableHead className='hidden md:table-cell px-2 py-2'>Preço</TableHead>
-                <TableHead className='hidden md:table-cell px-2 py-2'>Estoque</TableHead>
-                <TableHead className="px-2 py-2"><span className="sr-only">Ações</span></TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {products && products.length > 0 ? products.map((product) => {
-                const placeholder = PlaceHolderImages.find((p) => p.id === product.image);
-                const imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
-                return (
-                    <TableRow key={product.id}>
-                    <TableCell className="hidden sm:table-cell px-2 py-2">
-                        {imageUrl && (
-                        <Image
-                            alt={product.name}
-                            className="aspect-square rounded-md object-cover"
-                            height="40"
-                            src={imageUrl}
-                            width="40"
-                        />
-                        )}
-                    </TableCell>
-                    <TableCell className="font-medium px-2 py-2">{product.name}</TableCell>
-                    <TableCell className="hidden md:table-cell px-2 py-2">{formatPrice(product.price)}</TableCell>
-                    <TableCell className="hidden md:table-cell px-2 py-2">{product.stock} un.</TableCell>
-                    <TableCell className="px-2 py-2">
-                        <div className="flex justify-end">
-                           <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => onEdit(product)}>
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Editar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setDeletingProduct(product)} className="text-destructive">
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Deletar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </TableCell>
-                    </TableRow>
-                )
-                }) : (
-                     <TableRow>
-                        <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
-                            Nenhum produto neste grupo.
-                        </TableCell>
-                    </TableRow>
-                )}
-            </TableBody>
-        </Table>
+        {Object.keys(groupedProducts).sort().map(subgroupName => (
+            <div key={subgroupName} className="border-t first:border-t-0">
+                <h4 className="px-4 pt-3 pb-2 text-sm font-semibold tracking-wider bg-muted/50">{subgroupName}</h4>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="hidden w-[48px] sm:table-cell px-2 py-2">Imagem</TableHead>
+                            <TableHead className="px-2 py-2 max-w-[150px]">Nome</TableHead>
+                            <TableHead className="hidden md:table-cell px-2 py-2">Preço</TableHead>
+                            <TableHead className="px-2 py-2">Status</TableHead>
+                            <TableHead className="px-2 py-2 text-right"><span className="sr-only">Ações</span></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {groupedProducts[subgroupName].map((product) => {
+                            const placeholder = PlaceHolderImages.find((p) => p.id === product.image);
+                            const imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
+                            return (
+                                <TableRow key={product.id}>
+                                    <TableCell className="hidden sm:table-cell px-2 py-2">
+                                        {imageUrl && <Image alt={product.name} className="aspect-square rounded-md object-cover" height="40" src={imageUrl} width="40" />}
+                                    </TableCell>
+                                    <TableCell className="font-medium px-2 py-2 truncate max-w-[150px]">{product.name}</TableCell>
+                                    <TableCell className="hidden md:table-cell px-2 py-2">{formatPrice(product.price)}</TableCell>
+                                    <TableCell className="px-2 py-2">
+                                        <Switch
+                                            checked={product.isActive ?? true}
+                                            onCheckedChange={() => handleToggleActive(product)}
+                                            aria-label="Ativar ou desativar produto"
+                                        />
+                                    </TableCell>
+                                    <TableCell className="px-2 py-2 text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onClick={() => onEdit(product)}><Pencil className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => setDeletingProduct(product)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })}
+                    </TableBody>
+                </Table>
+            </div>
+        ))}
 
         <div className="flex justify-start border-t px-4 py-2">
              <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={() => onAdd(groupId)}>
               <PlusCircle className="h-4 w-4" />
-              <span className="sm:whitespace-nowrap">
-                Adicionar Produto
-              </span>
+              <span>Adicionar Produto ao Grupo</span>
             </Button>
         </div>
 
          <AlertDialog open={!!deletingProduct} onOpenChange={() => setDeletingProduct(null)}>
             <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Esta ação irá deletar o produto "{deletingProduct?.name}" permanentemente. Essa ação não pode ser desfeita.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => deletingProduct && confirmDeleteProduct(deletingProduct)} className="bg-destructive hover:bg-destructive/90">
-                Sim, deletar produto
-                </AlertDialogAction>
-            </AlertDialogFooter>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+                    <AlertDialogDescription>Esta ação irá deletar o produto "{deletingProduct?.name}" permanentemente. Essa ação não pode ser desfeita.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => deletingProduct && confirmDeleteProduct(deletingProduct)} className="bg-destructive hover:bg-destructive/90">Sim, deletar produto</AlertDialogAction>
+                </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
     </div>

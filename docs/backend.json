@@ -109,9 +109,17 @@
           "type": "number",
           "description": "Price of the product."
         },
-        "stockLevel": {
+        "stock": {
           "type": "number",
           "description": "Current stock level of the product."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Indicates whether the product is active and visible to customers."
+        },
+        "subgroup": {
+          "type": "string",
+          "description": "An optional subgroup for categorization within a product group (e.g., brand)."
         }
       },
       "required": [
@@ -120,7 +128,7 @@
         "name",
         "description",
         "price",
-        "stockLevel"
+        "stock"
       ]
     },
     "ShoppingCart": {

@@ -20,6 +20,8 @@ export const ProductPayloadSchema = z.object({
     image: z.string().min(1, 'A imagem é obrigatória.'),
     stock: z.number().min(0, 'O estoque não pode ser negativo.'),
     groupId: z.string().min(1, 'O grupo é obrigatório.'),
+    isActive: z.boolean().default(true),
+    subgroup: z.string().optional(),
 });
 
 export type ProductPayload = z.infer<typeof ProductPayloadSchema>;
