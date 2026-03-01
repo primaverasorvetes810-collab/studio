@@ -31,7 +31,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { ProductPayloadSchema, createProduct, updateProduct } from '@/firebase/products';
+import { ProductPayload, ProductPayloadSchema, createProduct, updateProduct } from '@/firebase/products';
 import type { Product, ProductGroup } from '@/lib/data/products';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState } from 'react';
@@ -224,6 +224,9 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                 </label>
                                 </div>
                             </FormControl>
+                            <FormDescription>
+                                Recomendamos imagens na proporção 16:9 (ex: 1280x720 pixels).
+                            </FormDescription>
                             <FormMessage />
                             </FormItem>
                         )}
