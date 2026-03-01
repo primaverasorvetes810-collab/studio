@@ -47,6 +47,10 @@ type ProductFormProps = {
   onFormSubmit: () => void;
 };
 
+// Um valor especial para representar o subgrupo "Geral" no formulário,
+// já que o valor de SelectItem não pode ser uma string vazia.
+const GERAL_SUBGROUP_VALUE = '__GERAL__';
+
 export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }: ProductFormProps) {
   const { toast } = useToast();
   const [preview, setPreview] = useState<string | null>(product?.image ?? null);
@@ -61,7 +65,8 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
       stock: product?.stock ?? 0,
       groupId: product?.groupId ?? parentGroup.id,
       isActive: product?.isActive ?? true,
-      subgroup: product?.subgroup ?? '',
+      // Se o subgrupo estiver vazio ou indefinido, use o valor especial para "Geral"
+      subgroup: product?.subgroup ? product.subgroup : GERAL_SUBGROUP_VALUE,
     },
   });
 
@@ -80,12 +85,17 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
 
 
   const onSubmit = (data: z.infer<typeof ProductPayloadSchema>) => {
+    // Converte o valor especial para "Geral" de volta para uma string vazia para o Firestore
+    const dataToSend = {
+      ...data,
+      subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
+    };
     try {
         if (product) {
-            updateProduct(product.id, data);
+            updateProduct(product.id, dataToSend);
             toast({ title: "Sucesso!", description: "Produto atualizado." });
         } else {
-            createProduct(data);
+            createProduct(dataToSend);
             toast({ title: "Sucesso!", description: "Novo produto adicionado." });
         }
         onFormSubmit();
@@ -133,7 +143,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Geral</SelectItem>
+                          <SelectItem value={GERAL_SUBGROUP_VALUE}>Geral</SelectItem>
                           {parentGroup.subgroups?.map((sub) => (
                             <SelectItem key={sub} value={sub}>{sub}</SelectItem>
                           ))}
