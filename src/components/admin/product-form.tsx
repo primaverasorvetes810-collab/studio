@@ -67,8 +67,11 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
       isActive: product?.isActive ?? true,
       // Se o subgrupo estiver vazio ou indefinido, use o valor especial para "Geral"
       subgroup: product?.subgroup ? product.subgroup : GERAL_SUBGROUP_VALUE,
+      manageStock: product?.manageStock ?? true,
     },
   });
+
+  const manageStock = form.watch('manageStock');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -86,10 +89,15 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
 
   const onSubmit = (data: z.infer<typeof ProductPayloadSchema>) => {
     // Converte o valor especial para "Geral" de volta para uma string vazia para o Firestore
-    const dataToSend = {
+    const dataToSend: ProductPayload = {
       ...data,
       subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
     };
+
+    if (!data.manageStock) {
+      dataToSend.stock = 0;
+    }
+
     try {
         if (product) {
             updateProduct(product.id, dataToSend);
@@ -183,19 +191,6 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                             </FormItem>
                         )}
                         />
-                        <FormField
-                        control={form.control}
-                        name="stock"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Estoque</FormLabel>
-                            <FormControl>
-                                <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))} />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
                         
                         <FormField
                         control={form.control}
@@ -256,6 +251,44 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                             </FormItem>
                           )}
                         />
+
+                        <FormField
+                          control={form.control}
+                          name="manageStock"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                              <div className="space-y-0.5">
+                                <FormLabel>Gerenciar Estoque</FormLabel>
+                                <FormDescription>
+                                  Se ativado, a quantidade será controlada.
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        {manageStock && (
+                            <FormField
+                            control={form.control}
+                            name="stock"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Quantidade em Estoque</FormLabel>
+                                <FormControl>
+                                    <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                        )}
+
                     </div>
                 </ScrollArea>
                 <DialogFooter className="pt-4">

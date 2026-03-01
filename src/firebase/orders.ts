@@ -93,7 +93,7 @@ export async function createOrderFromCart(
     }
 
 
-    // --- Validação de Preços no Servidor ---
+    // --- Validação de Preços e Estoque no Servidor ---
     let validatedTotalAmount = 0;
     const validatedOrderItems = [];
 
@@ -106,6 +106,11 @@ export async function createOrderFromCart(
       }
 
       const serverProduct = productSnap.data() as Product;
+
+      if (serverProduct.manageStock && serverProduct.stock < cartItem.quantity) {
+        throw new Error(`Estoque insuficiente para o produto "${serverProduct.name}".`);
+      }
+
       const itemPrice = serverProduct.price; // Usar o preço do servidor
       validatedTotalAmount += itemPrice * cartItem.quantity;
       
@@ -117,7 +122,7 @@ export async function createOrderFromCart(
         product: { ...serverProduct, id: cartItem.productId }
       });
     }
-    // --- Fim da Validação de Preços ---
+    // --- Fim da Validação ---
 
     const newOrderData = {
       userId,
@@ -138,11 +143,14 @@ export async function createOrderFromCart(
 
     const batch = writeBatch(firestore);
 
-    for (const item of cartItems) {
-      const productRef = doc(firestore, 'products', item.productId);
-      batch.update(productRef, { 
-        stock: increment(-item.quantity)
-      });
+    // Diminuir estoque e limpar carrinho
+    for (const item of validatedOrderItems) {
+      if (item.product.manageStock) {
+        const productRef = doc(firestore, 'products', item.productId);
+        batch.update(productRef, { 
+          stock: increment(-item.quantity)
+        });
+      }
     }
 
     for (const item of cartItems) {
@@ -153,16 +161,18 @@ export async function createOrderFromCart(
     await batch.commit();
 
   } catch (error: any) {
-    errorEmitter.emit(
-      'permission-error',
-      new FirestorePermissionError({
-        path: `users/${userId}/orders`,
-        operation: 'write',
-        requestResourceData: {
-          error: `Falha na transação de criação de pedido: ${error.message}`,
-        },
-      })
-    );
+    if (!(error.message.includes('Estoque insuficiente'))) {
+      errorEmitter.emit(
+        'permission-error',
+        new FirestorePermissionError({
+          path: `users/${userId}/orders`,
+          operation: 'write',
+          requestResourceData: {
+            error: `Falha na transação de criação de pedido: ${error.message}`,
+          },
+        })
+      );
+    }
      throw error;
   }
 }

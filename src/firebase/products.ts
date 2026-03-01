@@ -22,6 +22,7 @@ export const ProductPayloadSchema = z.object({
     groupId: z.string().min(1, 'O grupo é obrigatório.'),
     isActive: z.boolean().default(true),
     subgroup: z.string().optional(),
+    manageStock: z.boolean().default(true),
 });
 
 export type ProductPayload = z.infer<typeof ProductPayloadSchema>;

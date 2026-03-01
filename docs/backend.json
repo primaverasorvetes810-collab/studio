@@ -118,7 +118,7 @@
         },
         "stock": {
           "type": "number",
-          "description": "Current stock level of the product."
+          "description": "Current stock level of the product. Only relevant if manageStock is true."
         },
         "isActive": {
           "type": "boolean",
@@ -127,6 +127,14 @@
         "subgroup": {
           "type": "string",
           "description": "An optional subgroup for categorization within a product group (e.g., brand)."
+        },
+        "image": {
+          "type": "string",
+          "description": "A data URI for the product image."
+        },
+        "manageStock": {
+          "type": "boolean",
+          "description": "If true, stock level is tracked for this product. Defaults to true."
         }
       },
       "required": [
@@ -135,7 +143,10 @@
         "name",
         "description",
         "price",
-        "stock"
+        "stock",
+        "isActive",
+        "image",
+        "manageStock"
       ]
     },
     "ShoppingCart": {

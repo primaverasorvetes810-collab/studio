@@ -78,8 +78,15 @@ export default function CartPage() {
         description: 'Seu pedido foi criado com sucesso.',
       });
       router.push('/orders');
-    } catch (error) {
-      // Error is handled by the global listener
+    } catch (error: any) {
+      if (error.message.includes('Estoque insuficiente')) {
+        toast({
+          variant: 'destructive',
+          title: 'Erro no Pedido',
+          description: error.message,
+        });
+      }
+      // Outros erros são manipulados pelo listener global
     } finally {
       setIsPlacingOrder(false);
     }
