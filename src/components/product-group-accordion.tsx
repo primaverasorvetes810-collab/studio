@@ -35,7 +35,7 @@ export function ProductGroupAccordion({
           </AccordionTrigger>
           <AccordionContent className="p-6 pt-0">
              <p className="text-muted-foreground mb-6">{group.description}</p>
-            <ProductGrid groupId={group.id} />
+            <ProductGrid group={group} />
           </AccordionContent>
         </AccordionItem>
       ))}

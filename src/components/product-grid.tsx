@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { ProductCard } from '@/components/product-card';
-import type { Product } from '@/lib/data/products';
+import type { Product, ProductGroup } from '@/lib/data/products';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -10,35 +10,46 @@ import { collection, query, where } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 
 type ProductGridProps = {
-  groupId: string;
+  group: ProductGroup;
 };
 
-export function ProductGrid({ groupId }: ProductGridProps) {
+export function ProductGrid({ group }: ProductGridProps) {
   const firestore = useFirestore();
   const [searchTerm, setSearchTerm] = useState('');
   
   const productsQuery = useMemoFirebase(() => {
-    if (!firestore || !groupId) return null;
-    return query(collection(firestore, 'products'), where('groupId', '==', groupId));
-  }, [firestore, groupId]);
+    if (!firestore || !group.id) return null;
+    return query(collection(firestore, 'products'), where('groupId', '==', group.id));
+  }, [firestore, group.id]);
 
   const { data: initialProducts, isLoading } = useCollection<Product>(productsQuery);
 
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const groupedAndFilteredProducts = useMemo(() => {
+    if (!initialProducts) return {};
 
-  useEffect(() => {
-    if (!initialProducts) {
-      setFilteredProducts([]);
-      return;
-    }
     const lowercasedFilter = searchTerm.toLowerCase();
+    
     const filtered = initialProducts.filter(
       (product) =>
-        product.isActive !== false && // Apenas produtos ativos
+        product.isActive !== false &&
         product.name.toLowerCase().includes(lowercasedFilter)
     );
-    setFilteredProducts(filtered);
+
+    return filtered.reduce((acc, product) => {
+        const subgroup = product.subgroup || 'Geral';
+        if (!acc[subgroup]) {
+            acc[subgroup] = [];
+        }
+        acc[subgroup].push(product);
+        return acc;
+    }, {} as Record<string, Product[]>);
+
   }, [searchTerm, initialProducts]);
+
+  const displaySubgroups = useMemo(() => {
+    const subgroupOrder = ['Geral', ...(group.subgroups ?? [])];
+    return subgroupOrder.filter(subgroupName => groupedAndFilteredProducts[subgroupName]?.length > 0);
+  }, [group.subgroups, groupedAndFilteredProducts]);
 
   if (isLoading) {
     return (
@@ -47,6 +58,8 @@ export function ProductGrid({ groupId }: ProductGridProps) {
       </div>
     )
   }
+
+  const hasAnyProducts = Object.keys(groupedAndFilteredProducts).length > 0 && Object.values(groupedAndFilteredProducts).some(arr => arr.length > 0);
 
   return (
     <>
@@ -61,10 +74,17 @@ export function ProductGrid({ groupId }: ProductGridProps) {
           />
         </div>
       </div>
-      {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+      {hasAnyProducts ? (
+        <div className="space-y-8">
+          {displaySubgroups.map((subgroupName) => (
+            <div key={subgroupName}>
+              <h3 className="text-xl font-semibold mb-4">{subgroupName}</h3>
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {groupedAndFilteredProducts[subgroupName].map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       ) : (
