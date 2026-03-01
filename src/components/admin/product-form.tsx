@@ -114,156 +114,156 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
             Preencha os detalhes do produto aqui. Clique em salvar quando terminar.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[70vh] pr-6">
-            <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
-                <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Nome</FormLabel>
-                    <FormControl>
-                        <Input placeholder="Ex: Pote de Açaí 500ml" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                  control={form.control}
-                  name="subgroup"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Subgrupo</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um subgrupo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value={GERAL_SUBGROUP_VALUE}>Geral</SelectItem>
-                          {parentGroup.subgroups?.map((sub) => (
-                            <SelectItem key={sub} value={sub}>{sub}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Gerencie os subgrupos na tela de edição do grupo.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Descrição</FormLabel>
-                    <FormControl>
-                        <Textarea placeholder="Descreva o produto..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Preço (em R$)</FormLabel>
-                    <FormControl>
-                        <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="stock"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Estoque</FormLabel>
-                    <FormControl>
-                        <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                
-                <FormField
-                control={form.control}
-                name="image"
-                render={() => (
-                    <FormItem>
-                    <FormLabel>Imagem do Produto</FormLabel>
-                    <FormControl>
-                        <div>
-                        <Input
-                            id="image-upload"
-                            type="file"
-                            accept="image/png, image/jpeg, image/gif, image/webp"
-                            onChange={handleFileChange}
-                            className="hidden"
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+                <ScrollArea className="max-h-[60vh] pr-6">
+                    <div className="grid gap-4 py-4">
+                        <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Nome</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Ex: Pote de Açaí 500ml" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
                         />
-                        <label
-                            htmlFor="image-upload"
-                            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted"
-                        >
-                            {preview ? (
-                            <Image src={preview} alt="Pré-visualização" width={100} height={100} className="object-contain h-full p-2" />
-                            ) : (
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                                <p className="mb-2 text-sm text-muted-foreground">
-                                <span className="font-semibold">Clique para fazer upload</span>
-                                </p>
-                            </div>
-                            )}
-                        </label>
-                        </div>
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-
-                <Separator className="my-2" />
-                
-                <FormField
-                  control={form.control}
-                  name="isActive"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                      <div className="space-y-0.5">
-                        <FormLabel>Produto Ativo</FormLabel>
-                        <FormDescription>
-                          Se desativado, o produto não aparecerá na loja.
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
+                        <FormField
+                          control={form.control}
+                          name="subgroup"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Subgrupo</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione um subgrupo" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value={GERAL_SUBGROUP_VALUE}>Geral</SelectItem>
+                                  {parentGroup.subgroups?.map((sub) => (
+                                    <SelectItem key={sub} value={sub}>{sub}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Gerencie os subgrupos na tela de edição do grupo.
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                        <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Descrição</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="Descreva o produto..." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Preço (em R$)</FormLabel>
+                            <FormControl>
+                                <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="stock"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Estoque</FormLabel>
+                            <FormControl>
+                                <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        
+                        <FormField
+                        control={form.control}
+                        name="image"
+                        render={() => (
+                            <FormItem>
+                            <FormLabel>Imagem do Produto</FormLabel>
+                            <FormControl>
+                                <div>
+                                <Input
+                                    id="image-upload"
+                                    type="file"
+                                    accept="image/png, image/jpeg, image/gif, image/webp"
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                />
+                                <label
+                                    htmlFor="image-upload"
+                                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted"
+                                >
+                                    {preview ? (
+                                    <Image src={preview} alt="Pré-visualização" width={100} height={100} className="object-contain h-full p-2" />
+                                    ) : (
+                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                                        <p className="mb-2 text-sm text-muted-foreground">
+                                        <span className="font-semibold">Clique para fazer upload</span>
+                                        </p>
+                                    </div>
+                                    )}
+                                </label>
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
 
-
+                        <Separator className="my-2" />
+                        
+                        <FormField
+                          control={form.control}
+                          name="isActive"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                              <div className="space-y-0.5">
+                                <FormLabel>Produto Ativo</FormLabel>
+                                <FormDescription>
+                                  Se desativado, o produto não aparecerá na loja.
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                    </div>
+                </ScrollArea>
                 <DialogFooter className="pt-4">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
                     <Button type="submit">Salvar</Button>
                 </DialogFooter>
             </form>
-            </Form>
-        </ScrollArea>
+        </Form>
       </DialogContent>
     </Dialog>
   );
