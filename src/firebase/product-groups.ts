@@ -4,7 +4,6 @@ import {
   doc,
   addDoc,
   updateDoc,
-  deleteDoc,
   collection,
   writeBatch,
   query,
@@ -12,21 +11,23 @@ import {
   getDocs
 } from 'firebase/firestore';
 import { getClientSdks } from '@/firebase';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from './non-blocking-updates';
+import { addDocumentNonBlocking, updateDocumentNonBlocking } from './non-blocking-updates';
 import { z } from 'zod';
 
 const GroupPayloadSchema = z.object({
     name: z.string(),
     description: z.string().optional(),
+    subgroups: z.array(z.string()).optional(),
 });
 
-type GroupPayload = z.infer<typeof GroupPayloadSchema>;
+export type GroupPayload = z.infer<typeof GroupPayloadSchema>;
 
 export function createProductGroup(payload: GroupPayload) {
   const { firestore } = getClientSdks();
   const groupsCollection = collection(firestore, 'productGroups');
   const validatedPayload = GroupPayloadSchema.parse(payload);
-  return addDocumentNonBlocking(groupsCollection, validatedPayload);
+  const data = { ...validatedPayload, subgroups: validatedPayload.subgroups ?? [] };
+  return addDocumentNonBlocking(groupsCollection, data);
 }
 
 export function updateProductGroup(groupId: string, payload: Partial<GroupPayload>) {

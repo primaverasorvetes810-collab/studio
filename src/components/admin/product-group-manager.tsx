@@ -30,26 +30,22 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '..
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { formatPrice } from '@/lib/utils';
-import { Badge } from '../ui/badge';
 import { deleteProduct, updateProduct } from '@/firebase/products';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/dropdown-menu';
 import { Input } from '../ui/input';
 import { Switch } from '../ui/switch';
 
 
-function ProductListForGroup({ groupId, products, onEdit, onAdd }: { 
-    groupId: string, 
+function ProductListForGroup({ group, products, onEdit, onAdd }: { 
+    group: ProductGroup, 
     products: Product[],
-    onEdit: (product: Product, subgroups: string[]) => void, 
-    onAdd: (groupId: string, subgroups: string[]) => void 
+    onEdit: (product: Product, group: ProductGroup) => void, 
+    onAdd: (group: ProductGroup) => void 
 }) {
   const { toast } = useToast();
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
-  const subgroups = useMemo(() => {
-    const set = new Set(products.map(p => p.subgroup).filter(Boolean) as string[]);
-    return Array.from(set).sort();
-  }, [products]);
+  const subgroups = useMemo(() => ['Geral', ...(group.subgroups ?? [])], [group.subgroups]);
   
   const groupedProducts = useMemo(() => {
     if (!products) return {};
@@ -62,12 +58,6 @@ function ProductListForGroup({ groupId, products, onEdit, onAdd }: {
         return acc;
     }, {} as Record<string, Product[]>);
   }, [products]);
-
-  const subgroupNames = Object.keys(groupedProducts).sort((a,b) => {
-    if (a === 'Geral') return 1;
-    if (b === 'Geral') return -1;
-    return a.localeCompare(b);
-  });
 
   const handleToggleActive = (product: Product) => {
     const newStatus = !(product.isActive ?? true);
@@ -95,7 +85,7 @@ function ProductListForGroup({ groupId, products, onEdit, onAdd }: {
                 Nenhum produto neste grupo.
             </div>
             <div className="flex justify-start border-t px-4 py-2">
-                <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={() => onAdd(groupId, [])}>
+                <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={() => onAdd(group)}>
                     <PlusCircle className="h-4 w-4" />
                     <span>Adicionar Produto</span>
                 </Button>
@@ -106,58 +96,60 @@ function ProductListForGroup({ groupId, products, onEdit, onAdd }: {
 
   return (
     <div className="w-full">
-        {subgroupNames.map(subgroupName => (
-            <div key={subgroupName} className="border-t first:border-t-0">
-                <h4 className="px-4 pt-3 pb-2 text-sm font-semibold tracking-wider bg-muted/50">{subgroupName}</h4>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="hidden w-[48px] sm:table-cell px-2 py-2">Imagem</TableHead>
-                            <TableHead className="px-2 py-2 max-w-[150px]">Nome</TableHead>
-                            <TableHead className="hidden md:table-cell px-2 py-2">Preço</TableHead>
-                            <TableHead className="px-2 py-2">Status</TableHead>
-                            <TableHead className="px-2 py-2 text-right"><span className="sr-only">Ações</span></TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {groupedProducts[subgroupName].map((product) => {
-                            const placeholder = PlaceHolderImages.find((p) => p.id === product.image);
-                            const imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
-                            return (
-                                <TableRow key={product.id}>
-                                    <TableCell className="hidden sm:table-cell px-2 py-2">
-                                        {imageUrl && <Image alt={product.name} className="aspect-square rounded-md object-cover" height="40" src={imageUrl} width="40" />}
-                                    </TableCell>
-                                    <TableCell className="font-medium px-2 py-2 truncate max-w-[150px]">{product.name}</TableCell>
-                                    <TableCell className="hidden md:table-cell px-2 py-2">{formatPrice(product.price)}</TableCell>
-                                    <TableCell className="px-2 py-2">
-                                        <Switch
-                                            checked={product.isActive ?? true}
-                                            onCheckedChange={() => handleToggleActive(product)}
-                                            aria-label="Ativar ou desativar produto"
-                                        />
-                                    </TableCell>
-                                    <TableCell className="px-2 py-2 text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => onEdit(product, subgroups)}><Pencil className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => setDeletingProduct(product)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            )
-                        })}
-                    </TableBody>
-                </Table>
-            </div>
+        {subgroups.map(subgroupName => (
+            groupedProducts[subgroupName] && (
+                <div key={subgroupName} className="border-t first:border-t-0">
+                    <h4 className="px-4 pt-3 pb-2 text-sm font-semibold tracking-wider bg-muted/50">{subgroupName}</h4>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="hidden w-[48px] sm:table-cell px-2 py-2">Imagem</TableHead>
+                                <TableHead className="px-2 py-2 max-w-[150px]">Nome</TableHead>
+                                <TableHead className="hidden md:table-cell px-2 py-2">Preço</TableHead>
+                                <TableHead className="px-2 py-2">Status</TableHead>
+                                <TableHead className="px-2 py-2 text-right"><span className="sr-only">Ações</span></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {groupedProducts[subgroupName].map((product) => {
+                                const placeholder = PlaceHolderImages.find((p) => p.id === product.image);
+                                const imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
+                                return (
+                                    <TableRow key={product.id}>
+                                        <TableCell className="hidden sm:table-cell px-2 py-2">
+                                            {imageUrl && <Image alt={product.name} className="aspect-square rounded-md object-cover" height="40" src={imageUrl} width="40" />}
+                                        </TableCell>
+                                        <TableCell className="font-medium px-2 py-2 truncate max-w-[150px]">{product.name}</TableCell>
+                                        <TableCell className="hidden md:table-cell px-2 py-2">{formatPrice(product.price)}</TableCell>
+                                        <TableCell className="px-2 py-2">
+                                            <Switch
+                                                checked={product.isActive ?? true}
+                                                onCheckedChange={() => handleToggleActive(product)}
+                                                aria-label="Ativar ou desativar produto"
+                                            />
+                                        </TableCell>
+                                        <TableCell className="px-2 py-2 text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => onEdit(product, group)}><Pencil className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => setDeletingProduct(product)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            })}
+                        </TableBody>
+                    </Table>
+                </div>
+            )
         ))}
 
         <div className="flex justify-start border-t px-4 py-2">
-             <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={() => onAdd(groupId, subgroups)}>
+             <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={() => onAdd(group)}>
               <PlusCircle className="h-4 w-4" />
               <span>Adicionar Produto ao Grupo</span>
             </Button>
@@ -179,14 +171,14 @@ function ProductListForGroup({ groupId, products, onEdit, onAdd }: {
   )
 }
 
-function ProductCountBadge({ products }: { products: Product[] }) {
-    return <Badge variant="secondary">{products?.length || 0}</Badge>;
+function ProductCountBadge({ count }: { count: number }) {
+    return <Badge variant="secondary">{count}</Badge>;
 }
 
 
 export function ProductGroupManager({ onAddProductClick, onEditProductClick, products, productGroups }: { 
-    onAddProductClick: (groupId: string, subgroups: string[]) => void;
-    onEditProductClick: (product: Product, subgroups: string[]) => void;
+    onAddProductClick: (group: ProductGroup) => void;
+    onEditProductClick: (product: Product, group: ProductGroup) => void;
     products: Product[] | null;
     productGroups: ProductGroup[] | null;
 }) {
@@ -313,7 +305,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick, pro
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <ProductCountBadge products={groupProducts} />
+                    <ProductCountBadge count={groupProducts.length} />
                   </div>
                 </div>
                 <AccordionContent className="p-0">
@@ -323,7 +315,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick, pro
                     </p>
                   </div>
                   <ProductListForGroup
-                    groupId={group.id}
+                    group={group}
                     products={groupProducts}
                     onEdit={onEditProductClick}
                     onAdd={onAddProductClick}

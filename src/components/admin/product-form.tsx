@@ -18,13 +18,20 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { ProductPayloadSchema, createProduct, updateProduct } from '@/firebase/products';
-import type { Product } from '@/lib/data/products';
+import type { Product, ProductGroup } from '@/lib/data/products';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState } from 'react';
 import Image from 'next/image';
@@ -34,13 +41,12 @@ import { Separator } from '../ui/separator';
 
 type ProductFormProps = {
   product: Product | null;
-  groupId: string;
+  parentGroup: ProductGroup;
   onOpenChange: (open: boolean) => void;
   onFormSubmit: () => void;
-  subgroups: string[];
 };
 
-export function ProductForm({ product, groupId, onOpenChange, onFormSubmit, subgroups }: ProductFormProps) {
+export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }: ProductFormProps) {
   const { toast } = useToast();
   const [preview, setPreview] = useState<string | null>(product?.image ?? null);
   
@@ -52,7 +58,7 @@ export function ProductForm({ product, groupId, onOpenChange, onFormSubmit, subg
       price: product?.price ?? 0,
       image: product?.image ?? '',
       stock: product?.stock ?? 0,
-      groupId: product?.groupId ?? groupId,
+      groupId: product?.groupId ?? parentGroup.id,
       isActive: product?.isActive ?? true,
       subgroup: product?.subgroup ?? '',
     },
@@ -75,11 +81,9 @@ export function ProductForm({ product, groupId, onOpenChange, onFormSubmit, subg
   const onSubmit = (data: z.infer<typeof ProductPayloadSchema>) => {
     try {
         if (product) {
-            // Update product
             updateProduct(product.id, data);
             toast({ title: "Sucesso!", description: "Produto atualizado." });
         } else {
-            // Create new product
             createProduct(data);
             toast({ title: "Sucesso!", description: "Novo produto adicionado." });
         }
@@ -116,22 +120,30 @@ export function ProductForm({ product, groupId, onOpenChange, onFormSubmit, subg
                 )}
                 />
                 <FormField
-                control={form.control}
-                name="subgroup"
-                render={({ field }) => (
+                  control={form.control}
+                  name="subgroup"
+                  render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Subgrupo (Opcional)</FormLabel>
-                    <FormControl>
-                        <Input placeholder="Ex: Marca, Linha, etc." {...field} list="subgroups-list" />
-                    </FormControl>
-                    <datalist id="subgroups-list">
-                        {subgroups.map((subgroup) => (
-                            <option key={subgroup} value={subgroup} />
-                        ))}
-                    </datalist>
-                     <FormMessage />
+                      <FormLabel>Subgrupo</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um subgrupo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">Geral</SelectItem>
+                          {parentGroup.subgroups?.map((sub) => (
+                            <SelectItem key={sub} value={sub}>{sub}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Gerencie os subgrupos na tela de edição do grupo.
+                      </FormDescription>
+                      <FormMessage />
                     </FormItem>
-                )}
+                  )}
                 />
                 <FormField
                 control={form.control}

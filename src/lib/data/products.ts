@@ -4,7 +4,8 @@ export type ProductGroup = {
   id: string;
   name: string;
   description?: string;
-}
+  subgroups?: string[];
+};
 
 export type Product = {
   id: string;

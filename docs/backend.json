@@ -76,6 +76,13 @@
         "description": {
           "type": "string",
           "description": "Optional description for the product group."
+        },
+        "subgroups": {
+          "type": "array",
+          "description": "A list of subgroups for categorization within this product group (e.g., brands, types).",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
