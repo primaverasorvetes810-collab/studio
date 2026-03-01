@@ -17,13 +17,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
 import { useForm } from 'react-hook-form';
@@ -44,9 +37,10 @@ type ProductFormProps = {
   groupId: string;
   onOpenChange: (open: boolean) => void;
   onFormSubmit: () => void;
+  subgroups: string[];
 };
 
-export function ProductForm({ product, groupId, onOpenChange, onFormSubmit }: ProductFormProps) {
+export function ProductForm({ product, groupId, onOpenChange, onFormSubmit, subgroups }: ProductFormProps) {
   const { toast } = useToast();
   const [preview, setPreview] = useState<string | null>(product?.image ?? null);
   
@@ -128,8 +122,13 @@ export function ProductForm({ product, groupId, onOpenChange, onFormSubmit }: Pr
                     <FormItem>
                     <FormLabel>Subgrupo (Opcional)</FormLabel>
                     <FormControl>
-                        <Input placeholder="Ex: Marca, Linha, etc." {...field} />
+                        <Input placeholder="Ex: Marca, Linha, etc." {...field} list="subgroups-list" />
                     </FormControl>
+                    <datalist id="subgroups-list">
+                        {subgroups.map((subgroup) => (
+                            <option key={subgroup} value={subgroup} />
+                        ))}
+                    </datalist>
                      <FormMessage />
                     </FormItem>
                 )}

@@ -9,28 +9,6 @@ import {
 import { collection } from 'firebase/firestore';
 import type { Product, ProductGroup } from '@/lib/data/products';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ListFilter, PlusCircle, Trash2, Pencil } from 'lucide-react';
-import { ProductForm } from '@/components/admin/product-form';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { formatPrice } from '@/lib/utils';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -43,6 +21,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { deleteProduct } from '@/firebase/products';
 import { ProductGroupManager } from '../product-group-manager';
+import { ProductForm } from '../product-form';
 
 export default function ProductsPage() {
   const firestore = useFirestore();
@@ -51,6 +30,7 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
+  const [subgroupsForForm, setSubgroupsForForm] = useState<string[]>([]);
 
   const productsQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'products') : null),
@@ -64,15 +44,17 @@ export default function ProductsPage() {
   );
   const { data: productGroups } = useCollection<ProductGroup>(productGroupsQuery);
 
-  const handleEditProduct = (product: Product) => {
+  const handleEditProduct = (product: Product, subgroups: string[]) => {
     setEditingProduct(product);
-    setActiveGroupId(product.groupId); // Ensure group ID is set for editing
+    setActiveGroupId(product.groupId);
+    setSubgroupsForForm(subgroups);
     setIsFormOpen(true);
   };
 
-  const handleAddNew = (groupId: string) => {
+  const handleAddNew = (groupId: string, subgroups: string[]) => {
     setEditingProduct(null);
     setActiveGroupId(groupId);
+    setSubgroupsForForm(subgroups);
     setIsFormOpen(true);
   };
   
@@ -99,14 +81,19 @@ export default function ProductsPage() {
     setIsFormOpen(false);
     setEditingProduct(null);
     setActiveGroupId(null);
+    setSubgroupsForForm([]);
   };
 
   return (
     <>
       <div className="grid flex-1 items-start gap-8">
         
-        {/* Gerenciador de Grupos */}
-        <ProductGroupManager onAddProductClick={handleAddNew} onEditProductClick={handleEditProduct} />
+        <ProductGroupManager 
+          onAddProductClick={handleAddNew} 
+          onEditProductClick={handleEditProduct} 
+          products={products}
+          productGroups={productGroups}
+        />
 
       </div>
 
@@ -116,6 +103,7 @@ export default function ProductsPage() {
           groupId={activeGroupId}
           onOpenChange={setIsFormOpen}
           onFormSubmit={handleFormClose}
+          subgroups={subgroupsForForm}
         />
       )}
 

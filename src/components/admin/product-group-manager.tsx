@@ -1,11 +1,7 @@
-
-
 'use client';
 
 import type { Product, ProductGroup } from '@/lib/data/products';
 import { useMemo, useState } from 'react';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
 import { Loader2, Pencil, PlusCircle, Trash2, MoreVertical, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from '../ui/card';
@@ -41,15 +37,19 @@ import { Input } from '../ui/input';
 import { Switch } from '../ui/switch';
 
 
-function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEdit: (product: Product) => void, onAdd: (groupId: string) => void }) {
-  const firestore = useFirestore();
-  const productsQuery = useMemoFirebase(
-    () => (firestore ? query(collection(firestore, 'products'), where('groupId', '==', groupId)) : null),
-    [firestore, groupId]
-  );
-  const { data: products, isLoading } = useCollection<Product>(productsQuery);
+function ProductListForGroup({ groupId, products, onEdit, onAdd }: { 
+    groupId: string, 
+    products: Product[],
+    onEdit: (product: Product, subgroups: string[]) => void, 
+    onAdd: (groupId: string, subgroups: string[]) => void 
+}) {
   const { toast } = useToast();
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+
+  const subgroups = useMemo(() => {
+    const set = new Set(products.map(p => p.subgroup).filter(Boolean) as string[]);
+    return Array.from(set).sort();
+  }, [products]);
   
   const groupedProducts = useMemo(() => {
     if (!products) return {};
@@ -62,6 +62,12 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
         return acc;
     }, {} as Record<string, Product[]>);
   }, [products]);
+
+  const subgroupNames = Object.keys(groupedProducts).sort((a,b) => {
+    if (a === 'Geral') return 1;
+    if (b === 'Geral') return -1;
+    return a.localeCompare(b);
+  });
 
   const handleToggleActive = (product: Product) => {
     const newStatus = !(product.isActive ?? true);
@@ -80,16 +86,16 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
     setDeletingProduct(null);
   }
 
-  if (isLoading) return <div className="flex items-center justify-center p-4"><Loader2 className="h-5 w-5 animate-spin" /></div>;
+  if (!products) return <div className="flex items-center justify-center p-4"><Loader2 className="h-5 w-5 animate-spin" /></div>;
   
-  if (!products || products.length === 0) {
+  if (products.length === 0) {
     return (
         <div className="w-full">
              <div className="py-8 text-center text-sm text-muted-foreground">
                 Nenhum produto neste grupo.
             </div>
             <div className="flex justify-start border-t px-4 py-2">
-                <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={() => onAdd(groupId)}>
+                <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={() => onAdd(groupId, [])}>
                     <PlusCircle className="h-4 w-4" />
                     <span>Adicionar Produto</span>
                 </Button>
@@ -100,7 +106,7 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
 
   return (
     <div className="w-full">
-        {Object.keys(groupedProducts).sort().map(subgroupName => (
+        {subgroupNames.map(subgroupName => (
             <div key={subgroupName} className="border-t first:border-t-0">
                 <h4 className="px-4 pt-3 pb-2 text-sm font-semibold tracking-wider bg-muted/50">{subgroupName}</h4>
                 <Table>
@@ -137,7 +143,7 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
                                                 <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => onEdit(product)}><Pencil className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => onEdit(product, subgroups)}><Pencil className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
                                                 <DropdownMenuItem onClick={() => setDeletingProduct(product)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -151,7 +157,7 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
         ))}
 
         <div className="flex justify-start border-t px-4 py-2">
-             <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={() => onAdd(groupId)}>
+             <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={() => onAdd(groupId, subgroups)}>
               <PlusCircle className="h-4 w-4" />
               <span>Adicionar Produto ao Grupo</span>
             </Button>
@@ -173,33 +179,25 @@ function ProductListForGroup({ groupId, onEdit, onAdd }: { groupId: string, onEd
   )
 }
 
-function ProductCountBadge({ groupId }: { groupId: string }) {
-    const firestore = useFirestore();
-    const productsQuery = useMemoFirebase(
-      () => (firestore ? query(collection(firestore, 'products'), where('groupId', '==', groupId)) : null),
-      [firestore, groupId]
-    );
-    const { data: products } = useCollection<Product>(productsQuery);
+function ProductCountBadge({ products }: { products: Product[] }) {
     return <Badge variant="secondary">{products?.length || 0}</Badge>;
 }
 
 
-export function ProductGroupManager({ onAddProductClick, onEditProductClick }: { onAddProductClick: (groupId: string) => void, onEditProductClick: (product: Product) => void }) {
-  const firestore = useFirestore();
+export function ProductGroupManager({ onAddProductClick, onEditProductClick, products, productGroups }: { 
+    onAddProductClick: (groupId: string, subgroups: string[]) => void;
+    onEditProductClick: (product: Product, subgroups: string[]) => void;
+    products: Product[] | null;
+    productGroups: ProductGroup[] | null;
+}) {
   const { toast } = useToast();
-
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<ProductGroup | null>(null);
   const [deletingGroup, setDeletingGroup] = useState<ProductGroup | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const productGroupsQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'productGroups') : null),
-    [firestore]
-  );
-  const { data: productGroups, isLoading, setData: setProductGroups } =
-    useCollection<ProductGroup>(productGroupsQuery);
-    
+  const isLoading = !products || !productGroups;
+
   const filteredGroups = useMemo(() => {
     if (!productGroups) return [];
     return productGroups.filter(group => group.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -227,10 +225,6 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
         title: 'Grupo Deletado',
         description: `O grupo "${deletingGroup.name}" e todos os seus produtos foram deletados.`,
     });
-    // Optimistic update
-    if (productGroups) {
-        setProductGroups(productGroups.filter(g => g.id !== deletingGroup.id));
-    }
     setDeletingGroup(null);
   };
 
@@ -273,7 +267,9 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
           </div>
         ) : (
           <Accordion type="single" collapsible className="w-full space-y-1">
-            {filteredGroups.map((group) => (
+            {filteredGroups.map((group) => {
+                const groupProducts = products?.filter(p => p.groupId === group.id) || [];
+                return (
               <AccordionItem
                 value={group.id}
                 key={group.id}
@@ -317,7 +313,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <ProductCountBadge groupId={group.id} />
+                    <ProductCountBadge products={groupProducts} />
                   </div>
                 </div>
                 <AccordionContent className="p-0">
@@ -328,12 +324,13 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick }: {
                   </div>
                   <ProductListForGroup
                     groupId={group.id}
+                    products={groupProducts}
                     onEdit={onEditProductClick}
                     onAdd={onAddProductClick}
                   />
                 </AccordionContent>
               </AccordionItem>
-            ))}
+            )})}
           </Accordion>
         )}
       </CardContent>
