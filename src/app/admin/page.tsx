@@ -27,9 +27,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import SettingsPage from '@/components/admin/pages/settings-page';
 
 
-type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays" | "carousel" | "help";
+type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays" | "carousel" | "settings" | "help";
 
 const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -39,6 +40,7 @@ const navItems = [
     { id: 'clients', label: 'Clientes', icon: Users },
     { id: 'birthdays', label: 'Aniversariantes', icon: Gift },
     { id: 'carousel', label: 'Carrossel', icon: ImageIcon },
+    { id: 'settings', label: 'Configurações', icon: Settings },
     { id: 'help', label: 'Ajuda', icon: LifeBuoy },
 ] as const;
 
@@ -230,6 +232,7 @@ export default function AdminGatePage() {
           {activeSection === 'clients' && <ClientsPage />}
           {activeSection === 'birthdays' && <BirthdaysPage />}
           {activeSection === 'carousel' && <CarouselManagerPage />}
+          {activeSection === 'settings' && <SettingsPage />}
           {activeSection === 'help' && <AdminHelpPage />}
         </main>
       </div>
