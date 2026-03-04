@@ -3,21 +3,31 @@
 import HomeCarousel from '@/components/home-carousel';
 import PageHeader from '@/components/page-header';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import type { ProductGroup } from '@/lib/data/products';
-import { collection } from 'firebase/firestore';
+import type { Product, ProductGroup } from '@/lib/data/products';
+import { collection, query, where } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
-import { ProductGroupAccordion } from '@/components/product-group-accordion';
+import { ProductCarousel } from '@/components/product-carousel';
 
 export default function Home() {
   const firestore = useFirestore();
 
+  // Fetch Product Groups
   const productGroupsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return collection(firestore, 'productGroups');
   }, [firestore]);
-
-  const { data: productGroups, isLoading } =
+  const { data: productGroups, isLoading: areGroupsLoading } =
     useCollection<ProductGroup>(productGroupsQuery);
+
+  // Fetch all active Products
+  const productsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'products'), where('isActive', '!=', false));
+  }, [firestore]);
+  const { data: products, isLoading: areProductsLoading } =
+    useCollection<Product>(productsQuery);
+
+  const isLoading = areGroupsLoading || areProductsLoading;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -28,18 +38,17 @@ export default function Home() {
           description="Navegue por nossas categorias e escolha seus itens favoritos."
         />
       </div>
-      <div className="mt-8">
+      <div className="mt-8 space-y-12">
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <>
-            <p className="mb-4 text-center text-muted-foreground">
-                Clique em uma categoria para ver os produtos. Depois, clique no '+' para adicionar ao seu carrinho.
-            </p>
-            <ProductGroupAccordion productGroups={productGroups || []} />
-          </>
+          productGroups &&
+          products &&
+          productGroups.map((group) => (
+            <ProductCarousel key={group.id} group={group} products={products} />
+          ))
         )}
       </div>
     </div>
