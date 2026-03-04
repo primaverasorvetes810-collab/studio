@@ -30,7 +30,7 @@ import { Upload } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ImagePayloadSchema = z.object({
-  imageUrl: z.string().min(1, 'A imagem é obrigatória.'),
+  imageUrl: z.string().min(50, 'É necessário fazer o upload de uma imagem válida.'),
   altText: z.string().min(1, 'O texto alternativo é obrigatório.'),
   link: z.string().url('Por favor, insira uma URL válida para o link.').or(z.literal('')).optional(),
   order: z.number(),
