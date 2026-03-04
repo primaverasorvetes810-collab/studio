@@ -61,12 +61,12 @@ export function ProductCard({ product }: ProductCardProps) {
           />
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col flex-grow p-4">
+      <CardContent className="flex flex-col flex-grow p-3">
         <div className="flex-grow">
-          <CardTitle className="mb-1 text-lg">{product.name}</CardTitle>
-          <CardDescription className="line-clamp-1 text-sm">{product.description}</CardDescription>
+          <CardTitle className="mb-1 text-base font-semibold">{product.name}</CardTitle>
+          <CardDescription className="line-clamp-2 text-xs">{product.description}</CardDescription>
         </div>
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-2 flex items-center justify-between">
             <p className="text-lg font-bold text-primary">{formatPrice(product.price)}</p>
             <Button size="icon" className="h-8 w-8" onClick={handleAddToCart}>
               <PlusCircle className="h-4 w-4" />
