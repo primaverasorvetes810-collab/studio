@@ -49,7 +49,7 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Card className="group flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/20">
+    <Card className="group flex h-full flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/20">
       <CardHeader className="p-0">
         <div className="relative aspect-video">
           <Image
@@ -61,7 +61,7 @@ export function ProductCard({ product }: ProductCardProps) {
           />
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col flex-grow p-3">
+      <CardContent className="flex flex-grow flex-col p-3">
         <div className="flex-grow">
           <CardTitle className="mb-1 text-base font-semibold">{product.name}</CardTitle>
           <CardDescription className="line-clamp-2 text-xs">{product.description}</CardDescription>
