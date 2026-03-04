@@ -114,11 +114,14 @@ function ProductListForGroup({ group, products, onEdit, onAdd }: {
                         <TableBody>
                             {groupedProducts[subgroupName].map((product) => {
                                 const placeholder = PlaceHolderImages.find((p) => p.id === product.image);
-                                const imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
+                                let imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
+                                if (!imageUrl) {
+                                    imageUrl = 'https://placehold.co/60x60/EEE/31343C?text=N/A';
+                                }
                                 return (
                                     <TableRow key={product.id}>
                                         <TableCell className="hidden sm:table-cell px-2 py-2">
-                                            {imageUrl && <Image alt={product.name} className="aspect-square rounded-md object-cover" height="40" src={imageUrl} width="40" />}
+                                            <Image alt={product.name} className="aspect-square rounded-md object-cover" height="40" src={imageUrl} width="40" />
                                         </TableCell>
                                         <TableCell className="font-medium px-2 py-2 truncate max-w-[150px]">{product.name}</TableCell>
                                         <TableCell className="hidden md:table-cell px-2 py-2">{formatPrice(product.price)}</TableCell>

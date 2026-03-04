@@ -24,7 +24,10 @@ type ProductCardProps = {
 
 export function ProductCard({ product }: ProductCardProps) {
   const placeholder = PlaceHolderImages.find((p) => p.id === product.image);
-  const imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
+  let imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
+  if (!imageUrl) {
+    imageUrl = 'https://placehold.co/600x400/EEE/31343C?text=Imagem+Indisponível';
+  }
   const imageHint = product.image.startsWith('data:image') ? product.name : placeholder?.imageHint;
 
 
@@ -49,15 +52,13 @@ export function ProductCard({ product }: ProductCardProps) {
     <Card className="group flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/20">
       <CardHeader className="p-0">
         <div className="relative aspect-video">
-          {imageUrl && (
-            <Image
-              src={imageUrl}
-              alt={product.name}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              data-ai-hint={imageHint}
-            />
-          )}
+          <Image
+            src={imageUrl}
+            alt={product.name}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            data-ai-hint={imageHint}
+          />
         </div>
       </CardHeader>
       <CardContent className="flex flex-col flex-grow p-4">

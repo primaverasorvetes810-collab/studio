@@ -141,20 +141,21 @@ export default function CartPage() {
                   const placeholder = PlaceHolderImages.find(
                     (p) => p.id === item.product.image
                   );
-                  const imageUrl = item.product.image.startsWith('data:image') ? item.product.image : placeholder?.imageUrl;
+                  let imageUrl = item.product.image.startsWith('data:image') ? item.product.image : placeholder?.imageUrl;
+                  if (!imageUrl) {
+                    imageUrl = 'https://placehold.co/600x400/EEE/31343C?text=Imagem+Indisponível';
+                  }
                   const imageHint = item.product.image.startsWith('data:image') ? item.product.name : placeholder?.imageHint;
                   return (
                      <li key={item.id} className="flex items-start gap-4 py-4">
                       <div className="relative h-24 w-24 flex-shrink-0 self-start overflow-hidden rounded-md">
-                        {imageUrl && (
-                          <Image
-                            src={imageUrl}
-                            alt={item.product.name}
-                            fill
-                            className="object-cover"
-                            data-ai-hint={imageHint}
-                          />
-                        )}
+                        <Image
+                          src={imageUrl}
+                          alt={item.product.name}
+                          fill
+                          className="object-cover"
+                          data-ai-hint={imageHint}
+                        />
                       </div>
                       <div className="flex-1 flex flex-col min-w-0">
                         <div>
