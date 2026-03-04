@@ -13,11 +13,12 @@ export function PrimaveraLogo(props: SVGProps<SVGSVGElement>) {
       <text
         x="10"
         y="55"
-        style={{ fontFamily: "'Lilita One', cursive" }}
+        fontFamily="'Poppins', cursive"
+        fontWeight="800"
         fontSize="50"
         fill="hsl(var(--primary))"
         stroke="hsl(var(--primary-foreground))"
-        strokeWidth="2"
+        strokeWidth="1"
         paintOrder="stroke"
       >
         Primavera
