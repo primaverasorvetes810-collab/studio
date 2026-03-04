@@ -7,6 +7,7 @@ import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import { FirebaseClientProvider } from "@/firebase";
 import { ThemeProvider } from "@/components/theme-provider";
+import WhatsAppButton from "@/components/whatsapp-button";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -71,6 +72,7 @@ export default function RootLayout({
               <div className="flex-1">{children}</div>
               <Footer />
             </div>
+            <WhatsAppButton />
             <Toaster />
           </FirebaseClientProvider>
         </ThemeProvider>

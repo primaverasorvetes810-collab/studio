@@ -10,6 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LifeBuoy, MessageSquare, Book, HeartHandshake } from "lucide-react";
+import Link from "next/link";
 
 const faqs = [
   {
@@ -117,9 +118,11 @@ export default function HelpPage() {
                 <p className="text-muted-foreground mb-4">
                     Se você não encontrou a resposta para sua pergunta, nossa equipe de suporte está pronta para ajudar.
                 </p>
-                <Button>
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Entrar em Contato
+                <Button asChild>
+                    <Link href="https://api.whatsapp.com/send?phone=5515996443440" target="_blank" rel="noopener noreferrer">
+                        <MessageSquare className="mr-2 h-4 w-4" />
+                        Entrar em Contato via WhatsApp
+                    </Link>
                 </Button>
             </CardContent>
         </Card>
