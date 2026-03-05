@@ -138,11 +138,12 @@ export function ProductGroupForm({ group, onOpenChange, onFormSubmit }: GroupFor
                                 <Badge key={sub} variant="secondary">
                                     {sub}
                                     <button
-                                    type="button"
-                                    onClick={() => handleRemoveSubgroup(sub)}
-                                    className="ml-1.5 rounded-full p-0.5 text-secondary-foreground/50 hover:bg-destructive/80 hover:text-destructive-foreground"
+                                      type="button"
+                                      onClick={() => handleRemoveSubgroup(sub)}
+                                      className="ml-1.5 rounded-full p-0.5 text-secondary-foreground/50 hover:bg-destructive/80 hover:text-destructive-foreground"
+                                      aria-label={`Remover subgrupo ${sub}`}
                                     >
-                                    <X className="h-3 w-3" />
+                                      <X className="h-3 w-3" />
                                     </button>
                                 </Badge>
                                 ))}
@@ -160,7 +161,7 @@ export function ProductGroupForm({ group, onOpenChange, onFormSubmit }: GroupFor
                             }}
                             placeholder="Ex: Cremosos, Frutados..."
                         />
-                        <Button type="button" size="icon" onClick={handleAddSubgroup} disabled={!newSubgroup}>
+                        <Button type="button" size="icon" onClick={handleAddSubgroup} disabled={!newSubgroup} aria-label="Adicionar subgrupo">
                             <Plus className="h-4 w-4" />
                         </Button>
                         </div>

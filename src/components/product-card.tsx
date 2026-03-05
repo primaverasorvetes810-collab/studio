@@ -64,6 +64,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <p className="text-lg font-bold text-primary">{formatPrice(product.price)}</p>
             <Button size="icon" className="h-8 w-8" onClick={handleAddToCart}>
               <PlusCircle className="h-4 w-4" />
+              <span className="sr-only">Adicionar ao carrinho</span>
             </Button>
         </div>
       </CardContent>

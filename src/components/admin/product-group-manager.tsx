@@ -130,7 +130,10 @@ function ProductListForGroup({ group, products, onEdit, onAdd }: {
                                         <TableCell className="px-2 py-2 text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                        <span className="sr-only">Ações do produto</span>
+                                                    </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => onEdit(product, group)}><Pencil className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
@@ -280,6 +283,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick, pro
                           onClick={(e) => e.stopPropagation()}
                         >
                           <MoreVertical className="h-4 w-4" />
+                          <span className="sr-only">Ações do grupo</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">

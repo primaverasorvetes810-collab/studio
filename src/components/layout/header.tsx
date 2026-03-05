@@ -216,6 +216,7 @@ export default function Header() {
                     />
                     <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
                   </Avatar>
+                  <span className="sr-only">Abrir menu do usuário</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
