@@ -25,7 +25,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { formatPrice } from '@/lib/utils';
 import { CreditCard, Trash2, Loader2 } from 'lucide-react';
 import PageHeader from '@/components/page-header';
@@ -138,14 +137,8 @@ export default function CartPage() {
             <CardContent className="p-6">
               <ul className="divide-y divide-border">
                 {cartItems.map((item) => {
-                  const placeholder = PlaceHolderImages.find(
-                    (p) => p.id === item.product.image
-                  );
-                  let imageUrl = item.product.image.startsWith('data:image') ? item.product.image : placeholder?.imageUrl;
-                  if (!imageUrl) {
-                    imageUrl = 'https://placehold.co/600x400/EEE/31343C?text=Imagem+Indisponível';
-                  }
-                  const imageHint = item.product.image.startsWith('data:image') ? item.product.name : placeholder?.imageHint;
+                  const imageUrl = item.product.imageUrl || 'https://placehold.co/600x400/EEE/31343C?text=Imagem+Indisponível';
+                  const imageHint = item.product.name;
                   return (
                      <li key={item.id} className="flex items-start gap-4 py-4">
                       <div className="relative h-24 w-24 flex-shrink-0 self-start overflow-hidden rounded-md">

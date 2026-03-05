@@ -40,6 +40,9 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
         <meta name="theme-color" content="#f2c58a" />
 
+        <link rel="preconnect" href="https://studio-3525319952-f1fd9.firebaseapp.com" />
+        <link rel="preconnect" href="https://firestore.googleapis.com" />
+
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
         <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png" />

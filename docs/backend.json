@@ -128,9 +128,10 @@
           "type": "string",
           "description": "An optional subgroup for categorization within a product group (e.g., brand)."
         },
-        "image": {
+        "imageUrl": {
           "type": "string",
-          "description": "A data URI for the product image."
+          "description": "URL of the product image.",
+          "format": "uri"
         },
         "manageStock": {
           "type": "boolean",
@@ -145,7 +146,7 @@
         "price",
         "stock",
         "isActive",
-        "image",
+        "imageUrl",
         "manageStock"
       ]
     },

@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { PlusCircle } from "lucide-react";
 import { useAuth, useUser } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
@@ -23,13 +22,8 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
-  const placeholder = PlaceHolderImages.find((p) => p.id === product.image);
-  let imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
-  if (!imageUrl) {
-    imageUrl = 'https://placehold.co/600x400/EEE/31343C?text=Imagem+Indisponível';
-  }
-  const imageHint = product.image.startsWith('data:image') ? product.name : placeholder?.imageHint;
-
+  const imageUrl = product.imageUrl || 'https://placehold.co/600x400/EEE/31343C?text=Imagem+Indisponível';
+  const imageHint = product.name;
 
   const { user } = useUser();
   const auth = useAuth();

@@ -36,7 +36,6 @@ import type { Product, ProductGroup } from '@/lib/data/products';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState } from 'react';
 import Image from 'next/image';
-import { Upload } from 'lucide-react';
 import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
 
@@ -53,7 +52,6 @@ const GERAL_SUBGROUP_VALUE = '__GERAL__';
 
 export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }: ProductFormProps) {
   const { toast } = useToast();
-  const [preview, setPreview] = useState<string | null>(product?.image ?? null);
   
   const form = useForm<z.infer<typeof ProductPayloadSchema>>({
     resolver: zodResolver(ProductPayloadSchema),
@@ -61,7 +59,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
       name: product?.name ?? '',
       description: product?.description ?? '',
       price: product?.price ?? 0,
-      image: product?.image ?? '',
+      imageUrl: product?.imageUrl ?? '',
       stock: product?.stock ?? 0,
       groupId: product?.groupId ?? parentGroup.id,
       isActive: product?.isActive ?? true,
@@ -72,20 +70,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
   });
 
   const manageStock = form.watch('manageStock');
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        setPreview(dataUrl);
-        form.setValue('image', dataUrl, { shouldValidate: true });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
+  const imageUrl = form.watch('imageUrl');
 
   const onSubmit = (data: z.infer<typeof ProductPayloadSchema>) => {
     // Converte o valor especial para "Geral" de volta para uma string vazia para o Firestore
@@ -124,7 +109,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
         </DialogHeader>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-                <ScrollArea className="max-h-[60vh] pr-6">
+                <ScrollArea className="max-h-[70vh] pr-6">
                     <div className="grid gap-4 py-4">
                         <FormField
                         control={form.control}
@@ -192,44 +177,33 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                         )}
                         />
                         
-                        <FormField
-                        control={form.control}
-                        name="image"
-                        render={() => (
-                            <FormItem>
-                            <FormLabel>Imagem do Produto</FormLabel>
-                            <FormControl>
-                                <div>
-                                <Input
-                                    id="image-upload"
-                                    type="file"
-                                    accept="image/png, image/jpeg, image/gif, image/webp"
-                                    onChange={handleFileChange}
-                                    className="hidden"
-                                />
-                                <label
-                                    htmlFor="image-upload"
-                                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted"
-                                >
-                                    {preview ? (
-                                    <Image src={preview} alt="Pré-visualização" width={100} height={100} className="object-contain h-full p-2" />
-                                    ) : (
-                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                                        <p className="mb-2 text-sm text-muted-foreground">
-                                        <span className="font-semibold">Clique para fazer upload</span>
-                                        </p>
+                         <FormField
+                          control={form.control}
+                          name="imageUrl"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>URL da Imagem do Produto</FormLabel>
+                                  <FormControl>
+                                      <Input placeholder="https://exemplo.com/imagem.jpg" {...field} />
+                                  </FormControl>
+                                  <FormDescription>
+                                      Recomendamos imagens na proporção 16:9 (ex: 1280x720 pixels).
+                                  </FormDescription>
+                                  <FormMessage />
+                                  {imageUrl && form.getFieldState('imageUrl').invalid === false && (
+                                    <div className="mt-4 flex items-center justify-center rounded-lg border bg-muted p-4">
+                                        <Image 
+                                            src={imageUrl} 
+                                            alt="Pré-visualização da imagem" 
+                                            width={200}
+                                            height={112}
+                                            className="aspect-video rounded-md object-contain"
+                                            onError={(e) => e.currentTarget.src = 'https://placehold.co/400x200/EEE/31343C?text=URL+Inválida'}
+                                        />
                                     </div>
-                                    )}
-                                </label>
-                                </div>
-                            </FormControl>
-                            <FormDescription>
-                                Recomendamos imagens na proporção 16:9 (ex: 1280x720 pixels).
-                            </FormDescription>
-                            <FormMessage />
-                            </FormItem>
-                        )}
+                                  )}
+                              </FormItem>
+                          )}
                         />
 
                         <Separator className="my-2" />

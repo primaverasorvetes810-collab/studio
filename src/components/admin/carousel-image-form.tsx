@@ -16,6 +16,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
@@ -26,11 +27,11 @@ import type { CarouselImage } from '@/firebase/carousel';
 import { createCarouselImage, updateCarouselImage } from '@/firebase/carousel';
 import { useState } from 'react';
 import Image from 'next/image';
-import { Upload } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ImagePayloadSchema = z.object({
-  imageUrl: z.string().min(50, 'É necessário fazer o upload de uma imagem válida.'),
+  imageUrl: z.string().url('Por favor, insira uma URL de imagem válida.'),
   altText: z.string().min(1, 'O texto alternativo é obrigatório.'),
   link: z.string().url('Por favor, insira uma URL válida para o link.').or(z.literal('')).optional(),
   order: z.number(),
@@ -45,8 +46,7 @@ type ImageFormProps = {
 
 export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOrder }: ImageFormProps) {
   const { toast } = useToast();
-  const [preview, setPreview] = useState<string | null>(image?.imageUrl ?? null);
-
+  
   const form = useForm<z.infer<typeof ImagePayloadSchema>>({
     resolver: zodResolver(ImagePayloadSchema),
     defaultValues: {
@@ -57,18 +57,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
     },
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        setPreview(dataUrl);
-        form.setValue('imageUrl', dataUrl, { shouldValidate: true });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  const imageUrl = form.watch('imageUrl');
 
   const onSubmit = async (data: z.infer<typeof ImagePayloadSchema>) => {
     try {
@@ -92,47 +81,39 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
         <DialogHeader>
           <DialogTitle>{image ? 'Editar Imagem' : 'Adicionar Nova Imagem'}</DialogTitle>
           <DialogDescription>
-            Faça o upload de uma imagem e preencha os detalhes. Clique em salvar quando terminar.
+            Insira a URL da imagem e preencha os detalhes. Clique em salvar quando terminar.
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[70vh] pr-6">
             <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
                 <FormField
-                control={form.control}
-                name="imageUrl"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Imagem</FormLabel>
-                    <FormControl>
-                        <div>
-                        <Input
-                            id="image-upload"
-                            type="file"
-                            accept="image/png, image/jpeg, image/gif, image/webp"
-                            onChange={handleFileChange}
-                            className="hidden"
-                        />
-                        <label
-                            htmlFor="image-upload"
-                            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted"
-                        >
-                            {preview ? (
-                            <Image src={preview} alt="Pré-visualização" width={100} height={100} className="object-contain h-full p-2" />
-                            ) : (
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                                <p className="mb-2 text-sm text-muted-foreground">
-                                <span className="font-semibold">Clique para fazer upload</span>
-                                </p>
+                  control={form.control}
+                  name="imageUrl"
+                  render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>URL da Imagem</FormLabel>
+                          <FormControl>
+                              <Input placeholder="https://exemplo.com/imagem.jpg" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                              Cole a URL de uma imagem hospedada publicamente.
+                          </FormDescription>
+                          <FormMessage />
+                          {imageUrl && form.getFieldState('imageUrl').invalid === false && (
+                            <div className="mt-4 flex items-center justify-center rounded-lg border bg-muted p-4">
+                                <Image 
+                                    src={imageUrl} 
+                                    alt="Pré-visualização da imagem" 
+                                    width={200}
+                                    height={100}
+                                    className="aspect-video rounded-md object-contain"
+                                    onError={(e) => e.currentTarget.src = 'https://placehold.co/400x200/EEE/31343C?text=URL+Inválida'}
+                                />
                             </div>
-                            )}
-                        </label>
-                        </div>
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
+                          )}
+                      </FormItem>
+                  )}
                 />
                 <FormField
                 control={form.control}

@@ -12,7 +12,7 @@ export type Product = {
   name: string;
   description: string;
   price: number;
-  image: string;
+  imageUrl: string;
   stock: number;
   groupId: string; // Adicionado para associar ao ProductGroup
   isActive?: boolean;

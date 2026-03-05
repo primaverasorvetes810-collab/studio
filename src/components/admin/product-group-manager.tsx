@@ -28,7 +28,6 @@ import { useToast } from '@/hooks/use-toast';
 import { deleteProductGroup } from '@/firebase/product-groups';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { formatPrice } from '@/lib/utils';
 import { deleteProduct, updateProduct } from '@/firebase/products';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
@@ -113,11 +112,7 @@ function ProductListForGroup({ group, products, onEdit, onAdd }: {
                         </TableHeader>
                         <TableBody>
                             {groupedProducts[subgroupName].map((product) => {
-                                const placeholder = PlaceHolderImages.find((p) => p.id === product.image);
-                                let imageUrl = product.image.startsWith('data:image') ? product.image : placeholder?.imageUrl;
-                                if (!imageUrl) {
-                                    imageUrl = 'https://placehold.co/60x60/EEE/31343C?text=N/A';
-                                }
+                                const imageUrl = product.imageUrl || 'https://placehold.co/60x60/EEE/31343C?text=N/A';
                                 return (
                                     <TableRow key={product.id}>
                                         <TableCell className="hidden sm:table-cell px-2 py-2">
