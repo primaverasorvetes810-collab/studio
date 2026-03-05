@@ -1,3 +1,4 @@
+
 'use client';
 
 import HomeCarousel from '@/components/home-carousel';
@@ -34,7 +35,7 @@ export default function Home() {
       <HomeCarousel />
       <div className="my-8">
         <PageHeader
-          title="Nossos Produtos"
+          title="Faça seu pedido agora mesmo"
           description="Navegue por nossas categorias e escolha seus itens favoritos."
         />
       </div>
