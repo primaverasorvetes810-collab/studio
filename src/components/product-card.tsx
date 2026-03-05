@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import type { Product } from "@/lib/data/products";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getProductImageUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,9 +10,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
-import { PlusCircle } from "lucide-react";
-import { useAuth, useUser } from "@/firebase";
+import { useUser } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { addProductToCart } from "@/firebase/cart";
@@ -22,11 +22,10 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
-  const imageUrl = product.imageUrl || 'https://placehold.co/600x400/EEE/31343C?text=Imagem+Indisponível';
+  const imageUrl = getProductImageUrl(product);
   const imageHint = product.name;
 
   const { user } = useUser();
-  const auth = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -60,14 +59,15 @@ export function ProductCard({ product }: ProductCardProps) {
           <CardTitle className="mb-1 text-base font-semibold">{product.name}</CardTitle>
           <CardDescription className="line-clamp-2 text-xs">{product.description}</CardDescription>
         </div>
-        <div className="mt-4">
-            <p className="text-lg font-bold text-primary mb-2">{formatPrice(product.price)}</p>
-            <Button size="sm" className="w-full" onClick={handleAddToCart}>
-              <PlusCircle className="h-4 w-4" />
-              Adicionar ao carrinho
-            </Button>
+        <div className="mt-2">
+            <p className="mb-2 text-lg font-bold text-primary">{formatPrice(product.price)}</p>
         </div>
       </CardContent>
+       <CardFooter className="p-3 pt-0">
+         <Button size="sm" className="w-full" onClick={handleAddToCart}>
+           Adicionar ao carrinho
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

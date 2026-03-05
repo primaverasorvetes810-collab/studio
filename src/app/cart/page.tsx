@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getProductImageUrl } from '@/lib/utils';
 import { CreditCard, Trash2, Loader2 } from 'lucide-react';
 import PageHeader from '@/components/page-header';
 import { useToast } from '@/hooks/use-toast';
@@ -137,7 +137,7 @@ export default function CartPage() {
             <CardContent className="p-6">
               <ul className="divide-y divide-border">
                 {cartItems.map((item) => {
-                  const imageUrl = item.product.imageUrl || 'https://placehold.co/600x400/EEE/31343C?text=Imagem+Indisponível';
+                  const imageUrl = getProductImageUrl(item.product);
                   const imageHint = item.product.name;
                   return (
                      <li key={item.id} className="flex items-start gap-4 py-4">
