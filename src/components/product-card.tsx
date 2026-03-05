@@ -60,11 +60,11 @@ export function ProductCard({ product }: ProductCardProps) {
           <CardTitle className="mb-1 text-base font-semibold">{product.name}</CardTitle>
           <CardDescription className="line-clamp-2 text-xs">{product.description}</CardDescription>
         </div>
-        <div className="mt-2 flex items-center justify-between">
-            <p className="text-lg font-bold text-primary">{formatPrice(product.price)}</p>
-            <Button size="icon" className="h-8 w-8" onClick={handleAddToCart}>
+        <div className="mt-4">
+            <p className="text-lg font-bold text-primary mb-2">{formatPrice(product.price)}</p>
+            <Button size="sm" className="w-full" onClick={handleAddToCart}>
               <PlusCircle className="h-4 w-4" />
-              <span className="sr-only">Adicionar ao carrinho</span>
+              Adicionar ao carrinho
             </Button>
         </div>
       </CardContent>
