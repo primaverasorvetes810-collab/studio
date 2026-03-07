@@ -55,14 +55,7 @@ export default function Header() {
     { href: "/", label: "Produtos", icon: Home },
     { href: "/orders", label: "Meus Pedidos", icon: Box, requiresAuth: true },
     { href: "/ajuda", label: "Ajuda", icon: HelpCircle },
-    {
-      href: "/cart",
-      label: "Carrinho",
-      icon: ShoppingCart,
-      isMobileOnly: true,
-      requiresAuth: true,
-    },
-    { href: "/admin", label: "Admin", icon: Shield, requiresAuth: true }, // Admin link visible to all logged-in users
+    { href: "/admin", label: "Admin", icon: Shield, requiresAuth: true },
   ];
 
   const renderLink = (link: (typeof navLinks)[0]) => {
@@ -192,10 +185,10 @@ export default function Header() {
             variant="ghost"
             size="icon"
             asChild
-            className="hidden md:inline-flex"
+            className="inline-flex"
           >
             <Link href="/cart">
-              <ShoppingCart className="h-6 w-6" />
+              <ShoppingCart className="h-7 w-7" />
               <span className="sr-only">Carrinho de Compras</span>
             </Link>
           </Button>

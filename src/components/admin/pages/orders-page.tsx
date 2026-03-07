@@ -43,13 +43,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 const statusColors: Record<OrderStatus, string> = {
   Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/30',
+  Pago: 'bg-blue-500/20 text-blue-500 border-blue-500/20 hover:bg-blue-500/30',
   Atrasado: "bg-red-500/20 text-red-500 border-red-500/20",
   Enviado: 'bg-teal-500/20 text-teal-500 border-teal-500/20 hover:bg-teal-500/30',
   Entregue: 'bg-green-500/20 text-green-500 border-green-500/20 hover:bg-green-500/30',
   Cancelado: 'bg-gray-500/20 text-muted-foreground border-gray-500/20',
 };
 
-const selectableStatuses: OrderStatus[] = ['Pendente', 'Enviado', 'Entregue'];
+const selectableStatuses: OrderStatus[] = ['Pendente', 'Pago', 'Enviado', 'Entregue', 'Cancelado', 'Atrasado'];
 
 function playNotificationSound() {
     // Som de alerta alto de um recurso público
