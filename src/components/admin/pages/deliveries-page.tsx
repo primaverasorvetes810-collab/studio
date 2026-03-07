@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collectionGroup, getDocs } from 'firebase/firestore';
+import { collectionGroup, onSnapshot, query } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import type { Order, OrderStatus } from '@/firebase/orders';
+import { type Order, type OrderStatus, updateOrderStatus } from '@/firebase/orders';
 import {
   Table,
   TableBody,
@@ -21,11 +21,19 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { formatPrice } from '@/lib/utils';
-import { Loader2, Truck } from 'lucide-react';
+import { Loader2, Truck, MoreVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 const statusColors: Record<OrderStatus, string> = {
   Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20',
+  Pago: 'bg-blue-500/20 text-blue-500 border-blue-500/20',
   Enviado: 'bg-teal-500/20 text-teal-500 border-teal-500/20',
   Entregue: 'bg-green-500/20 text-green-500 border-green-500/20',
   Cancelado: 'bg-gray-500/20 text-muted-foreground border-gray-500/20',
@@ -39,44 +47,58 @@ export default function DeliveriesPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchDeliveries = async () => {
-      setIsLoading(true);
-      if (!firestore) return;
-      try {
-        // Fetch all orders using a collection group query, then filter on the client
-        const ordersQuery = collectionGroup(firestore, 'orders');
-        const ordersSnapshot = await getDocs(ordersQuery);
-        
+    if (!firestore) return;
+    setIsLoading(true);
+
+    const ordersQuery = collectionGroup(firestore, 'orders');
+    const q = query(ordersQuery);
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
         let fetchedOrders: Order[] = [];
-        ordersSnapshot.forEach((orderDoc) => {
+        snapshot.forEach((orderDoc) => {
             fetchedOrders.push({ id: orderDoc.id, ...orderDoc.data() } as Order);
         });
 
-        // Client-side filtering for status 'Enviado'
+        // Filter for orders that are part of the delivery pipeline
         const deliveryOrders = fetchedOrders.filter(order => 
-            order.status === 'Enviado'
+            order.status === 'Pago' || order.status === 'Enviado'
         );
 
         const sortedOrders = deliveryOrders.sort(
           (a, b) => a.orderDate.toMillis() - b.orderDate.toMillis()
         );
         setDeliveries(sortedOrders);
-      } catch (error) {
+        setIsLoading(false);
+    }, (error) => {
         console.error('Error fetching deliveries:', error);
-         toast({
+        toast({
             variant: 'destructive',
             title: 'Erro ao carregar entregas',
             description: 'Não foi possível buscar os pedidos para entrega.'
         });
-      } finally {
         setIsLoading(false);
-      }
-    };
+    });
 
-    if(firestore) {
-        fetchDeliveries();
-    }
+    return () => unsubscribe();
   }, [firestore, toast]);
+  
+  const handleStatusChange = async (order: Order, newStatus: OrderStatus) => {
+    try {
+      await updateOrderStatus(order.userId, order.id, newStatus);
+      toast({
+        title: 'Status atualizado!',
+        description: `O pedido #${order.id.substring(0, 7)} foi marcado como ${newStatus}.`,
+      });
+    } catch (error) {
+      console.error('Failed to update status:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Não foi possível atualizar o status do pedido.',
+      });
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -92,7 +114,7 @@ export default function DeliveriesPage() {
       <CardHeader>
         <CardTitle>Controle de Entregas</CardTitle>
         <CardDescription>
-          Visualize todos os pedidos que já estão a caminho do cliente.
+          Gerencie os pedidos pagos que precisam ser enviados e os que já estão a caminho.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -102,7 +124,7 @@ export default function DeliveriesPage() {
               <TableHead>Cliente</TableHead>
               <TableHead className="hidden sm:table-cell">Endereço</TableHead>
               <TableHead className="hidden md:table-cell">Status</TableHead>
-              <TableHead className="text-right">Total</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -126,13 +148,32 @@ export default function DeliveriesPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    {formatPrice(order.totalAmount)}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="ghost">
+                          <MoreVertical className="h-4 w-4" />
+                          <span className="sr-only">Ações</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {order.status === 'Pago' && (
+                          <DropdownMenuItem onSelect={() => handleStatusChange(order, 'Enviado')}>
+                            Marcar como Enviado
+                          </DropdownMenuItem>
+                        )}
+                        {order.status === 'Enviado' && (
+                          <DropdownMenuItem onSelect={() => handleStatusChange(order, 'Entregue')}>
+                            Marcar como Entregue
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={4} className="h-24 text-center">
                   Nenhum pedido para entrega no momento.
                 </TableCell>
               </TableRow>
