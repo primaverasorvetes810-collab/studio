@@ -157,7 +157,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                               <FormItem>
                                   <FormLabel>Imagem do Produto</FormLabel>
                                   <FormControl>
-                                      <>
+                                      <div>
                                         <Input 
                                             type="file" 
                                             className="hidden"
@@ -170,7 +170,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                             <UploadCloud className="mr-2 h-4 w-4" />
                                             {imageFile ? 'Trocar Imagem' : 'Enviar Imagem'}
                                         </Button>
-                                     </>
+                                     </div>
                                   </FormControl>
                                   <FormDescription>
                                       Recomendamos imagens quadradas na proporção 1:1 (ex: 800x800 pixels).

@@ -132,7 +132,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                       <FormItem>
                           <FormLabel>Imagem do Carrossel</FormLabel>
                           <FormControl>
-                             <>
+                             <div>
                                 <Input 
                                     type="file" 
                                     className="hidden"
@@ -144,7 +144,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                                     <UploadCloud className="mr-2 h-4 w-4" />
                                     {imageFile ? 'Trocar Imagem' : 'Enviar Imagem'}
                                 </Button>
-                             </>
+                             </div>
                           </FormControl>
                            {imageUrlValue && (
                             <div className="mt-4 flex items-center justify-center rounded-lg border bg-muted p-4">
