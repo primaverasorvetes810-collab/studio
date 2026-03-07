@@ -187,7 +187,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                       <Input placeholder="https://exemplo.com/imagem.jpg" {...field} />
                                   </FormControl>
                                   <FormDescription>
-                                      Recomendamos imagens na proporção 16:9 (ex: 1280x720 pixels).
+                                      Recomendamos imagens quadradas na proporção 1:1 (ex: 800x800 pixels).
                                   </FormDescription>
                                   <FormMessage />
                                   {imageUrl && form.getFieldState('imageUrl').invalid === false && (
@@ -196,9 +196,9 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                             src={imageUrl} 
                                             alt="Pré-visualização da imagem" 
                                             width={200}
-                                            height={112}
-                                            className="aspect-video rounded-md object-contain"
-                                            onError={(e) => e.currentTarget.src = 'https://placehold.co/400x200/EEE/31343C?text=URL+Inválida'}
+                                            height={200}
+                                            className="aspect-square rounded-md object-contain"
+                                            onError={(e) => e.currentTarget.src = 'https://placehold.co/400x400/EEE/31343C?text=URL+Inválida'}
                                         />
                                     </div>
                                   )}

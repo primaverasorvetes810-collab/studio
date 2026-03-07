@@ -44,7 +44,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Card className="group flex h-full flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/20">
       <CardHeader className="p-0">
-        <div className="relative aspect-video">
+        <div className="relative aspect-square">
           <Image
             src={imageUrl}
             alt={product.name}
