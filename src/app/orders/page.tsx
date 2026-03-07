@@ -38,6 +38,7 @@ const statusColors: Record<OrderStatus, string> = {
   Enviado: "bg-blue-500/20 text-blue-500 border-blue-500/20",
   Entregue: "bg-green-500/20 text-green-500 border-green-500/20",
   Cancelado: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
+  Pago: "bg-blue-500/20 text-blue-500 border-blue-500/20",
 };
 
 export default function OrdersPage() {
@@ -53,11 +54,9 @@ export default function OrdersPage() {
     try {
       await updateOrderStatus(user.uid, orderToCancel.id, 'Cancelado');
       
-      // Update local state to reflect the change immediately
+      // Optimistically remove the canceled order from the UI
       setOrders(prevOrders => 
-        prevOrders.map(o => 
-          o.id === orderToCancel.id ? { ...o, status: 'Cancelado' } : o
-        )
+        prevOrders.filter(o => o.id !== orderToCancel.id)
       );
 
       toast({

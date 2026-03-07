@@ -20,7 +20,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { formatPrice } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { Loader2, Truck, MoreVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -61,7 +61,7 @@ export default function DeliveriesPage() {
 
         // Filter for orders that are part of the delivery pipeline
         const deliveryOrders = fetchedOrders.filter(order => 
-            order.status === 'Pago' || order.status === 'Enviado'
+            order.status === 'Pendente' || order.status === 'Pago' || order.status === 'Enviado'
         );
 
         const sortedOrders = deliveryOrders.sort(
@@ -114,7 +114,7 @@ export default function DeliveriesPage() {
       <CardHeader>
         <CardTitle>Controle de Entregas</CardTitle>
         <CardDescription>
-          Gerencie os pedidos pagos que precisam ser enviados e os que já estão a caminho.
+          Gerencie os pedidos que precisam ser preparados e enviados.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -142,7 +142,7 @@ export default function DeliveriesPage() {
                     <div className="text-sm text-muted-foreground">{order.userNeighborhood}, {order.userCity}</div>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <Badge className={statusColors[order.status]} variant="outline">
+                    <Badge className={cn(statusColors[order.status])} variant="outline">
                       <Truck className="mr-1 h-3 w-3" />
                       {order.status}
                     </Badge>
@@ -156,10 +156,10 @@ export default function DeliveriesPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        {order.status === 'Pago' && (
-                          <DropdownMenuItem onSelect={() => handleStatusChange(order, 'Enviado')}>
-                            Marcar como Enviado
-                          </DropdownMenuItem>
+                        {(order.status === 'Pendente' || order.status === 'Pago') && (
+                            <DropdownMenuItem onSelect={() => handleStatusChange(order, 'Enviado')}>
+                                Marcar como Enviado
+                            </DropdownMenuItem>
                         )}
                         {order.status === 'Enviado' && (
                           <DropdownMenuItem onSelect={() => handleStatusChange(order, 'Entregue')}>

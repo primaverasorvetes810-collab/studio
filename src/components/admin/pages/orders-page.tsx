@@ -50,7 +50,7 @@ const statusColors: Record<OrderStatus, string> = {
   Cancelado: 'bg-gray-500/20 text-muted-foreground border-gray-500/20',
 };
 
-const selectableStatuses: OrderStatus[] = ['Pendente', 'Pago', 'Enviado', 'Entregue', 'Cancelado', 'Atrasado'];
+const selectableStatuses: OrderStatus[] = ['Pendente', 'Pago', 'Enviado', 'Entregue'];
 
 function playNotificationSound() {
     // Som de alerta alto de um recurso público
