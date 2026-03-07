@@ -27,11 +27,13 @@ import type { CarouselImage } from '@/firebase/carousel';
 import { createCarouselImage, updateCarouselImage } from '@/firebase/carousel';
 import { useState, useRef } from 'react';
 import Image from 'next/image';
-import { Image as ImageIcon, UploadCloud, Loader2 } from 'lucide-react';
+import { UploadCloud, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useStorage } from '@/firebase';
 import { uploadFileAndGetURL } from '@/firebase/storage';
 import { Progress } from '@/components/ui/progress';
+import imageCompression from 'browser-image-compression';
+import { Label } from '../ui/label';
 
 const ImagePayloadSchema = z.object({
   imageUrl: z.string().url('Por favor, insira ou envie uma imagem para obter uma URL válida.'),
@@ -55,6 +57,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   
   const form = useForm<z.infer<typeof ImagePayloadSchema>>({
     resolver: zodResolver(ImagePayloadSchema),
@@ -68,22 +71,47 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
 
   const imageUrlValue = form.watch('imageUrl');
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      // Create a temporary local URL for immediate preview
+    if (!file) return;
+
+    setIsCompressing(true);
+    toast({ title: 'Otimizando imagem...', description: 'Aguarde um momento.' });
+
+    const options = {
+      maxSizeMB: 0.8,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    };
+
+    try {
+      const compressedFile = await imageCompression(file, options);
+      setImageFile(compressedFile);
+      const tempUrl = URL.createObjectURL(compressedFile);
+      form.setValue('imageUrl', tempUrl, { shouldValidate: true, shouldDirty: true });
+      toast({ title: 'Imagem pronta!', description: 'A imagem foi otimizada para um envio mais rápido.' });
+    } catch (error) {
+      console.error("Image compression error:", error);
+      setImageFile(file); // Fallback to original
       const tempUrl = URL.createObjectURL(file);
-      form.setValue('imageUrl', tempUrl, { shouldValidate: true });
+      form.setValue('imageUrl', tempUrl, { shouldValidate: true, shouldDirty: true });
+      toast({
+        variant: 'destructive',
+        title: 'Falha na otimização',
+        description: 'Não foi possível otimizar a imagem. Ela será enviada no tamanho original.',
+      });
+    } finally {
+      setIsCompressing(false);
     }
   };
 
   const onSubmit = async (data: z.infer<typeof ImagePayloadSchema>) => {
     setIsSubmitting(true);
     setUploadProgress(0);
-    let finalImageUrl = image?.imageUrl ?? '';
+    let finalImageUrl = data.imageUrl; // Start with the URL from the form (could be existing or temp)
 
     try {
+      // Only upload if a new file was selected
       if (imageFile) {
         finalImageUrl = await uploadFileAndGetURL(
           storage,
@@ -93,6 +121,12 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
         );
       }
 
+      if (!finalImageUrl) {
+        toast({ variant: 'destructive', title: 'Erro', description: 'A imagem é obrigatória.' });
+        setIsSubmitting(false);
+        return;
+      }
+      
       const payload = { ...data, imageUrl: finalImageUrl };
 
       if (image) {
@@ -131,6 +165,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                   render={({ field }) => (
                       <FormItem>
                           <FormLabel>Imagem do Carrossel</FormLabel>
+                          <div className='flex flex-col gap-4'>
                             <FormControl>
                                 <Input 
                                     type="file" 
@@ -140,11 +175,11 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                                     accept="image/png, image/jpeg, image/gif, image/webp"
                                 />
                             </FormControl>
-                            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting}>
-                                <UploadCloud className="mr-2 h-4 w-4" />
-                                {imageFile ? 'Trocar Imagem' : 'Enviar Imagem'}
+                            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting || isCompressing}>
+                                {isCompressing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                                {isCompressing ? 'Otimizando...' : (imageUrlValue ? 'Trocar Imagem' : 'Enviar Imagem')}
                             </Button>
-
+                          </div>
                            {imageUrlValue && (
                             <div className="mt-4 flex items-center justify-center rounded-lg border bg-muted p-4">
                                 <Image 
@@ -202,7 +237,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
                         Cancelar
                     </Button>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button type="submit" disabled={isSubmitting || isCompressing}>
                         {isSubmitting ? <Loader2 className="animate-spin"/> : 'Salvar'}
                     </Button>
                 </DialogFooter>

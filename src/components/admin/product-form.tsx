@@ -42,6 +42,7 @@ import { useStorage } from '@/firebase';
 import { uploadFileAndGetURL } from '@/firebase/storage';
 import { UploadCloud, Loader2 } from 'lucide-react';
 import { Label } from '../ui/label';
+import imageCompression from 'browser-image-compression';
 
 type ProductFormProps = {
   product: Product | null;
@@ -60,6 +61,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   
   const form = useForm<z.infer<typeof ProductPayloadSchema>>({
     resolver: zodResolver(ProductPayloadSchema),
@@ -79,19 +81,44 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
   const manageStock = form.watch('manageStock');
   const imageUrlValue = form.watch('imageUrl');
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      setImageFile(file);
+    if (!file) return;
+
+    setIsCompressing(true);
+    toast({ title: 'Otimizando imagem...', description: 'Aguarde um momento.' });
+    
+    const options = {
+      maxSizeMB: 0.5,
+      maxWidthOrHeight: 1280,
+      useWebWorker: true,
+    };
+
+    try {
+      const compressedFile = await imageCompression(file, options);
+      setImageFile(compressedFile);
+      const tempUrl = URL.createObjectURL(compressedFile);
+      form.setValue('imageUrl', tempUrl, { shouldValidate: true, shouldDirty: true });
+      toast({ title: 'Imagem pronta!', description: 'A imagem foi otimizada para um envio mais rápido.' });
+    } catch (error) {
+      console.error("Image compression error:", error);
+      setImageFile(file); // Fallback to original file
       const tempUrl = URL.createObjectURL(file);
-      form.setValue('imageUrl', tempUrl, { shouldValidate: true });
+      form.setValue('imageUrl', tempUrl, { shouldValidate: true, shouldDirty: true });
+      toast({
+        variant: 'destructive',
+        title: 'Falha na otimização',
+        description: 'Não foi possível otimizar a imagem. Ela será enviada no tamanho original.',
+      });
+    } finally {
+      setIsCompressing(false);
     }
   };
 
   const onSubmit = async (data: z.infer<typeof ProductPayloadSchema>) => {
     setIsSubmitting(true);
     setUploadProgress(0);
-    let finalImageUrl = product?.imageUrl ?? '';
+    let finalImageUrl = data.imageUrl;
 
     try {
       if (imageFile) {
@@ -156,6 +183,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                           render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Imagem do Produto</FormLabel>
+                                  <div className="flex flex-col gap-4">
                                     <FormControl>
                                         <Input 
                                             type="file" 
@@ -163,13 +191,14 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                             ref={fileInputRef}
                                             onChange={handleFileChange}
                                             accept="image/png, image/jpeg, image/gif, image/webp"
-                                            disabled={isSubmitting}
+                                            disabled={isSubmitting || isCompressing}
                                         />
                                     </FormControl>
-                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting}>
-                                        <UploadCloud className="mr-2 h-4 w-4" />
-                                        {imageFile ? 'Trocar Imagem' : 'Enviar Imagem'}
+                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting || isCompressing}>
+                                        {isCompressing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                                        {isCompressing ? 'Otimizando...' : (imageUrlValue ? 'Trocar Imagem' : 'Enviar Imagem')}
                                     </Button>
+                                  </div>
                                   <FormDescription>
                                       Recomendamos imagens quadradas na proporção 1:1 (ex: 800x800 pixels).
                                   </FormDescription>
@@ -327,7 +356,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                 </ScrollArea>
                 <DialogFooter className="pt-4">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Cancelar</Button>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button type="submit" disabled={isSubmitting || isCompressing}>
                         {isSubmitting ? <Loader2 className="animate-spin" /> : 'Salvar'}
                     </Button>
                 </DialogFooter>
