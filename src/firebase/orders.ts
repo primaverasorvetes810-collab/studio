@@ -93,7 +93,7 @@ export async function createOrderFromCart(
     }
 
 
-    // --- Validação de Preços e Estoque no Servidor ---
+    // --- Validação de Preços ---
     let validatedTotalAmount = 0;
     const validatedOrderItems = [];
 
@@ -106,10 +106,6 @@ export async function createOrderFromCart(
       }
 
       const serverProduct = productSnap.data() as Product;
-
-      if (serverProduct.manageStock && serverProduct.stock < cartItem.quantity) {
-        throw new Error(`Estoque insuficiente para o produto "${serverProduct.name}".`);
-      }
 
       const itemPrice = serverProduct.price; // Usar o preço do servidor
       validatedTotalAmount += itemPrice * cartItem.quantity;
@@ -143,16 +139,7 @@ export async function createOrderFromCart(
 
     const batch = writeBatch(firestore);
 
-    // Diminuir estoque e limpar carrinho
-    for (const item of validatedOrderItems) {
-      if (item.product.manageStock) {
-        const productRef = doc(firestore, 'products', item.productId);
-        batch.update(productRef, { 
-          stock: increment(-item.quantity)
-        });
-      }
-    }
-
+    // Limpar carrinho
     for (const item of cartItems) {
         const cartItemRef = doc(firestore, `users/${userId}/shoppingCarts/${cartId}/cartItems`, item.id);
         batch.delete(cartItemRef);

@@ -61,11 +61,11 @@ export default function CartPage() {
   };
 
   const handlePlaceOrder = async () => {
-    if (!user || !cartId || cartItems.length === 0 || !paymentMethod) {
+    if (!user || !cartId || cartItems.length === 0) {
       toast({
         variant: 'destructive',
         title: 'Erro no pedido',
-        description: 'Selecione uma forma de pagamento e verifique seu carrinho.',
+        description: 'Seu carrinho está vazio.',
       });
       return;
     }
@@ -78,14 +78,8 @@ export default function CartPage() {
       });
       router.push('/orders');
     } catch (error: any) {
-      if (error.message.includes('Estoque insuficiente')) {
-        toast({
-          variant: 'destructive',
-          title: 'Erro no Pedido',
-          description: error.message,
-        });
-      }
-      // Outros erros são manipulados pelo listener global
+      // Generic error handling is managed by the global listener,
+      // so no specific catch block is needed here.
     } finally {
       setIsPlacingOrder(false);
     }
@@ -221,7 +215,7 @@ export default function CartPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder || !paymentMethod}>
+              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder}>
                 {isPlacingOrder ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
