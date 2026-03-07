@@ -131,8 +131,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                   render={({ field }) => (
                       <FormItem>
                           <FormLabel>Imagem do Carrossel</FormLabel>
-                          <FormControl>
-                             <div>
+                            <FormControl>
                                 <Input 
                                     type="file" 
                                     className="hidden"
@@ -140,12 +139,12 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                                     onChange={handleFileChange}
                                     accept="image/png, image/jpeg, image/gif, image/webp"
                                 />
-                                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting}>
-                                    <UploadCloud className="mr-2 h-4 w-4" />
-                                    {imageFile ? 'Trocar Imagem' : 'Enviar Imagem'}
-                                </Button>
-                             </div>
-                          </FormControl>
+                            </FormControl>
+                            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting}>
+                                <UploadCloud className="mr-2 h-4 w-4" />
+                                {imageFile ? 'Trocar Imagem' : 'Enviar Imagem'}
+                            </Button>
+
                            {imageUrlValue && (
                             <div className="mt-4 flex items-center justify-center rounded-lg border bg-muted p-4">
                                 <Image 
@@ -154,7 +153,6 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                                     width={200}
                                     height={100}
                                     className="aspect-video rounded-md object-contain"
-                                    onError={(e) => e.currentTarget.style.display = 'none'}
                                 />
                             </div>
                           )}

@@ -156,8 +156,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                           render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Imagem do Produto</FormLabel>
-                                  <FormControl>
-                                      <div>
+                                    <FormControl>
                                         <Input 
                                             type="file" 
                                             className="hidden"
@@ -166,12 +165,11 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                             accept="image/png, image/jpeg, image/gif, image/webp"
                                             disabled={isSubmitting}
                                         />
-                                        <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting}>
-                                            <UploadCloud className="mr-2 h-4 w-4" />
-                                            {imageFile ? 'Trocar Imagem' : 'Enviar Imagem'}
-                                        </Button>
-                                     </div>
-                                  </FormControl>
+                                    </FormControl>
+                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting}>
+                                        <UploadCloud className="mr-2 h-4 w-4" />
+                                        {imageFile ? 'Trocar Imagem' : 'Enviar Imagem'}
+                                    </Button>
                                   <FormDescription>
                                       Recomendamos imagens quadradas na proporção 1:1 (ex: 800x800 pixels).
                                   </FormDescription>
@@ -184,7 +182,6 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                             width={200}
                                             height={200}
                                             className="aspect-square rounded-md object-contain"
-                                            onError={(e) => e.currentTarget.style.display = 'none'}
                                         />
                                     </div>
                                   )}
