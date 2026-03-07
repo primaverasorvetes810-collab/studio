@@ -45,6 +45,10 @@
         "city": {
           "type": "string",
           "description": "The user's city."
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "description": "Indicates if the user has administrator privileges."
         }
       },
       "required": [
@@ -76,6 +80,13 @@
         "description": {
           "type": "string",
           "description": "Optional description for the product group."
+        },
+        "subgroups": {
+          "type": "array",
+          "description": "A list of subgroups for categorization within this product group (e.g., brands, types).",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -109,9 +120,26 @@
           "type": "number",
           "description": "Price of the product."
         },
-        "stockLevel": {
+        "stock": {
           "type": "number",
-          "description": "Current stock level of the product."
+          "description": "Current stock level of the product. Only relevant if manageStock is true."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Indicates whether the product is active and visible to customers."
+        },
+        "subgroup": {
+          "type": "string",
+          "description": "An optional subgroup for categorization within a product group (e.g., brand)."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the product image.",
+          "format": "uri"
+        },
+        "manageStock": {
+          "type": "boolean",
+          "description": "If true, stock level is tracked for this product. Defaults to true."
         }
       },
       "required": [
@@ -120,7 +148,10 @@
         "name",
         "description",
         "price",
-        "stockLevel"
+        "stock",
+        "isActive",
+        "imageUrl",
+        "manageStock"
       ]
     },
     "ShoppingCart": {
@@ -288,6 +319,37 @@
         "amount",
         "status"
       ]
+    },
+     "CarouselImage": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CarouselImage",
+      "type": "object",
+      "description": "Represents an image in the homepage carousel.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the carousel image."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the image.",
+          "format": "uri"
+        },
+        "altText": {
+          "type": "string",
+          "description": "Alternative text for the image."
+        },
+        "link": {
+          "type": "string",
+          "description": "Optional URL to link to when the image is clicked.",
+          "format": "uri"
+        },
+        "order": {
+            "type": "number",
+            "description": "The display order of the image in the carousel."
+        }
+      },
+      "required": ["id", "imageUrl", "altText", "order"]
     }
   },
   "auth": {
@@ -446,6 +508,22 @@
             {
               "name": "paymentId",
               "description": "The unique identifier for the payment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/carouselImages/{imageId}",
+        "definition": {
+          "entityName": "CarouselImage",
+          "schema": {
+            "$ref": "#/backend/entities/CarouselImage"
+          },
+          "description": "Stores images for the homepage carousel. Publicly readable.",
+          "params": [
+            {
+              "name": "imageId",
+              "description": "The unique identifier for the carousel image."
             }
           ]
         }

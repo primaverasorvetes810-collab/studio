@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -12,32 +13,34 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Users can only access their own data.
-    // Anyone can create a user document (for sign-up).
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Users can access their own data. Admins can read/update any user data.
     match /users/{userId} {
-      allow read, update: if isOwner(userId);
+      allow read: if isOwner(userId) || isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
       allow create: if isSignedIn();
     }
 
-    // Product groups are publicly readable. Only admins (via backend) should write.
-    // For now, let's lock it down to reads only for clients.
+    // Product groups are publicly readable. Admins can write.
     match /productGroups/{productGroupId} {
       allow read: if true;
-      allow write: if false; // Protect this collection from client-side writes
+      allow write: if isAdmin();
     }
 
-    // Products are publicly readable. Stock updates happen during order creation.
+    // Products are publicly readable. Admins can manage them.
     match /products/{productId} {
       allow read: if true;
-      // Allow updates only if the user is authenticated (for stock decrement during order placement)
-      allow update: if isSignedIn(); 
-      allow create, delete: if false; // Protect from client-side creation/deletion
+      allow write: if isAdmin();
     }
     
-    // Carousel images are publicly readable.
+    // Carousel images are publicly readable. Admins can write.
     match /carouselImages/{imageId} {
         allow read: if true;
-        allow write: if false; // Protect from client-side writes
+        allow write: if isAdmin();
     }
 
     // Shopping cart and its items are private to the user.
@@ -49,13 +52,14 @@ service cloud.firestore {
       allow read, write, delete: if isOwner(userId);
     }
 
-    // Orders are private to the user.
-    // Users can create their own orders. They can read their own orders.
-    // They can update their own orders only to change the status to 'Cancelado'.
+    // Orders are private to the user, but readable/updatable by admins.
+    // Users can create their own orders.
+    // Users can update their own orders only to change the status to 'Cancelado'.
+    // Admins can read and update any order.
     match /users/{userId}/orders/{orderId} {
       allow create: if isOwner(userId);
-      allow read: if isOwner(userId);
-      allow update: if isOwner(userId) && request.resource.data.status == 'Cancelado';
+      allow read: if isOwner(userId) || isAdmin();
+      allow update: if (isOwner(userId) && request.resource.data.status == 'Cancelado') || isAdmin();
     }
   }
 }

@@ -1,9 +1,9 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import { Loader2, ShieldAlert, KeyRound, Home, ShoppingCart, Truck, Package, Users, Gift, Settings, LifeBuoy, Image as ImageIcon, Shield, Menu } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,6 +47,7 @@ const navItems = [
 
 export default function AdminGatePage() {
   const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [isChecking, setIsChecking] = useState(false);
@@ -57,10 +58,21 @@ export default function AdminGatePage() {
 
   const handlePasswordCheck = () => {
     setIsChecking(true);
-    setTimeout(() => { 
+    setTimeout(async () => {
       if (password === correctPassword) {
         setIsAdminAuthenticated(true);
         sessionStorage.setItem('adminAuthenticated', 'true');
+
+        if (user && firestore) {
+            try {
+                const userRef = doc(firestore, 'users', user.uid);
+                await updateDoc(userRef, { isAdmin: true });
+            } catch (error) {
+                console.error("Falha ao definir a função de administrador:", error);
+                // Não bloqueie a interface do usuário para isso, mas registre-o.
+            }
+        }
+        
         toast({
           title: 'Acesso Concedido',
           description: 'Bem-vindo ao Painel de Administração.',
