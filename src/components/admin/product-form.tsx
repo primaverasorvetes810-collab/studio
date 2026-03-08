@@ -30,7 +30,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { ProductPayload, ProductPayloadSchema, createProduct, updateProduct, getProduct } from '@/firebase/products';
+import { ProductPayload, ProductPayloadSchema, createProduct, updateProduct } from '@/firebase/products';
 import type { Product, ProductGroup } from '@/lib/data/products';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState, useRef } from 'react';
@@ -42,12 +42,13 @@ import { useStorage, type WithId } from '@/firebase';
 import { uploadFileAndGetURL } from '@/firebase/storage';
 import { UploadCloud, Loader2 } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
+import { v4 as uuidv4 } from 'uuid';
 
 type ProductFormProps = {
   product: WithId<Product> | null;
   parentGroup: ProductGroup;
   onOpenChange: (open: boolean) => void;
-  onFormSubmit: () => void;
+  onFormSubmit: (optimisticData: WithId<Product>) => void;
 };
 
 const GERAL_SUBGROUP_VALUE = '__GERAL__';
@@ -117,7 +118,17 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
   };
 
   const onSubmit = async (data: z.infer<typeof ProductPayloadSchema>) => {
-    onFormSubmit(); // Close dialog immediately
+    const optimisticId = product?.id || uuidv4();
+    const optimisticProduct: WithId<Product> = {
+      id: optimisticId,
+      groupId: parentGroup.id,
+      ...product, // Spread existing product to keep non-form fields
+      ...data,
+      imageUrl: imageUrlValue,
+    };
+  
+    onFormSubmit(optimisticProduct);
+
     const { id: toastId, update } = toast({
         title: 'Salvando produto...',
         description: 'Aguarde enquanto processamos seu envio.',
@@ -154,12 +165,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
       if (product) {
         await updateProduct(product.id, payload);
       } else {
-        const newProductRef = await createProduct(payload);
-        // Ensure the product exists before considering the operation complete
-        const newProduct = await getProduct(newProductRef.id);
-        if (!newProduct) {
-            throw new Error("Failed to fetch new product after creation.");
-        }
+        await createProduct(payload);
       }
       
       update({ id: toastId, title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });

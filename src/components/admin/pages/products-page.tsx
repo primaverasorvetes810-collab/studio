@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { useFirestore, useMemoFirebase, useCollection, type WithId } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Product, ProductGroup } from '@/lib/data/products';
 import { useToast } from '@/hooks/use-toast';
@@ -44,6 +44,25 @@ export default function ProductsPage() {
     setEditingProduct(null);
     setActiveGroup(null);
   };
+  
+  const handleFormSubmit = (optimisticProduct: WithId<Product>) => {
+    if (!products || !setProducts) return;
+
+    const productExists = products.some(p => p.id === optimisticProduct.id);
+
+    if (productExists) {
+      // It's an update, replace the item
+      setProducts(prevProducts => 
+        prevProducts?.map(p => p.id === optimisticProduct.id ? optimisticProduct : p) || null
+      );
+    } else {
+      // It's a new product, add it to the list
+      setProducts(prevProducts => [optimisticProduct, ...(prevProducts || [])]);
+    }
+    
+    // Close the form after optimistic update
+    handleFormClose();
+  };
 
   return (
     <>
@@ -61,8 +80,7 @@ export default function ProductsPage() {
           product={editingProduct}
           parentGroup={activeGroup}
           onOpenChange={setIsFormOpen}
-          onFormSubmit={handleFormClose}
-          setProducts={setProducts}
+          onFormSubmit={handleFormSubmit}
         />
       )}
     </>
