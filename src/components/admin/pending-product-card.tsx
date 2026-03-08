@@ -43,8 +43,11 @@ export function PendingProductCard({
             <Skeleton className="h-9 w-full" />
         </CardFooter>
       </Card>
-      <div className="absolute bottom-0 left-0 w-full p-1">
-           <Progress value={progress} className="h-1.5 bg-green-500/20" indicatorClassName="bg-green-500" />
+      <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/50 backdrop-blur-sm">
+        <div className="flex items-center gap-2">
+            <Progress value={progress} className="h-2 w-full bg-white/20" indicatorClassName="bg-green-500" />
+            <span className="w-10 text-right text-xs font-bold text-white">{Math.round(progress)}%</span>
+        </div>
       </div>
     </div>
   );
