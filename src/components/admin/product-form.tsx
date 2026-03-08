@@ -37,7 +37,6 @@ import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
-import { Progress } from '../ui/progress';
 import { useStorage, type WithId } from '@/firebase';
 import { uploadFileAndGetURL } from '@/firebase/storage';
 import { UploadCloud, Loader2 } from 'lucide-react';
@@ -58,6 +57,7 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<z.infer<typeof ProductPayloadSchema>>({
     resolver: zodResolver(ProductPayloadSchema),
@@ -82,10 +82,6 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
     if (!file) return;
 
     setIsCompressing(true);
-    const { id: toastId, update } = toast({
-      title: 'Otimizando imagem...',
-      description: 'Isso leva apenas um instante.',
-    });
     
     const options = {
       maxSizeMB: 0.5,
@@ -98,14 +94,12 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
       setImageFile(compressedFile);
       const tempUrl = URL.createObjectURL(compressedFile);
       form.setValue('imageUrl', tempUrl, { shouldValidate: true, shouldDirty: true });
-      update({ id: toastId, title: 'Imagem pronta!', description: 'A imagem foi otimizada para o envio.' });
     } catch (error) {
       console.error("Image compression error:", error);
       setImageFile(file); // Fallback to original file
       const tempUrl = URL.createObjectURL(file);
       form.setValue('imageUrl', tempUrl, { shouldValidate: true, shouldDirty: true });
-      update({
-        id: toastId,
+      toast({
         variant: 'destructive',
         title: 'Falha na otimização',
         description: 'A imagem será enviada no tamanho original.',
@@ -115,68 +109,58 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
     }
   };
 
-  const onSubmit = (data: z.infer<typeof ProductPayloadSchema>) => {
-    onOpenChange(false);
-
-    const saveProductAsync = async () => {
-      const { id: toastId, update } = toast({
-        title: 'Salvando produto...',
-        description: 'Aguarde enquanto processamos seu envio.',
-      });
+  const onSubmit = async (data: z.infer<typeof ProductPayloadSchema>) => {
+    setIsSubmitting(true);
+    try {
+      let finalImageUrl: string | undefined = product?.imageUrl; 
       
-      try {
-        let finalImageUrl: string | undefined = product?.imageUrl; 
-        
-        if (imageFile) {
-           finalImageUrl = await uploadFileAndGetURL(
-            storage,
-            imageFile,
-            'products',
-            (progress) => {
-              update({
-                id: toastId,
-                title: 'Enviando imagem...',
-                description: <Progress value={progress} className="w-full" />,
-              });
-            }
-          );
-        }
-        
-        update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações.' });
+      // Only upload if a new file has been selected (URL is a blob)
+      if (imageFile && imageUrlValue?.startsWith('blob:')) {
+         finalImageUrl = await uploadFileAndGetURL(
+          storage,
+          imageFile,
+          'products',
+          () => {} // Progress is handled by the global spinner now
+        );
+      } else if (!imageUrlValue) {
+        // If imageUrl is empty, ensure it's undefined so it might be removed from Firestore
+        finalImageUrl = undefined;
+      }
+      
+      const payload: ProductPayload = {
+        ...data,
+        subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
+        imageUrl: finalImageUrl,
+      };
 
-        const payload: ProductPayload = {
-          ...data,
-          subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
-          imageUrl: finalImageUrl,
-        };
-
-        if (product) {
-          await updateProduct(product.id, payload);
-        } else {
-          await createProduct(payload);
-        }
-
-        update({
-          id: toastId,
+      if (product) {
+        await updateProduct(product.id, payload);
+        toast({
           title: 'Sucesso!',
-          description: product ? 'Produto atualizado.' : 'Novo produto adicionado.',
+          description: 'Produto atualizado.',
         });
-      } catch (error) {
-        console.error('Form submission error:', error);
-        update({
-          id: toastId,
-          variant: 'destructive',
-          title: 'Erro',
-          description: 'Não foi possível salvar o produto.',
+      } else {
+        await createProduct(payload);
+        toast({
+          title: 'Sucesso!',
+          description: 'Novo produto adicionado.',
         });
       }
-    };
-    
-    saveProductAsync();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Não foi possível salvar o produto.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <Dialog open={true} onOpenChange={onOpenChange}>
+    <Dialog open={true} onOpenChange={(open) => !isSubmitting && onOpenChange(open)}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{product ? 'Editar Produto' : 'Adicionar Novo Produto'}</DialogTitle>
@@ -187,7 +171,7 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <ScrollArea className="max-h-[70vh] pr-6">
-                    <fieldset disabled={isCompressing} className="grid gap-4 py-4">
+                    <fieldset disabled={isSubmitting || isCompressing} className="grid gap-4 py-4">
                         <FormField
                           control={form.control}
                           name="imageUrl"
@@ -205,8 +189,8 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                                         />
                                     </FormControl>
                                     <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                                        {isCompressing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
-                                        {isCompressing ? 'Otimizando...' : (imageUrlValue ? 'Trocar Imagem' : 'Enviar Imagem')}
+                                        <UploadCloud className="mr-2 h-4 w-4" />
+                                        {imageUrlValue ? 'Trocar Imagem' : 'Enviar Imagem'}
                                     </Button>
                                   </div>
                                   <FormDescription>
@@ -363,11 +347,16 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                     </fieldset>
                 </ScrollArea>
                 <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCompressing}>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting || isCompressing}>
                         Cancelar
                     </Button>
-                    <Button type="submit" disabled={isCompressing}>
-                        {isCompressing ? 'Otimizando...' : 'Salvar'}
+                    <Button type="submit" disabled={isSubmitting || isCompressing}>
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Salvando...
+                          </>
+                        ) : 'Salvar'}
                     </Button>
                 </DialogFooter>
             </form>
