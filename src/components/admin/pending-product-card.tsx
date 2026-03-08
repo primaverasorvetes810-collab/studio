@@ -21,7 +21,7 @@ export function PendingProductCard({
 }: PendingProductCardProps) {
   return (
     <div className="relative">
-      <Card className="group flex h-full flex-col overflow-hidden animate-pulse">
+      <Card className="group flex h-full flex-col overflow-hidden">
         <CardHeader className="p-0">
           <div className="relative aspect-square">
             <Image
