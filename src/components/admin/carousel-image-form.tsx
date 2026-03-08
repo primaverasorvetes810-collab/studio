@@ -79,7 +79,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
     });
 
     const options = {
-      maxSizeMB: 0.8,
+      maxSizeMB: 0.6,
       maxWidthOrHeight: 1920,
       useWebWorker: true,
     };

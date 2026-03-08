@@ -82,8 +82,8 @@ export function ProductForm({ product, parentGroup, onOpenChange, onInitiateSave
     setIsCompressing(true);
     
     const options = {
-      maxSizeMB: 0.5,
-      maxWidthOrHeight: 1280,
+      maxSizeMB: 0.4,
+      maxWidthOrHeight: 1024,
       useWebWorker: true,
     };
 
