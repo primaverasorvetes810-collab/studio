@@ -16,59 +16,67 @@ service cloud.firestore {
     }
 
     function isAdmin() {
+      // An admin is a signed-in user whose document in the 'users' collection
+      // has the 'isAdmin' flag set to true.
       return isSignedIn() && 
              exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
     
     // =====================================================================
-    // Admin Full Access Rule
-    // =====================================================================
-    // Admins have full read/write access to the entire database for management.
-    // This rule is checked first. If the user is an admin, access is granted.
-    // Subsequent rules define permissions for regular users.
-    match /{path=**} {
-      allow read, write: if isAdmin();
-    }
-    
-    // =====================================================================
-    // User-Specific & Public Rules
+    // Collection-Specific Rules
     // =====================================================================
 
-    // --- Publicly Readable Collections ---
-    // Products, product groups, and carousel images are readable by anyone.
+    // --- Publicly Readable Collections (Admin Writable) ---
+    // Products, product groups, and carousel images are readable by anyone to display in the store.
+    // However, only admins can create, update, or delete them.
     match /productGroups/{productGroupId} {
       allow read: if true;
+      allow write: if isAdmin();
     }
     match /products/{productId} {
       allow read: if true;
+      allow write: if isAdmin();
     }
     match /carouselImages/{imageId} {
       allow read: if true;
+      allow write: if isAdmin();
     }
 
     // --- User Profile ---
-    // Users can create their own profile.
-    // They can read and update their own profile data.
-    // Deletion is admin-only (handled by the global admin rule).
+    // Users can create their own profile when they sign up.
+    // They can read and update their own profile.
+    // Admins can also read/update any user profile for customer service.
     match /users/{userId} {
       allow create: if isOwner(userId);
-      allow read, update: if isOwner(userId);
+      allow read, update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin(); // Only admins can delete users.
     }
     
-    // --- Shopping Cart ---
-    // A user's shopping cart and its contents are entirely private.
+    // --- Shopping Cart (Strictly Private) ---
+    // A user's shopping cart is private. Admins cannot access it.
     match /users/{userId}/shoppingCarts/{cartId}/{cartItems=**} {
       allow read, write, delete: if isOwner(userId);
     }
 
-    // --- Orders ---
-    // Users can create and read their own orders.
-    // Users can ONLY update an order to cancel it.
+    // --- Orders (User and Admin Access) ---
+    
+    // This rule is required to allow admins to perform a collectionGroup query on 'orders'
+    // across all users, as used in the admin dashboard.
+    match /{path=**}/orders/{orderId} {
+        allow read: if isAdmin();
+    }
+    
+    // This rules governs access to a specific order document.
     match /users/{userId}/orders/{orderId} {
       allow create: if isOwner(userId);
-      allow read: if isOwner(userId);
-      allow update: if isOwner(userId) && request.resource.data.status == 'Cancelado';
+      // An order can be read by its owner or any admin.
+      allow read: if isOwner(userId) || isAdmin();
+      // An order can be updated by an admin (e.g., to change status).
+      // A user can only update their own order if they are cancelling it, and it was pending.
+      allow update: if isAdmin() || (isOwner(userId) && request.resource.data.status == 'Cancelado' && resource.data.status == 'Pendente');
+      // Only admins can delete orders.
+      allow delete: if isAdmin();
     }
   }
 }
