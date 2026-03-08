@@ -190,17 +190,24 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                                 {isCompressing ? 'Otimizando...' : (imageUrlValue ? 'Trocar Imagem' : 'Enviar Imagem')}
                             </Button>
                           </div>
-                           {imageUrlValue && (
-                            <div className="mt-4 flex items-center justify-center rounded-lg border bg-muted p-4">
-                                <Image 
-                                    src={imageUrlValue} 
-                                    alt="Pré-visualização da imagem" 
-                                    width={200}
-                                    height={100}
-                                    className="aspect-video rounded-md object-contain"
-                                />
+                           <div className="mt-4 flex h-[132px] items-center justify-center rounded-lg border bg-muted p-4">
+                                {isCompressing ? (
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                ) : imageUrlValue ? (
+                                    <Image 
+                                        src={imageUrlValue} 
+                                        alt="Pré-visualização da imagem" 
+                                        width={200}
+                                        height={100}
+                                        className="aspect-video rounded-md object-contain"
+                                    />
+                                ) : (
+                                    <div className="text-center text-sm text-muted-foreground">
+                                        <UploadCloud className="mx-auto mb-2 h-8 w-8" />
+                                        <p>Pré-visualização da imagem</p>
+                                    </div>
+                                )}
                             </div>
-                          )}
                           <FormMessage />
                       </FormItem>
                   )}

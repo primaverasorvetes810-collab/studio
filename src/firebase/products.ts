@@ -7,6 +7,7 @@ import {
   deleteDoc,
   collection,
   getDoc,
+  DocumentReference,
 } from 'firebase/firestore';
 import { getClientSdks } from '@/firebase';
 import { deleteDocumentNonBlocking } from './non-blocking-updates';
@@ -32,12 +33,12 @@ export const ProductPayloadSchema = z.object({
 export type ProductPayload = z.infer<typeof ProductPayloadSchema>;
 
 
-export async function createProduct(payload: ProductPayload): Promise<void> {
+export async function createProduct(payload: ProductPayload): Promise<DocumentReference> {
   const { firestore } = getClientSdks();
   const productsCollection = collection(firestore, 'products');
   const validatedPayload = ProductPayloadSchema.parse(payload);
   try {
-    await addDoc(productsCollection, validatedPayload);
+    return await addDoc(productsCollection, validatedPayload);
   } catch (e: any) {
     errorEmitter.emit(
       'permission-error',
@@ -73,4 +74,19 @@ export function deleteProduct(productId: string) {
   const { firestore } = getClientSdks();
   const productDoc = doc(firestore, 'products', productId);
   return deleteDocumentNonBlocking(productDoc);
+}
+
+export async function getProduct(productId: string): Promise<WithId<Product> | null> {
+    const { firestore } = getClientSdks();
+    const productDocRef = doc(firestore, 'products', productId);
+    try {
+      const docSnap = await getDoc(productDocRef);
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as WithId<Product>;
+      }
+      return null;
+    } catch (e: any) {
+      console.error("Error fetching product:", e);
+      return null;
+    }
 }

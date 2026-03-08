@@ -30,7 +30,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { ProductPayload, ProductPayloadSchema, createProduct, updateProduct } from '@/firebase/products';
+import { ProductPayload, ProductPayloadSchema, createProduct, updateProduct, getProduct } from '@/firebase/products';
 import type { Product, ProductGroup } from '@/lib/data/products';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState, useRef } from 'react';
@@ -66,7 +66,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
       name: product?.name ?? '',
       description: product?.description ?? '',
       price: product?.price ?? 0,
-      imageUrl: product?.imageUrl ?? '',
+      imageUrl: product?.imageUrl,
       stock: product?.stock ?? 0,
       groupId: product?.groupId ?? parentGroup.id,
       isActive: product?.isActive ?? true,
@@ -154,7 +154,12 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
       if (product) {
         await updateProduct(product.id, payload);
       } else {
-        await createProduct(payload);
+        const newProductRef = await createProduct(payload);
+        // Ensure the product exists before considering the operation complete
+        const newProduct = await getProduct(newProductRef.id);
+        if (!newProduct) {
+            throw new Error("Failed to fetch new product after creation.");
+        }
       }
       
       update({ id: toastId, title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });
@@ -204,8 +209,10 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                       A imagem é opcional, mas recomendada. Use a proporção 1:1 (ex: 800x800 pixels).
                                   </FormDescription>
                                   <FormMessage />
-                                  {imageUrlValue && (
-                                    <div className="mt-4 flex items-center justify-center rounded-lg border bg-muted p-4">
+                                  <div className="mt-4 flex h-[232px] items-center justify-center rounded-lg border bg-muted p-4">
+                                    {isCompressing ? (
+                                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                    ) : imageUrlValue ? (
                                         <Image 
                                             src={imageUrlValue} 
                                             alt="Pré-visualização da imagem" 
@@ -213,8 +220,13 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                             height={200}
                                             className="aspect-square rounded-md object-contain"
                                         />
-                                    </div>
-                                  )}
+                                    ) : (
+                                        <div className="text-center text-sm text-muted-foreground">
+                                            <UploadCloud className="mx-auto mb-2 h-8 w-8" />
+                                            <p>Pré-visualização da imagem</p>
+                                        </div>
+                                    )}
+                                </div>
                               </FormItem>
                           )}
                         />
