@@ -58,6 +58,7 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<z.infer<typeof ProductPayloadSchema>>({
     resolver: zodResolver(ProductPayloadSchema),
@@ -129,53 +130,52 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
     // to perform the upload and database write in the background.
     (async () => {
       try {
-        let finalImageUrl = data.imageUrl;
+        let uploadUrl: string | undefined = product?.imageUrl; // Keep existing image if editing
 
-        // If a new image file was selected, upload it and get the URL.
+        // If a new file was chosen, upload it and get the URL
         if (imageFile) {
-          finalImageUrl = await uploadFileAndGetURL(
+          update({ id: toastId, title: 'Enviando imagem...', description: <Progress value={0} className="w-full" /> });
+          uploadUrl = await uploadFileAndGetURL(
             storage,
             imageFile,
             'products',
             (progress) => {
-              // Only update toast if it's not at 100% yet to avoid flicker
-              if (progress < 100) {
-                 update({
-                    id: toastId,
-                    title: 'Enviando imagem...',
-                    description: <Progress value={progress} className="w-full" />,
-                 });
-              }
+              update({
+                 id: toastId,
+                 title: 'Enviando imagem...',
+                 description: <Progress value={progress} className="w-full" />,
+              });
             }
           );
+        } else if (!product) {
+            // If creating a new product without a file, ensure imageUrl is undefined
+            uploadUrl = undefined;
         }
-        
+
         update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações no banco de dados.' });
 
-        // Prepare the final payload for Firestore.
         const payload: ProductPayload = {
-          ...data,
-          imageUrl: finalImageUrl || undefined,
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          groupId: data.groupId,
           subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
+          isActive: data.isActive,
+          manageStock: data.manageStock,
+          stock: data.manageStock ? data.stock : 0,
+          imageUrl: uploadUrl, // Explicitly use the URL we determined
         };
-
-        if (!payload.manageStock) {
-          payload.stock = 0;
-        }
         
-        // Create or update the product document in Firestore.
         if (product) {
           await updateProduct(product.id, payload);
         } else {
           await createProduct(payload);
         }
         
-        // Update the toast to show success.
         update({ id: toastId, title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });
 
       } catch (error) {
         console.error("Form submission error:", error);
-        // If an error occurs, update the toast to show failure.
         update({ id: toastId, variant: 'destructive', title: "Erro", description: "Não foi possível salvar o produto." });
       }
     })();
@@ -370,11 +370,11 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                     </div>
                 </ScrollArea>
                 <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCompressing || form.formState.isSubmitting}>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCompressing || isSubmitting}>
                         Cancelar
                     </Button>
-                    <Button type="submit" disabled={isCompressing || form.formState.isSubmitting}>
-                        {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Salvar'}
+                    <Button type="submit" disabled={isCompressing || isSubmitting}>
+                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Salvar'}
                     </Button>
                 </DialogFooter>
             </form>
