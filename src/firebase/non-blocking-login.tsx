@@ -27,17 +27,16 @@ export function initiateAnonymousSignIn(authInstance: Auth): void {
   signInAnonymously(authInstance);
 }
 
-/** Inicia o cadastro por e-mail/senha (sem bloqueio). */
-export function initiateEmailSignUp(authInstance: Auth, data: SignUpData): void {
+/** Inicia o cadastro por e-mail/senha e retorna uma promessa que é resolvida após o usuário ser criado com sucesso. */
+export function initiateEmailSignUp(authInstance: Auth, data: SignUpData): Promise<UserCredential> {
   const { firestore } = getClientSdks();
-  createUserWithEmailAndPassword(authInstance, data.email, data.password)
+  // Retorna a promessa para que o chamador possa lidar com sucesso/erro
+  return createUserWithEmailAndPassword(authInstance, data.email, data.password)
     .then(userCredential => {
       // Usuário criado, agora cria um documento na coleção 'users'
       const user = userCredential.user;
       const userRef = doc(firestore, 'users', user.uid);
-      // Usa setDoc para criar o documento do usuário. Não será aguardado aqui
-      // mas será tratado pelo Firestore em segundo plano.
-      // Erros serão capturados pelo manipulador global se as regras falharem.
+
       const userData = {
         fullName: data.fullName,
         email: user.email,
@@ -48,22 +47,22 @@ export function initiateEmailSignUp(authInstance: Auth, data: SignUpData): void 
         neighborhood: data.neighborhood,
         city: data.city,
       };
+
+      // Inicia a gravação do documento do usuário, mas não bloqueia a promessa principal
       setDoc(userRef, userData).catch(error => {
-        // Este é um failsafe. Se a criação do documento do usuário falhar devido
-        // a permissões, o manipulador de erro global irá capturá-lo.
+        // Se a criação do documento falhar, emite um erro global, mas não rejeita a promessa de cadastro
         errorEmitter.emit(
           'permission-error',
           new FirestorePermissionError({
-            path: `users/${user.uid}`,
+            path: `users/${'user.uid'}`,
             operation: 'create',
             requestResourceData: userData,
           })
         );
       });
-    })
-    .catch(error => {
-      // Erros de autenticação (como email-already-in-use) já são lançados por onAuthStateChanged
-      // e serão capturados pelo FirebaseErrorListener. Não precisamos reemitir.
+      
+      // Retorna o userCredential para indicar que a autenticação foi bem-sucedida
+      return userCredential;
     });
 }
 

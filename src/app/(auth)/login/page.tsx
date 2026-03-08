@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, initiateEmailSignIn } from "@/firebase";
 import { FirebaseError } from "firebase/app";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
@@ -35,6 +36,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const { toast } = useToast();
   const auth = useAuth();
+  const router = useRouter();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -48,12 +50,11 @@ export default function LoginPage() {
     form.clearErrors();
     try {
       await initiateEmailSignIn(auth, data.email, data.password);
-      // A navegação ou atualização do estado da UI após o login bem-sucedido
-      // é gerenciada pelo listener onAuthStateChanged no FirebaseProvider.
       toast({
-        title: "Conexão Segura",
-        description: "Estamos verificando suas credenciais com segurança.",
+        title: "Login bem-sucedido!",
+        description: "Redirecionando para a página de produtos...",
       });
+      router.push("/");
     } catch (error: any) {
       let title = "Ocorreu um erro";
       let description = "Não foi possível fazer o login. Tente novamente mais tarde.";

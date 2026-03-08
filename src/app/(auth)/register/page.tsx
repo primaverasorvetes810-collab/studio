@@ -23,6 +23,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth, initiateEmailSignUp } from "@/firebase";
+import { useRouter } from "next/navigation";
+import { FirebaseError } from "firebase/app";
 
 const registerSchema = z.object({
   fullName: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
@@ -40,6 +42,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
   const { toast } = useToast();
   const auth = useAuth();
+  const router = useRouter();
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -55,14 +58,31 @@ export default function RegisterPage() {
     },
   });
 
-  const onSubmit = (data: RegisterFormValues) => {
-    initiateEmailSignUp(auth, data);
-    // Note: We don't await here. The auth state is handled by the global onAuthStateChanged listener.
-    // The FirebaseErrorListener will catch and display any auth errors.
-    toast({
-      title: "Criando conta...",
-      description: "Seu cadastro está sendo processado.",
-    });
+  const onSubmit = async (data: RegisterFormValues) => {
+    try {
+      await initiateEmailSignUp(auth, data);
+      toast({
+        title: "Conta Criada!",
+        description: "Seu cadastro foi realizado com sucesso. Redirecionando...",
+      });
+      router.push("/");
+    } catch (error) {
+      if (error instanceof FirebaseError && error.code === 'auth/email-already-in-use') {
+        toast({
+          variant: "destructive",
+          title: "Erro no Cadastro",
+          description: "Este e-mail já está em uso por outra conta.",
+        });
+        form.setError("email", { type: "manual", message: "Este e-mail já está em uso." });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erro no Cadastro",
+          description: "Ocorreu um erro inesperado ao criar sua conta.",
+        });
+        console.error("Registration error:", error);
+      }
+    }
   };
 
   return (
