@@ -5,14 +5,6 @@ import { useMemo, useState } from 'react';
 import { Loader2, Pencil, PlusCircle, Trash2, MoreVertical, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { ProductGroupForm } from './product-group-form';
 import {
   AlertDialog,
@@ -34,11 +26,14 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import type { PendingProduct } from './pages/products-page';
+import { PendingProductCard } from './pending-product-card';
 
 
-function ProductListForGroup({ group, products, onEdit, onAdd }: { 
+function ProductListGrid({ group, products, pendingProducts, onEdit, onAdd }: { 
     group: ProductGroup, 
     products: Product[],
+    pendingProducts: PendingProduct[],
     onEdit: (product: Product, group: ProductGroup) => void, 
     onAdd: (group: ProductGroup) => void 
 }) {
@@ -59,6 +54,17 @@ function ProductListForGroup({ group, products, onEdit, onAdd }: {
     }, {} as Record<string, Product[]>);
   }, [products]);
 
+  const groupedPendingProducts = useMemo(() => {
+    if (!pendingProducts) return {};
+    return pendingProducts.reduce((acc, product) => {
+        const subgroup = product.data.subgroup === '__GERAL__' || !product.data.subgroup ? 'Geral' : product.data.subgroup;
+        if (!acc[subgroup]) acc[subgroup] = [];
+        acc[subgroup].push(product);
+        return acc;
+    }, {} as Record<string, PendingProduct[]>);
+  }, [pendingProducts]);
+
+
   const handleToggleActive = (product: Product) => {
     const newStatus = !(product.isActive ?? true);
     updateProduct(product.id, { isActive: newStatus });
@@ -76,9 +82,9 @@ function ProductListForGroup({ group, products, onEdit, onAdd }: {
     setDeletingProduct(null);
   }
 
-  if (!products) return <div className="flex items-center justify-center p-4"><Loader2 className="h-5 w-5 animate-spin" /></div>;
+  const hasContent = products.length > 0 || pendingProducts.length > 0;
   
-  if (products.length === 0) {
+  if (!hasContent) {
     return (
         <div className="w-full">
              <div className="py-8 text-center text-sm text-muted-foreground">
@@ -96,59 +102,63 @@ function ProductListForGroup({ group, products, onEdit, onAdd }: {
 
   return (
     <div className="w-full">
-        {subgroups.map(subgroupName => (
-            groupedProducts[subgroupName] && (
+        {subgroups.map(subgroupName => {
+            const currentRealProducts = groupedProducts[subgroupName] || [];
+            const currentPendingProducts = groupedPendingProducts[subgroupName] || [];
+            if (currentRealProducts.length === 0 && currentPendingProducts.length === 0) return null;
+
+            return (
                 <div key={subgroupName} className="border-t first:border-t-0">
                     <h4 className="px-4 pt-3 pb-2 text-sm font-semibold tracking-wider bg-muted/50">{subgroupName}</h4>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="hidden w-[48px] sm:table-cell px-2 py-2">Imagem</TableHead>
-                                <TableHead className="px-2 py-2 max-w-[150px]">Nome</TableHead>
-                                <TableHead className="hidden md:table-cell px-2 py-2">Preço</TableHead>
-                                <TableHead className="px-2 py-2">Status</TableHead>
-                                <TableHead className="px-2 py-2 text-right"><span className="sr-only">Ações</span></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {groupedProducts[subgroupName].map((product) => {
-                                const imageUrl = getProductImageUrl(product);
-                                return (
-                                    <TableRow key={product.id}>
-                                        <TableCell className="hidden sm:table-cell px-2 py-2">
-                                            <Image alt={product.name} className="aspect-square rounded-md object-cover" height="40" src={imageUrl} width="40" />
-                                        </TableCell>
-                                        <TableCell className="font-medium px-2 py-2 truncate max-w-[150px]">{product.name}</TableCell>
-                                        <TableCell className="hidden md:table-cell px-2 py-2">{formatPrice(product.price)}</TableCell>
-                                        <TableCell className="px-2 py-2">
-                                            <Switch
-                                                checked={product.isActive ?? true}
-                                                onCheckedChange={() => handleToggleActive(product)}
-                                                aria-label="Ativar ou desativar produto"
+                    <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                        {currentPendingProducts.map(p => (
+                            <PendingProductCard
+                                key={p.tempId}
+                                name={p.data.name}
+                                price={p.data.price}
+                                localImageUrl={p.localImageUrl}
+                                progress={p.progress}
+                            />
+                        ))}
+                         {currentRealProducts.map((product) => (
+                            <div key={product.id} className="group/item relative">
+                                 <Card className="group/card flex h-full flex-col overflow-hidden transition-all duration-300 hover:shadow-lg">
+                                    <CardHeader className="p-0">
+                                        <div className="relative aspect-square">
+                                            <Image
+                                                src={getProductImageUrl(product)}
+                                                alt={product.name}
+                                                fill
+                                                className="object-cover"
                                             />
-                                        </TableCell>
-                                        <TableCell className="px-2 py-2 text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                        <MoreVertical className="h-4 w-4" />
-                                                        <span className="sr-only">Ações do produto</span>
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => onEdit(product, group)}><Pencil className="mr-2 h-4 w-4" />Editar</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => setDeletingProduct(product)} className="text-destructive"><Trash2 className="mr-2 h-4 w-4" />Deletar</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                )
-                            })}
-                        </TableBody>
-                    </Table>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="flex flex-grow flex-col p-3">
+                                        <div className="flex-grow">
+                                            <h3 className="mb-1 text-base font-semibold truncate">{product.name}</h3>
+                                            <Badge variant={product.isActive ? 'secondary' : 'outline'} className={product.isActive ? 'border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400' : 'text-muted-foreground'}>
+                                                {product.isActive ? 'Ativo' : 'Inativo'}
+                                            </Badge>
+                                        </div>
+                                        <p className="mt-2 text-lg font-bold text-primary">{formatPrice(product.price)}</p>
+                                    </CardContent>
+                                </Card>
+                                <div className="absolute top-2 right-2 z-10 opacity-0 group-hover/item:opacity-100 transition-opacity flex flex-col gap-2">
+                                    <Button variant="secondary" size="icon" className="h-8 w-8" onClick={() => onEdit(product, group)}>
+                                        <Pencil className="h-4 w-4" />
+                                        <span className="sr-only">Editar</span>
+                                    </Button>
+                                    <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => setDeletingProduct(product)}>
+                                        <Trash2 className="h-4 w-4" />
+                                        <span className="sr-only">Deletar</span>
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )
-        ))}
+        })}
 
         <div className="flex justify-start border-t px-4 py-2">
              <Button size="sm" variant="ghost" className="h-8 gap-1 text-muted-foreground" onClick={() => onAdd(group)}>
@@ -178,11 +188,12 @@ function ProductCountBadge({ count }: { count: number }) {
 }
 
 
-export function ProductGroupManager({ onAddProductClick, onEditProductClick, products, productGroups }: { 
+export function ProductGroupManager({ onAddProductClick, onEditProductClick, products, productGroups, pendingProducts }: { 
     onAddProductClick: (group: ProductGroup) => void;
     onEditProductClick: (product: Product, group: ProductGroup) => void;
     products: Product[] | null;
     productGroups: ProductGroup[] | null;
+    pendingProducts: PendingProduct[];
 }) {
   const { toast } = useToast();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -263,6 +274,7 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick, pro
           <Accordion type="single" collapsible className="w-full space-y-1">
             {filteredGroups.map((group) => {
                 const groupProducts = products?.filter(p => p.groupId === group.id) || [];
+                const groupPendingProducts = pendingProducts.filter(p => p.data.groupId === group.id);
                 return (
               <AccordionItem
                 value={group.id}
@@ -317,9 +329,10 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick, pro
                       {group.description}
                     </p>
                   </div>
-                  <ProductListForGroup
+                  <ProductListGrid
                     group={group}
                     products={groupProducts}
+                    pendingProducts={groupPendingProducts}
                     onEdit={onEditProductClick}
                     onAdd={onAddProductClick}
                   />
