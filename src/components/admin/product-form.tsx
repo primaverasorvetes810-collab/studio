@@ -41,7 +41,6 @@ import { Progress } from '../ui/progress';
 import { useStorage } from '@/firebase';
 import { uploadFileAndGetURL } from '@/firebase/storage';
 import { UploadCloud, Loader2 } from 'lucide-react';
-import { Label } from '../ui/label';
 import imageCompression from 'browser-image-compression';
 
 type ProductFormProps = {
@@ -59,8 +58,6 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   
   const form = useForm<z.infer<typeof ProductPayloadSchema>>({
@@ -116,8 +113,12 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
   };
 
   const onSubmit = async (data: z.infer<typeof ProductPayloadSchema>) => {
-    setIsSubmitting(true);
-    setUploadProgress(0);
+    onFormSubmit(); // Close dialog immediately
+    const { id: toastId, update } = toast({
+        title: 'Salvando produto...',
+        description: 'Aguarde enquanto processamos seu envio.',
+    });
+
     let finalImageUrl = data.imageUrl;
 
     try {
@@ -126,16 +127,20 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
           storage,
           imageFile,
           'products',
-          (progress) => setUploadProgress(progress)
+          (progress) => update({
+            title: 'Enviando imagem...',
+            description: <Progress value={progress} className="w-full" />,
+          })
         );
       }
 
       if (!finalImageUrl) {
-        toast({ variant: 'destructive', title: 'Erro', description: 'A imagem do produto é obrigatória.' });
-        setIsSubmitting(false);
+        update({ variant: 'destructive', title: 'Erro', description: 'A imagem do produto é obrigatória.' });
         return;
       }
       
+      update({ title: 'Finalizando...', description: 'Salvando informações.' });
+
       const payload: ProductPayload = {
         ...data,
         imageUrl: finalImageUrl,
@@ -147,20 +152,16 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
       }
       
       if (product) {
-        updateProduct(product.id, payload);
-        toast({ title: "Sucesso!", description: "Produto atualizado." });
+        await updateProduct(product.id, payload);
       } else {
-        createProduct(payload);
-        toast({ title: "Sucesso!", description: "Novo produto adicionado." });
+        await createProduct(payload);
       }
-      onFormSubmit();
+      
+      update({ title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });
 
     } catch (error) {
       console.error("Form submission error:", error);
-      toast({ variant: 'destructive', title: "Erro", description: "Não foi possível salvar o produto." });
-    } finally {
-      setIsSubmitting(false);
-      setUploadProgress(null);
+      update({ variant: 'destructive', title: "Erro", description: "Não foi possível salvar o produto." });
     }
   };
 
@@ -191,10 +192,10 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                             ref={fileInputRef}
                                             onChange={handleFileChange}
                                             accept="image/png, image/jpeg, image/gif, image/webp"
-                                            disabled={isSubmitting || isCompressing}
+                                            disabled={isCompressing}
                                         />
                                     </FormControl>
-                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting || isCompressing}>
+                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isCompressing}>
                                         {isCompressing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
                                         {isCompressing ? 'Otimizando...' : (imageUrlValue ? 'Trocar Imagem' : 'Enviar Imagem')}
                                     </Button>
@@ -217,13 +218,6 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                               </FormItem>
                           )}
                         />
-
-                         {isSubmitting && uploadProgress !== null && (
-                            <div className="space-y-1">
-                                <Label>Progresso do Upload</Label>
-                                <Progress value={uploadProgress} />
-                            </div>
-                        )}
                         
                         <FormField
                         control={form.control}
@@ -232,7 +226,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                             <FormItem>
                             <FormLabel>Nome</FormLabel>
                             <FormControl>
-                                <Input placeholder="Ex: Pote de Açaí 500ml" {...field} disabled={isSubmitting} />
+                                <Input placeholder="Ex: Pote de Açaí 500ml" {...field} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -244,7 +238,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Subgrupo</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Selecione um subgrupo" />
@@ -271,7 +265,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                             <FormItem>
                             <FormLabel>Descrição</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="Descreva o produto..." {...field} disabled={isSubmitting}/>
+                                <Textarea placeholder="Descreva o produto..." {...field} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -284,7 +278,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                             <FormItem>
                             <FormLabel>Preço (em R$)</FormLabel>
                             <FormControl>
-                                <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} disabled={isSubmitting}/>
+                                <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -308,7 +302,6 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                 <Switch
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  disabled={isSubmitting}
                                 />
                               </FormControl>
                             </FormItem>
@@ -330,7 +323,6 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                 <Switch
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  disabled={isSubmitting}
                                 />
                               </FormControl>
                             </FormItem>
@@ -345,7 +337,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                                 <FormItem>
                                 <FormLabel>Quantidade em Estoque</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))} disabled={isSubmitting} />
+                                    <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -355,9 +347,9 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                     </div>
                 </ScrollArea>
                 <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Cancelar</Button>
-                    <Button type="submit" disabled={isSubmitting || isCompressing}>
-                        {isSubmitting ? <Loader2 className="animate-spin" /> : 'Salvar'}
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCompressing}>Cancelar</Button>
+                    <Button type="submit" disabled={isCompressing}>
+                        Salvar
                     </Button>
                 </DialogFooter>
             </form>

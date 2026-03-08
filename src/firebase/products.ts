@@ -8,9 +8,11 @@ import {
   collection,
 } from 'firebase/firestore';
 import { getClientSdks } from '@/firebase';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from './non-blocking-updates';
+import { deleteDocumentNonBlocking } from './non-blocking-updates';
 import type { Product } from '@/lib/data/products';
 import { z } from 'zod';
+import { errorEmitter } from './error-emitter';
+import { FirestorePermissionError } from './errors';
 
 // Zod schema for creating/updating a product, including groupId
 export const ProductPayloadSchema = z.object({
@@ -28,19 +30,41 @@ export const ProductPayloadSchema = z.object({
 export type ProductPayload = z.infer<typeof ProductPayloadSchema>;
 
 
-export function createProduct(payload: ProductPayload) {
+export async function createProduct(payload: ProductPayload) {
   const { firestore } = getClientSdks();
   const productsCollection = collection(firestore, 'products');
-  // Validate payload before sending to Firestore
   const validatedPayload = ProductPayloadSchema.parse(payload);
-  return addDocumentNonBlocking(productsCollection, validatedPayload);
+  try {
+    await addDoc(productsCollection, validatedPayload);
+  } catch (e: any) {
+    errorEmitter.emit(
+      'permission-error',
+      new FirestorePermissionError({
+        path: productsCollection.path,
+        operation: 'create',
+        requestResourceData: validatedPayload,
+      })
+    );
+    throw e;
+  }
 }
 
-export function updateProduct(productId: string, payload: Partial<ProductPayload>) {
+export async function updateProduct(productId: string, payload: Partial<ProductPayload>) {
   const { firestore } = getClientSdks();
   const productDoc = doc(firestore, 'products', productId);
-  // Do not parse partial payload, as it's for updates
-  return updateDocumentNonBlocking(productDoc, payload);
+  try {
+    await updateDoc(productDoc, payload);
+  } catch (e: any) {
+    errorEmitter.emit(
+      'permission-error',
+      new FirestorePermissionError({
+        path: productDoc.path,
+        operation: 'update',
+        requestResourceData: payload,
+      })
+    );
+    throw e;
+  }
 }
 
 export function deleteProduct(productId: string) {

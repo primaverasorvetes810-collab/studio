@@ -33,7 +33,6 @@ import { useStorage } from '@/firebase';
 import { uploadFileAndGetURL } from '@/firebase/storage';
 import { Progress } from '@/components/ui/progress';
 import imageCompression from 'browser-image-compression';
-import { Label } from '../ui/label';
 
 const ImagePayloadSchema = z.object({
   imageUrl: z.string().url('Por favor, insira ou envie uma imagem para obter uma URL válida.'),
@@ -55,8 +54,6 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   
   const form = useForm<z.infer<typeof ImagePayloadSchema>>({
@@ -106,9 +103,13 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
   };
 
   const onSubmit = async (data: z.infer<typeof ImagePayloadSchema>) => {
-    setIsSubmitting(true);
-    setUploadProgress(0);
-    let finalImageUrl = data.imageUrl; // Start with the URL from the form (could be existing or temp)
+    onFormSubmit(); // Close dialog immediately
+    const { id: toastId, update } = toast({
+        title: 'Salvando imagem...',
+        description: 'Aguarde enquanto processamos seu envio.',
+    });
+
+    let finalImageUrl = data.imageUrl; 
 
     try {
       // Only upload if a new file was selected
@@ -117,33 +118,36 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
           storage,
           imageFile,
           'carousel',
-          (progress) => setUploadProgress(progress)
+          (progress) => update({
+            title: 'Enviando imagem...',
+            description: <Progress value={progress} className="w-full" />,
+          })
         );
       }
 
       if (!finalImageUrl) {
-        toast({ variant: 'destructive', title: 'Erro', description: 'A imagem é obrigatória.' });
-        setIsSubmitting(false);
+        update({ variant: 'destructive', title: 'Erro', description: 'A imagem é obrigatória.' });
         return;
       }
       
+      update({ title: 'Finalizando...', description: 'Salvando informações.' });
+
       const payload = { ...data, imageUrl: finalImageUrl };
 
       if (image) {
         await updateCarouselImage(image.id, payload);
-        toast({ title: 'Sucesso!', description: 'Imagem do carrossel atualizada.' });
       } else {
         await createCarouselImage(payload);
-        toast({ title: 'Sucesso!', description: 'Nova imagem adicionada ao carrossel.' });
       }
-      onFormSubmit();
+
+      update({
+        title: 'Sucesso!',
+        description: image ? 'Imagem do carrossel atualizada.' : 'Nova imagem adicionada ao carrossel.',
+      });
 
     } catch (error) {
       console.error('Form submission error:', error);
-      toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar a imagem.' });
-    } finally {
-        setIsSubmitting(false);
-        setUploadProgress(null);
+      update({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar a imagem.' });
     }
   };
 
@@ -175,7 +179,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                                     accept="image/png, image/jpeg, image/gif, image/webp"
                                 />
                             </FormControl>
-                            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isSubmitting || isCompressing}>
+                            <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isCompressing}>
                                 {isCompressing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
                                 {isCompressing ? 'Otimizando...' : (imageUrlValue ? 'Trocar Imagem' : 'Enviar Imagem')}
                             </Button>
@@ -195,12 +199,6 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                       </FormItem>
                   )}
                 />
-                 {isSubmitting && uploadProgress !== null && (
-                    <div className="space-y-1">
-                        <Label>Progresso do Upload</Label>
-                        <Progress value={uploadProgress} />
-                    </div>
-                )}
                 <FormField
                 control={form.control}
                 name="altText"
@@ -208,7 +206,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                     <FormItem>
                     <FormLabel>Texto Alternativo (Descrição)</FormLabel>
                     <FormControl>
-                        <Input placeholder="Ex: Promoção de sorvetes" {...field} disabled={isSubmitting} />
+                        <Input placeholder="Ex: Promoção de sorvetes" {...field} />
                     </FormControl>
                      <FormDescription>
                         Essencial para acessibilidade e SEO.
@@ -224,7 +222,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                     <FormItem>
                     <FormLabel>Link (Opcional)</FormLabel>
                     <FormControl>
-                        <Input placeholder="https://exemplo.com/pagina-da-promocao" {...field} disabled={isSubmitting} />
+                        <Input placeholder="https://exemplo.com/pagina-da-promocao" {...field} />
                     </FormControl>
                      <FormDescription>
                         Leva o usuário a uma página quando ele clica na imagem.
@@ -234,11 +232,11 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                 )}
                 />
                 <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCompressing}>
                         Cancelar
                     </Button>
-                    <Button type="submit" disabled={isSubmitting || isCompressing}>
-                        {isSubmitting ? <Loader2 className="animate-spin"/> : 'Salvar'}
+                    <Button type="submit" disabled={isCompressing}>
+                        Salvar
                     </Button>
                 </DialogFooter>
             </form>
