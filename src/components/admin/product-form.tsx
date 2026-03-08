@@ -58,7 +58,6 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<z.infer<typeof ProductPayloadSchema>>({
     resolver: zodResolver(ProductPayloadSchema),
@@ -116,64 +115,64 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
     }
   };
 
-  const onSubmit = async (data: z.infer<typeof ProductPayloadSchema>) => {
-    setIsSubmitting(true);
-    const { id: toastId, update } = toast({
-      title: 'Salvando produto...',
-      description: 'Aguarde enquanto processamos seu envio.',
-    });
+  const onSubmit = (data: z.infer<typeof ProductPayloadSchema>) => {
+    onOpenChange(false);
+
+    const saveProductAsync = async () => {
+      const { id: toastId, update } = toast({
+        title: 'Salvando produto...',
+        description: 'Aguarde enquanto processamos seu envio.',
+      });
+      
+      try {
+        let finalImageUrl: string | undefined = product?.imageUrl; 
+        
+        if (imageFile) {
+           finalImageUrl = await uploadFileAndGetURL(
+            storage,
+            imageFile,
+            'products',
+            (progress) => {
+              update({
+                id: toastId,
+                title: 'Enviando imagem...',
+                description: <Progress value={progress} className="w-full" />,
+              });
+            }
+          );
+        }
+        
+        update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações.' });
+
+        const payload: ProductPayload = {
+          ...data,
+          subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
+          imageUrl: finalImageUrl,
+        };
+
+        if (product) {
+          await updateProduct(product.id, payload);
+        } else {
+          await createProduct(payload);
+        }
+
+        update({
+          id: toastId,
+          title: 'Sucesso!',
+          description: product ? 'Produto atualizado.' : 'Novo produto adicionado.',
+        });
+      } catch (error) {
+        console.error('Form submission error:', error);
+        update({
+          id: toastId,
+          variant: 'destructive',
+          title: 'Erro',
+          description: 'Não foi possível salvar o produto.',
+        });
+      }
+    };
     
-    try {
-      let finalImageUrl: string | undefined = product?.imageUrl; // Start with existing image url
-      
-      if (imageFile) { // If a new file was chosen, upload it
-         finalImageUrl = await uploadFileAndGetURL(
-          storage,
-          imageFile,
-          'products',
-          (progress) => {
-            update({
-              id: toastId,
-              title: 'Enviando imagem...',
-              description: <Progress value={progress} className="w-full" />,
-            });
-          }
-        );
-      } else if (data.imageUrl === undefined || data.imageUrl === '') { // If field was cleared or is empty
-        finalImageUrl = undefined;
-      }
-      
-      update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações.' });
-
-      const payload: ProductPayload = {
-        ...data,
-        subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
-        imageUrl: finalImageUrl,
-      };
-
-      if (product) {
-        await updateProduct(product.id, payload);
-      } else {
-        await createProduct(payload);
-      }
-
-      update({
-        id: toastId,
-        title: 'Sucesso!',
-        description: product ? 'Produto atualizado.' : 'Novo produto adicionado.',
-      });
-    } catch (error) {
-      console.error('Form submission error:', error);
-      update({
-        id: toastId,
-        variant: 'destructive',
-        title: 'Erro',
-        description: 'Não foi possível salvar o produto.',
-      });
-    } finally {
-      setIsSubmitting(false);
-      onOpenChange(false);
-    }
+    saveProductAsync();
   };
 
   return (
@@ -188,7 +187,7 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <ScrollArea className="max-h-[70vh] pr-6">
-                    <fieldset disabled={isSubmitting || isCompressing} className="grid gap-4 py-4">
+                    <fieldset disabled={isCompressing} className="grid gap-4 py-4">
                         <FormField
                           control={form.control}
                           name="imageUrl"
@@ -364,12 +363,11 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                     </fieldset>
                 </ScrollArea>
                 <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting || isCompressing}>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCompressing}>
                         Cancelar
                     </Button>
-                    <Button type="submit" disabled={isSubmitting || isCompressing}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {isSubmitting ? 'Salvando...' : 'Salvar'}
+                    <Button type="submit" disabled={isCompressing}>
+                        {isCompressing ? 'Otimizando...' : 'Salvar'}
                     </Button>
                 </DialogFooter>
             </form>

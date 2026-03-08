@@ -106,55 +106,61 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
     }
   };
 
-  const onSubmit = async (data: z.infer<typeof ImagePayloadSchema>) => {
+  const onSubmit = (data: z.infer<typeof ImagePayloadSchema>) => {
     onFormSubmit(); // Close dialog immediately
-    const { id: toastId, update } = toast({
-        title: 'Salvando imagem...',
-        description: 'Aguarde enquanto processamos seu envio.',
-    });
 
-    let finalImageUrl = data.imageUrl; 
+    const saveImageAsync = async () => {
+        const { id: toastId, update } = toast({
+            title: 'Salvando imagem...',
+            description: 'Aguarde enquanto processamos seu envio.',
+        });
 
-    try {
-      // Only upload if a new file was selected
-      if (imageFile) {
-        finalImageUrl = await uploadFileAndGetURL(
-          storage,
-          imageFile,
-          'carousel',
-          (progress) => update({
+        try {
+          let finalImageUrl = image?.imageUrl; 
+
+          if (imageFile) {
+            finalImageUrl = await uploadFileAndGetURL(
+              storage,
+              imageFile,
+              'carousel',
+              (progress) => update({
+                id: toastId,
+                title: 'Enviando imagem...',
+                description: <Progress value={progress} className="w-full" />,
+              })
+            );
+          } else if (!data.imageUrl) {
+            finalImageUrl = ''; // Handle case where image is removed
+          }
+
+          if (!finalImageUrl) {
+            update({ id: toastId, variant: 'destructive', title: 'Erro', description: 'A imagem é obrigatória.' });
+            return;
+          }
+          
+          update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações.' });
+
+          const payload = { ...data, imageUrl: finalImageUrl };
+
+          if (image) {
+            await updateCarouselImage(image.id, payload);
+          } else {
+            await createCarouselImage(payload);
+          }
+
+          update({
             id: toastId,
-            title: 'Enviando imagem...',
-            description: <Progress value={progress} className="w-full" />,
-          })
-        );
-      }
+            title: 'Sucesso!',
+            description: image ? 'Imagem do carrossel atualizada.' : 'Nova imagem adicionada ao carrossel.',
+          });
 
-      if (!finalImageUrl) {
-        update({ id: toastId, variant: 'destructive', title: 'Erro', description: 'A imagem é obrigatória.' });
-        return;
-      }
-      
-      update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações.' });
-
-      const payload = { ...data, imageUrl: finalImageUrl };
-
-      if (image) {
-        await updateCarouselImage(image.id, payload);
-      } else {
-        await createCarouselImage(payload);
-      }
-
-      update({
-        id: toastId,
-        title: 'Sucesso!',
-        description: image ? 'Imagem do carrossel atualizada.' : 'Nova imagem adicionada ao carrossel.',
-      });
-
-    } catch (error) {
-      console.error('Form submission error:', error);
-      update({ id: toastId, variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar a imagem.' });
+        } catch (error) {
+          console.error('Form submission error:', error);
+          update({ id: toastId, variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar a imagem.' });
+        }
     }
+
+    saveImageAsync();
   };
 
   return (
@@ -249,7 +255,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
                         Cancelar
                     </Button>
                     <Button type="submit" disabled={isCompressing}>
-                        Salvar
+                        {isCompressing ? 'Otimizando...' : 'Salvar'}
                     </Button>
                 </DialogFooter>
             </form>
