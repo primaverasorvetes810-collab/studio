@@ -55,7 +55,6 @@ export default function Header() {
     { href: "/", label: "Produtos", icon: Home },
     { href: "/orders", label: "Meus Pedidos", icon: Box, requiresAuth: true },
     { href: "/ajuda", label: "Ajuda", icon: HelpCircle },
-    { href: "/admin", label: "Admin", icon: Shield, requiresAuth: true },
   ];
 
   const renderLink = (link: (typeof navLinks)[0]) => {
@@ -164,7 +163,7 @@ export default function Header() {
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-6 md:flex">
           {navLinks
-            .filter((link) => !link.isMobileOnly)
+            .filter((link) => !(link as any).isMobileOnly)
             .map(
               (link) =>
                 renderLink(link) && (
@@ -224,12 +223,6 @@ export default function Header() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/admin">
-                    <Shield className="mr-2 h-4 w-4" />
-                    <span>Admin</span>
-                  </Link>
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sair</span>
