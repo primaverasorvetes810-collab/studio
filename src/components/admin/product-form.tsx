@@ -48,12 +48,11 @@ type ProductFormProps = {
   parentGroup: ProductGroup;
   onOpenChange: (open: boolean) => void;
   onFormSubmit: () => void;
-  setProducts: React.Dispatch<React.SetStateAction<WithId<Product>[] | null>>;
 };
 
 const GERAL_SUBGROUP_VALUE = '__GERAL__';
 
-export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit, setProducts }: ProductFormProps) {
+export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }: ProductFormProps) {
   const { toast } = useToast();
   const storage = useStorage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -144,7 +143,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit, 
 
       const payload: ProductPayload = {
         ...data,
-        imageUrl: finalImageUrl,
+        imageUrl: finalImageUrl || undefined,
         subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
       };
 
