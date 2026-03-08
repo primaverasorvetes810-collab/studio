@@ -5,9 +5,8 @@ import {
   getDocs,
   writeBatch,
   doc,
-  Firestore,
-  WriteBatch,
   DocumentReference,
+  collectionGroup,
 } from 'firebase/firestore';
 import { getClientSdks } from '@/firebase';
 
@@ -35,60 +34,36 @@ export async function deleteAllData() {
       operationsCount++;
     };
 
-    // 1. Get all users and their subcollections
-    const usersSnapshot = await getDocs(collection(firestore, 'users'));
-    for (const userDoc of usersSnapshot.docs) {
-      // Delete shoppingCarts subcollection and its items
-      const shoppingCartsRef = collection(userDoc.ref, 'shoppingCarts');
-      const shoppingCartsSnap = await getDocs(shoppingCartsRef);
-      for (const cartDoc of shoppingCartsSnap.docs) {
-        const cartItemsRef = collection(cartDoc.ref, 'cartItems');
-        const cartItemsSnap = await getDocs(cartItemsRef);
-        cartItemsSnap.forEach((itemDoc) => addDeleteToBatch(itemDoc.ref));
-        addDeleteToBatch(cartDoc.ref);
-      }
-
-      // Delete orders subcollection under users
-      const userOrdersRef = collection(userDoc.ref, 'orders');
-      const userOrdersSnap = await getDocs(userOrdersRef);
-      userOrdersSnap.forEach((orderDoc) => addDeleteToBatch(orderDoc.ref));
-
-      // Finally, delete the user document itself
-      addDeleteToBatch(userDoc.ref);
+    // Use collectionGroup para encontrar e deletar todos os documentos de sub-coleções primeiro.
+    // Isso é robusto contra mudanças na estrutura de dados.
+    const groupCollectionsToDelete = ['orders', 'cartItems', 'shoppingCarts', 'orderItems', 'payments'];
+    for (const groupName of groupCollectionsToDelete) {
+        const groupSnapshot = await getDocs(collectionGroup(firestore, groupName));
+        groupSnapshot.forEach((docToDelete) => {
+            addDeleteToBatch(docToDelete.ref);
+        });
     }
 
-    // 2. Handle top-level 'orders' collection and its subcollections (based on backend.json)
-    const topLevelOrdersRef = collection(firestore, 'orders');
-    const topLevelOrdersSnap = await getDocs(topLevelOrdersRef);
-    for (const orderDoc of topLevelOrdersSnap.docs) {
-      // Delete 'orderItems' subcollection
-      const orderItemsRef = collection(orderDoc.ref, 'orderItems');
-      const orderItemsSnap = await getDocs(orderItemsRef);
-      orderItemsSnap.forEach((itemDoc) => addDeleteToBatch(itemDoc.ref));
-
-      // Delete 'payments' subcollection
-      const paymentsRef = collection(orderDoc.ref, 'payments');
-      const paymentsSnap = await getDocs(paymentsRef);
-      paymentsSnap.forEach((paymentDoc) => addDeleteToBatch(paymentDoc.ref));
-      
-      // Delete the order document itself
-      addDeleteToBatch(orderDoc.ref);
-    }
-
-    // 3. Get and delete all other top-level collections
-    const otherTopLevelCollections = ['productGroups', 'products', 'carouselImages'];
-    for (const collectionName of otherTopLevelCollections) {
+    // Agora, delete todos os documentos das coleções de nível superior.
+    const topLevelCollectionsToDelete = ['users', 'productGroups', 'products', 'carouselImages'];
+    for (const collectionName of topLevelCollectionsToDelete) {
       const collectionRef = collection(firestore, collectionName);
       const snapshot = await getDocs(collectionRef);
-      snapshot.forEach((docToDelete) => addDeleteToBatch(docToDelete.ref));
+      snapshot.forEach((docToDelete) => {
+          addDeleteToBatch(docToDelete.ref)
+      });
     }
+    
+    // Uma verificação extra para uma coleção 'orders' de nível superior, por segurança.
+    const topLevelOrders = await getDocs(collection(firestore, 'orders'));
+    topLevelOrders.forEach(docToDelete => addDeleteToBatch(docToDelete.ref));
 
-    // 4. Commit all batches
+    // Execute todos os lotes.
     await commitBatches(batches);
     
   } catch (e) {
     console.error('An error occurred while deleting all data:', e);
-    // Re-throw so the caller can handle it, e.g., show a toast.
+    // Relança o erro para que o chamador possa lidar com ele, ex: mostrar um toast.
     throw e;
   }
 }
