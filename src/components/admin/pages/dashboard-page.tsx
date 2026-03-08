@@ -1,3 +1,4 @@
+
 'use client';
 
 import { OverviewChart } from '@/components/overview-chart';
@@ -21,12 +22,13 @@ import { formatPrice } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { CircleDollarSign, Package, ShoppingBag, Users, Loader2 } from 'lucide-react';
 import type { Order, OrderStatus } from '@/firebase/orders';
-import { collection, getDocs, collectionGroup } from 'firebase/firestore';
+import { collection, onSnapshot, collectionGroup } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 
 const statusColors: Record<OrderStatus, string> = {
   Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
-  Enviado: "bg-blue-500/20 text-blue-500 border-blue-500/20",
+  Pago: 'bg-blue-500/20 text-blue-500 border-blue-500/20',
+  Enviado: "bg-teal-500/20 text-teal-500 border-teal-500/20",
   Entregue: "bg-green-500/20 text-green-500 border-green-500/20",
   Cancelado: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
   Atrasado: "bg-red-500/20 text-red-500 border-red-500/20",
@@ -43,42 +45,41 @@ export default function DashboardPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchAllData = async () => {
-            setIsLoading(true);
-            try {
-                if (!firestore) return;
-                // Fetch all users to get their IDs
-                const usersSnapshot = await getDocs(collection(firestore, 'users'));
-                setTotalClients(usersSnapshot.size);
-
-                // Fetch all orders using a collection group query
-                const ordersQuery = collectionGroup(firestore, 'orders');
-                const ordersSnapshot = await getDocs(ordersQuery);
-
-                const fetchedOrders: Order[] = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-                
-                const sortedOrders = fetchedOrders.sort((a, b) => b.orderDate.toMillis() - a.orderDate.toMillis());
-                setAllOrders(sortedOrders);
-
-                // Calculate stats
-                const revenue = sortedOrders.reduce((acc, order) => acc + (order.status === 'Entregue' ? order.totalAmount : 0), 0);
-                setTotalRevenue(revenue);
-                setTotalOrders(sortedOrders.length);
-
-                // Fetch products count
-                const productsSnapshot = await getDocs(collection(firestore, 'products'));
-                setTotalProducts(productsSnapshot.size);
-
-            } catch (error) {
-                console.error("Error fetching dashboard data:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+        if (!firestore) return;
         
-        if (firestore) {
-            fetchAllData();
-        }
+        setIsLoading(true);
+        
+        const unsubscribers = [
+            onSnapshot(collection(firestore, 'users'), 
+                (snapshot) => setTotalClients(snapshot.size),
+                (error) => console.error("Error fetching users count:", error)
+            ),
+            onSnapshot(collection(firestore, 'products'),
+                (snapshot) => setTotalProducts(snapshot.size),
+                (error) => console.error("Error fetching products count:", error)
+            ),
+            onSnapshot(collectionGroup(firestore, 'orders'),
+                (snapshot) => {
+                    const fetchedOrders: Order[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+                    const sortedOrders = fetchedOrders.sort((a, b) => b.orderDate.toMillis() - a.orderDate.toMillis());
+                    
+                    setAllOrders(sortedOrders);
+
+                    const revenue = sortedOrders.reduce((acc, order) => acc + (order.status === 'Entregue' ? order.totalAmount : 0), 0);
+                    setTotalRevenue(revenue);
+                    setTotalOrders(sortedOrders.length);
+                    
+                    setIsLoading(false); // Data has been loaded or is empty
+                },
+                (error) => {
+                    console.error("Error fetching dashboard data:", error);
+                    setIsLoading(false); // Stop loading on error
+                }
+            )
+        ];
+
+        // Cleanup function to unsubscribe from all listeners on component unmount
+        return () => unsubscribers.forEach(unsub => unsub());
 
     }, [firestore]);
 
