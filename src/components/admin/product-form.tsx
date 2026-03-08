@@ -119,12 +119,12 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit, 
 
   const onSubmit = async (data: z.infer<typeof ProductPayloadSchema>) => {
     // Optimistically update the UI with the local blob URL for instant feedback
-    if (product && imageFile && data.imageUrl.startsWith('blob:')) {
+    if (product && imageFile && data.imageUrl?.startsWith('blob:')) {
       setProducts(prevProducts => {
           if (!prevProducts) return null;
           return prevProducts.map(p =>
               p.id === product.id 
-                  ? { ...p, ...data, imageUrl: data.imageUrl } 
+                  ? { ...p, ...data, imageUrl: data.imageUrl ?? '' } as WithId<Product>
                   : p
           );
       });
@@ -151,11 +151,6 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit, 
           })
         );
       }
-
-      if (!finalImageUrl) {
-        update({ id: toastId, variant: 'destructive', title: 'Erro', description: 'A imagem do produto é obrigatória.' });
-        return;
-      }
       
       update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações.' });
 
@@ -172,7 +167,11 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit, 
       if (product) {
         await updateProduct(product.id, payload);
         // Manually update the state so the user sees the change immediately.
-        setProducts(prev => prev ? prev.map(p => p.id === product.id ? { ...p, ...payload, id: product.id } as WithId<Product> : p) : null);
+        setProducts(prev => {
+            if (!prev) return null;
+            const updatedProduct = { ...payload, id: product.id } as WithId<Product>;
+            return prev.map(p => p.id === product.id ? updatedProduct : p);
+        });
       } else {
         const newProduct = await createProduct(payload);
         // Manually add the new product to the state.
@@ -205,7 +204,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit, 
                           name="imageUrl"
                           render={({ field }) => (
                               <FormItem>
-                                  <FormLabel>Imagem do Produto</FormLabel>
+                                  <FormLabel>Imagem do Produto (Opcional)</FormLabel>
                                   <div className="flex flex-col gap-4">
                                     <FormControl>
                                         <Input 
@@ -223,7 +222,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit, 
                                     </Button>
                                   </div>
                                   <FormDescription>
-                                      Recomendamos imagens quadradas na proporção 1:1 (ex: 800x800 pixels).
+                                      A imagem é opcional, mas recomendada. Use a proporção 1:1 (ex: 800x800 pixels).
                                   </FormDescription>
                                   <FormMessage />
                                   {imageUrlValue && (

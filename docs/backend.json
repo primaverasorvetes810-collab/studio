@@ -45,6 +45,10 @@
         "city": {
           "type": "string",
           "description": "The user's city."
+        },
+        "isAdmin": {
+          "type": "boolean",
+          "description": "Indicates if the user has administrator privileges."
         }
       },
       "required": [
@@ -146,7 +150,6 @@
         "price",
         "stock",
         "isActive",
-        "imageUrl",
         "manageStock"
       ]
     },
