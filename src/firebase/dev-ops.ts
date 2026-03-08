@@ -1,92 +1,91 @@
 'use client';
 
-import { collection, getDocs, writeBatch, doc, Firestore } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  writeBatch,
+  doc,
+  Firestore,
+  WriteBatch,
+  DocumentReference,
+} from 'firebase/firestore';
 import { getClientSdks } from '@/firebase';
 
-async function commitBatchIfNeeded(
-  firestore: Firestore,
-  batch: any,
-  operationsCount: number
-): Promise<{ batch: any; operationsCount: number }> {
-  if (operationsCount >= 490) { // Keep a small buffer
-    await batch.commit();
-    return { batch: writeBatch(firestore), operationsCount: 0 };
-  }
-  return { batch, operationsCount };
-}
-
 export async function deleteAllData() {
-    const { firestore } = getClientSdks();
-    let batch = writeBatch(firestore);
+  const { firestore } = getClientSdks();
+
+  const commitBatches = async (batches: WriteBatch[]) => {
+    for (const batch of batches) {
+      await batch.commit();
+    }
+  };
+
+  try {
+    let batches: WriteBatch[] = [writeBatch(firestore)];
+    let currentBatchIndex = 0;
     let operationsCount = 0;
 
-    // 1. Delete all top-level collections that are not 'users'
-    const collectionsToDelete = ['productGroups', 'products', 'carouselImages'];
-    for (const collectionName of collectionsToDelete) {
-        try {
-            const collectionRef = collection(firestore, collectionName);
-            const snapshot = await getDocs(collectionRef);
-            if(snapshot.empty) continue;
-
-            for (const docSnapshot of snapshot.docs) {
-                batch.delete(docSnapshot.ref);
-                operationsCount++;
-                ({ batch, operationsCount } = await commitBatchIfNeeded(firestore, batch, operationsCount));
-            }
-        } catch (e) {
-            console.error(`Error deleting collection ${collectionName}:`, e);
-        }
-    }
-    // Commit any remaining deletions from top-level collections
-    if (operationsCount > 0) {
-        await batch.commit();
-        batch = writeBatch(firestore);
+    const addDeleteToBatch = (docRef: DocumentReference) => {
+      if (operationsCount >= 499) {
+        batches.push(writeBatch(firestore));
+        currentBatchIndex++;
         operationsCount = 0;
+      }
+      batches[currentBatchIndex].delete(docRef);
+      operationsCount++;
+    };
+
+    // 1. Get all users and their subcollections
+    const usersSnapshot = await getDocs(collection(firestore, 'users'));
+    for (const userDoc of usersSnapshot.docs) {
+      // Delete shoppingCarts subcollection
+      const shoppingCartsRef = collection(userDoc.ref, 'shoppingCarts');
+      const shoppingCartsSnap = await getDocs(shoppingCartsRef);
+      for (const cartDoc of shoppingCartsSnap.docs) {
+        // Delete cartItems sub-subcollection
+        const cartItemsRef = collection(cartDoc.ref, 'cartItems');
+        const cartItemsSnap = await getDocs(cartItemsRef);
+        cartItemsSnap.forEach((itemDoc) => addDeleteToBatch(itemDoc.ref));
+        addDeleteToBatch(cartDoc.ref);
+      }
+
+      // Delete orders subcollection
+      const ordersRef = collection(userDoc.ref, 'orders');
+      const ordersSnap = await getDocs(ordersRef);
+      ordersSnap.forEach((orderDoc) => addDeleteToBatch(orderDoc.ref));
+
+      // Finally, delete the user document itself
+      addDeleteToBatch(userDoc.ref);
     }
 
+    // 2. Get and delete all top-level collections
+    const topLevelCollections = ['productGroups', 'products', 'carouselImages', 'orders'];
+    for (const collectionName of topLevelCollections) {
+      const collectionRef = collection(firestore, collectionName);
+      const snapshot = await getDocs(collectionRef);
+      for (const docToDelete of snapshot.docs) {
+        // Handle potential subcollections for top-level 'orders'
+        if (collectionName === 'orders') {
+          const orderItemsRef = collection(docToDelete.ref, 'orderItems');
+          const orderItemsSnap = await getDocs(orderItemsRef);
+          orderItemsSnap.forEach((itemDoc) => addDeleteToBatch(itemDoc.ref));
 
-    // 2. Handle users and their subcollections
-    try {
-        const usersSnapshot = await getDocs(collection(firestore, 'users'));
-
-        for (const userDoc of usersSnapshot.docs) {
-            const userId = userDoc.id;
-
-            // Delete shoppingCarts and cartItems
-            const shoppingCartsSnapshot = await getDocs(collection(firestore, `users/${userId}/shoppingCarts`));
-            for (const cartDoc of shoppingCartsSnapshot.docs) {
-                const cartItemsSnapshot = await getDocs(collection(cartDoc.ref, 'cartItems'));
-                for(const itemDoc of cartItemsSnapshot.docs) {
-                    batch.delete(itemDoc.ref);
-                    operationsCount++;
-                    ({ batch, operationsCount } = await commitBatchIfNeeded(firestore, batch, operationsCount));
-                }
-                batch.delete(cartDoc.ref);
-                operationsCount++;
-                ({ batch, operationsCount } = await commitBatchIfNeeded(firestore, batch, operationsCount));
-            }
-
-            // Delete orders
-            const ordersSnapshot = await getDocs(collection(userDoc.ref, 'orders'));
-            for(const orderDoc of ordersSnapshot.docs) {
-                batch.delete(orderDoc.ref);
-                operationsCount++;
-                ({ batch, operationsCount } = await commitBatchIfNeeded(firestore, batch, operationsCount));
-            }
-            
-            // Delete the user document itself
-            batch.delete(userDoc.ref);
-            operationsCount++;
-            ({ batch, operationsCount } = await commitBatchIfNeeded(firestore, batch, operationsCount));
+          const paymentsRef = collection(docToDelete.ref, 'payments');
+          const paymentsSnap = await getDocs(paymentsRef);
+          paymentsSnap.forEach((paymentDoc) => addDeleteToBatch(paymentDoc.ref));
         }
-    } catch(e) {
-        console.error('Error deleting users and subcollections:', e);
+        addDeleteToBatch(docToDelete.ref);
+      }
     }
+
+    // 3. Commit all batches
+    await commitBatches(batches);
     
-    // Commit the final batch
-    if (operationsCount > 0) {
-        await batch.commit();
-    }
-    
-    // Note: This does not delete users from Firebase Auth.
+  } catch (e) {
+    console.error('An error occurred while deleting all data:', e);
+    // Re-throw so the caller can handle it, e.g., show a toast.
+    throw e;
+  }
+
+  // Note: This does not delete users from Firebase Auth.
 }
