@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { Loader2, ShieldAlert, KeyRound, Home, ShoppingCart, Truck, Package, Users, Gift, Settings, LifeBuoy, Image as ImageIcon, Shield, Menu } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -66,7 +66,7 @@ export default function AdminGatePage() {
         if (user && firestore) {
             try {
                 const userRef = doc(firestore, 'users', user.uid);
-                await updateDoc(userRef, { isAdmin: true });
+                await setDoc(userRef, { isAdmin: true }, { merge: true });
             } catch (error) {
                 console.error("Falha ao definir a função de administrador:", error);
                 // Não bloqueie a interface do usuário para isso, mas registre-o.
