@@ -38,11 +38,10 @@ export async function deleteAllData() {
     // 1. Get all users and their subcollections
     const usersSnapshot = await getDocs(collection(firestore, 'users'));
     for (const userDoc of usersSnapshot.docs) {
-      // Delete shoppingCarts subcollection
+      // Delete shoppingCarts subcollection and its items
       const shoppingCartsRef = collection(userDoc.ref, 'shoppingCarts');
       const shoppingCartsSnap = await getDocs(shoppingCartsRef);
       for (const cartDoc of shoppingCartsSnap.docs) {
-        // Delete cartItems sub-subcollection
         const cartItemsRef = collection(cartDoc.ref, 'cartItems');
         const cartItemsSnap = await getDocs(cartItemsRef);
         cartItemsSnap.forEach((itemDoc) => addDeleteToBatch(itemDoc.ref));
@@ -58,24 +57,12 @@ export async function deleteAllData() {
       addDeleteToBatch(userDoc.ref);
     }
 
-    // 2. Get and delete all top-level collections
-    const topLevelCollections = ['productGroups', 'products', 'carouselImages', 'orders'];
+    // 2. Get and delete all other top-level collections
+    const topLevelCollections = ['productGroups', 'products', 'carouselImages'];
     for (const collectionName of topLevelCollections) {
       const collectionRef = collection(firestore, collectionName);
       const snapshot = await getDocs(collectionRef);
-      for (const docToDelete of snapshot.docs) {
-        // Handle potential subcollections for top-level 'orders'
-        if (collectionName === 'orders') {
-          const orderItemsRef = collection(docToDelete.ref, 'orderItems');
-          const orderItemsSnap = await getDocs(orderItemsRef);
-          orderItemsSnap.forEach((itemDoc) => addDeleteToBatch(itemDoc.ref));
-
-          const paymentsRef = collection(docToDelete.ref, 'payments');
-          const paymentsSnap = await getDocs(paymentsRef);
-          paymentsSnap.forEach((paymentDoc) => addDeleteToBatch(paymentDoc.ref));
-        }
-        addDeleteToBatch(docToDelete.ref);
-      }
+      snapshot.forEach((docToDelete) => addDeleteToBatch(docToDelete.ref));
     }
 
     // 3. Commit all batches
@@ -86,6 +73,5 @@ export async function deleteAllData() {
     // Re-throw so the caller can handle it, e.g., show a toast.
     throw e;
   }
-
   // Note: This does not delete users from Firebase Auth.
 }

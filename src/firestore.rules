@@ -4,7 +4,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper functions
+    // =====================================================================
+    // Helper Functions
+    // =====================================================================
     function isSignedIn() {
       return request.auth != null;
     }
@@ -14,52 +16,59 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
     }
-
-    // Users can access their own data. Admins can read/update any user data.
-    match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow update: if isOwner(userId) || isAdmin();
-      allow create: if isSignedIn();
+    
+    // =====================================================================
+    // Admin Full Access Rule
+    // =====================================================================
+    // Admins have full read/write access to the entire database for management.
+    // This rule is checked first. If the user is an admin, access is granted.
+    // Subsequent rules define permissions for regular users.
+    match /{path=**} {
+      allow read, write: if isAdmin();
     }
+    
+    // =====================================================================
+    // User-Specific & Public Rules
+    // =====================================================================
 
-    // Product groups are publicly readable. Admins can write.
+    // --- Publicly Readable Collections ---
+    // Products, product groups, and carousel images are readable by anyone.
     match /productGroups/{productGroupId} {
       allow read: if true;
-      allow write: if isAdmin();
     }
-
-    // Products are publicly readable. Admins can manage them.
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
     }
-    
-    // Carousel images are publicly readable. Admins can write.
     match /carouselImages/{imageId} {
-        allow read: if true;
-        allow write: if isAdmin();
+      allow read: if true;
     }
 
-    // Shopping cart and its items are private to the user.
-    match /users/{userId}/shoppingCarts/{cartId} {
-      allow read, write, delete: if isOwner(userId);
+    // --- User Profile ---
+    // Users can create their own profile.
+    // They can read and update their own profile data.
+    // Deletion is admin-only (handled by the global admin rule).
+    match /users/{userId} {
+      allow create: if isOwner(userId);
+      allow read, update: if isOwner(userId);
     }
     
-    match /users/{userId}/shoppingCarts/{cartId}/cartItems/{itemId} {
+    // --- Shopping Cart ---
+    // A user's shopping cart and its contents are entirely private.
+    match /users/{userId}/shoppingCarts/{cartId}/{cartItems=**} {
       allow read, write, delete: if isOwner(userId);
     }
 
-    // Orders are private to the user, but readable/updatable by admins.
-    // Users can create their own orders.
-    // Users can update their own orders only to change the status to 'Cancelado'.
-    // Admins can read and update any order.
+    // --- Orders ---
+    // Users can create and read their own orders.
+    // Users can ONLY update an order to cancel it.
     match /users/{userId}/orders/{orderId} {
       allow create: if isOwner(userId);
-      allow read: if isOwner(userId) || isAdmin();
-      allow update: if (isOwner(userId) && request.resource.data.status == 'Cancelado') || isAdmin();
+      allow read: if isOwner(userId);
+      allow update: if isOwner(userId) && request.resource.data.status == 'Cancelado';
     }
   }
 }
