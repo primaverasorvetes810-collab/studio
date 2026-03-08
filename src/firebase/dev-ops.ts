@@ -48,24 +48,42 @@ export async function deleteAllData() {
         addDeleteToBatch(cartDoc.ref);
       }
 
-      // Delete orders subcollection
-      const ordersRef = collection(userDoc.ref, 'orders');
-      const ordersSnap = await getDocs(ordersRef);
-      ordersSnap.forEach((orderDoc) => addDeleteToBatch(orderDoc.ref));
+      // Delete orders subcollection under users
+      const userOrdersRef = collection(userDoc.ref, 'orders');
+      const userOrdersSnap = await getDocs(userOrdersRef);
+      userOrdersSnap.forEach((orderDoc) => addDeleteToBatch(orderDoc.ref));
 
       // Finally, delete the user document itself
       addDeleteToBatch(userDoc.ref);
     }
 
-    // 2. Get and delete all other top-level collections
-    const topLevelCollections = ['productGroups', 'products', 'carouselImages'];
-    for (const collectionName of topLevelCollections) {
+    // 2. Handle top-level 'orders' collection and its subcollections (based on backend.json)
+    const topLevelOrdersRef = collection(firestore, 'orders');
+    const topLevelOrdersSnap = await getDocs(topLevelOrdersRef);
+    for (const orderDoc of topLevelOrdersSnap.docs) {
+      // Delete 'orderItems' subcollection
+      const orderItemsRef = collection(orderDoc.ref, 'orderItems');
+      const orderItemsSnap = await getDocs(orderItemsRef);
+      orderItemsSnap.forEach((itemDoc) => addDeleteToBatch(itemDoc.ref));
+
+      // Delete 'payments' subcollection
+      const paymentsRef = collection(orderDoc.ref, 'payments');
+      const paymentsSnap = await getDocs(paymentsRef);
+      paymentsSnap.forEach((paymentDoc) => addDeleteToBatch(paymentDoc.ref));
+      
+      // Delete the order document itself
+      addDeleteToBatch(orderDoc.ref);
+    }
+
+    // 3. Get and delete all other top-level collections
+    const otherTopLevelCollections = ['productGroups', 'products', 'carouselImages'];
+    for (const collectionName of otherTopLevelCollections) {
       const collectionRef = collection(firestore, collectionName);
       const snapshot = await getDocs(collectionRef);
       snapshot.forEach((docToDelete) => addDeleteToBatch(docToDelete.ref));
     }
 
-    // 3. Commit all batches
+    // 4. Commit all batches
     await commitBatches(batches);
     
   } catch (e) {
@@ -73,5 +91,4 @@ export async function deleteAllData() {
     // Re-throw so the caller can handle it, e.g., show a toast.
     throw e;
   }
-  // Note: This does not delete users from Firebase Auth.
 }
