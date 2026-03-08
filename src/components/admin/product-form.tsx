@@ -42,18 +42,16 @@ import { useStorage, type WithId } from '@/firebase';
 import { uploadFileAndGetURL } from '@/firebase/storage';
 import { UploadCloud, Loader2 } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
-import { v4 as uuidv4 } from 'uuid';
 
 type ProductFormProps = {
   product: WithId<Product> | null;
   parentGroup: ProductGroup;
   onOpenChange: (open: boolean) => void;
-  onFormSubmit: (optimisticData: WithId<Product>) => void;
 };
 
 const GERAL_SUBGROUP_VALUE = '__GERAL__';
 
-export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }: ProductFormProps) {
+export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormProps) {
   const { toast } = useToast();
   const storage = useStorage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,7 +69,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
       stock: product?.stock ?? 0,
       groupId: product?.groupId ?? parentGroup.id,
       isActive: product?.isActive ?? true,
-      subgroup: product?.subgroup ? product.subgroup : GERAL_SUBGROUP_VALUE,
+      subgroup: product?.subgroup || GERAL_SUBGROUP_VALUE,
       manageStock: product?.manageStock ?? true,
     },
   });
@@ -118,17 +116,6 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
   };
 
   const onSubmit = async (data: z.infer<typeof ProductPayloadSchema>) => {
-    const optimisticId = product?.id || uuidv4();
-    const optimisticProduct: WithId<Product> = {
-      id: optimisticId,
-      groupId: parentGroup.id,
-      ...product, // Spread existing product to keep non-form fields
-      ...data,
-      imageUrl: imageUrlValue,
-    };
-  
-    onFormSubmit(optimisticProduct);
-
     const { id: toastId, update } = toast({
         title: 'Salvando produto...',
         description: 'Aguarde enquanto processamos seu envio.',
@@ -169,6 +156,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
       }
       
       update({ id: toastId, title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });
+      onOpenChange(false); // Close dialog on success
 
     } catch (error) {
       console.error("Form submission error:", error);
@@ -365,9 +353,11 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
                     </div>
                 </ScrollArea>
                 <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCompressing}>Cancelar</Button>
-                    <Button type="submit" disabled={isCompressing}>
-                        Salvar
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCompressing || form.formState.isSubmitting}>
+                        Cancelar
+                    </Button>
+                    <Button type="submit" disabled={isCompressing || form.formState.isSubmitting}>
+                        {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Salvar'}
                     </Button>
                 </DialogFooter>
             </form>
