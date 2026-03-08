@@ -58,6 +58,7 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<z.infer<typeof ProductPayloadSchema>>({
     resolver: zodResolver(ProductPayloadSchema),
@@ -115,66 +116,64 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
     }
   };
 
-  const onSubmit = (data: z.infer<typeof ProductPayloadSchema>) => {
-    onOpenChange(false); // Close dialog immediately
-
-    const processSubmit = async () => {
-      const { id: toastId, update } = toast({
-        title: 'Salvando produto...',
-        description: 'Aguarde enquanto processamos seu envio.',
-      });
-
-      try {
-        let finalImageUrl: string | undefined = data.imageUrl;
-        
-        if (imageFile) {
-           finalImageUrl = await uploadFileAndGetURL(
-            storage,
-            imageFile,
-            'products',
-            (progress) => {
-              update({
-                id: toastId,
-                title: 'Enviando imagem...',
-                description: <Progress value={progress} className="w-full" />,
-              });
-            }
-          );
-        } else if (finalImageUrl && finalImageUrl.startsWith('blob:')) {
-          finalImageUrl = undefined;
-        }
-
-        update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações.' });
-
-        const payload: ProductPayload = {
-          ...data,
-          subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
-          imageUrl: finalImageUrl,
-        };
-
-        if (product) {
-          await updateProduct(product.id, payload);
-        } else {
-          await createProduct(payload);
-        }
-
-        update({
-          id: toastId,
-          title: 'Sucesso!',
-          description: product ? 'Produto atualizado.' : 'Novo produto adicionado.',
-        });
-      } catch (error) {
-        console.error('Form submission error:', error);
-        update({
-          id: toastId,
-          variant: 'destructive',
-          title: 'Erro',
-          description: 'Não foi possível salvar o produto.',
-        });
-      }
-    };
+  const onSubmit = async (data: z.infer<typeof ProductPayloadSchema>) => {
+    setIsSubmitting(true);
+    const { id: toastId, update } = toast({
+      title: 'Salvando produto...',
+      description: 'Aguarde enquanto processamos seu envio.',
+    });
     
-    processSubmit();
+    try {
+      let finalImageUrl: string | undefined = product?.imageUrl; // Start with existing image url
+      
+      if (imageFile) { // If a new file was chosen, upload it
+         finalImageUrl = await uploadFileAndGetURL(
+          storage,
+          imageFile,
+          'products',
+          (progress) => {
+            update({
+              id: toastId,
+              title: 'Enviando imagem...',
+              description: <Progress value={progress} className="w-full" />,
+            });
+          }
+        );
+      } else if (data.imageUrl === undefined || data.imageUrl === '') { // If field was cleared or is empty
+        finalImageUrl = undefined;
+      }
+      
+      update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações.' });
+
+      const payload: ProductPayload = {
+        ...data,
+        subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
+        imageUrl: finalImageUrl,
+      };
+
+      if (product) {
+        await updateProduct(product.id, payload);
+      } else {
+        await createProduct(payload);
+      }
+
+      update({
+        id: toastId,
+        title: 'Sucesso!',
+        description: product ? 'Produto atualizado.' : 'Novo produto adicionado.',
+      });
+    } catch (error) {
+      console.error('Form submission error:', error);
+      update({
+        id: toastId,
+        variant: 'destructive',
+        title: 'Erro',
+        description: 'Não foi possível salvar o produto.',
+      });
+    } finally {
+      setIsSubmitting(false);
+      onOpenChange(false);
+    }
   };
 
   return (
@@ -189,7 +188,7 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <ScrollArea className="max-h-[70vh] pr-6">
-                    <div className="grid gap-4 py-4">
+                    <fieldset disabled={isSubmitting || isCompressing} className="grid gap-4 py-4">
                         <FormField
                           control={form.control}
                           name="imageUrl"
@@ -204,10 +203,9 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                                             ref={fileInputRef}
                                             onChange={handleFileChange}
                                             accept="image/png, image/jpeg, image/gif, image/webp"
-                                            disabled={isCompressing}
                                         />
                                     </FormControl>
-                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isCompressing}>
+                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
                                         {isCompressing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
                                         {isCompressing ? 'Otimizando...' : (imageUrlValue ? 'Trocar Imagem' : 'Enviar Imagem')}
                                     </Button>
@@ -363,14 +361,15 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                             )}
                             />
                         )}
-                    </div>
+                    </fieldset>
                 </ScrollArea>
                 <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting || isCompressing}>
                         Cancelar
                     </Button>
-                    <Button type="submit" disabled={isCompressing}>
-                        Salvar
+                    <Button type="submit" disabled={isSubmitting || isCompressing}>
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {isSubmitting ? 'Salvando...' : 'Salvar'}
                     </Button>
                 </DialogFooter>
             </form>
