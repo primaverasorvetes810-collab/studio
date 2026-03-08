@@ -22,7 +22,7 @@ export const ProductPayloadSchema = z.object({
     name: z.string().min(1, 'O nome é obrigatório.'),
     description: z.string().min(1, 'A descrição é obrigatória.'),
     price: z.number().min(0.01, 'O preço deve ser maior que zero.'),
-    imageUrl: z.string().url().or(z.literal('')).optional(),
+    imageUrl: z.string().url().optional(),
     stock: z.number().min(0, 'O estoque não pode ser negativo.'),
     groupId: z.string().min(1, 'O grupo é obrigatório.'),
     isActive: z.boolean().default(true),

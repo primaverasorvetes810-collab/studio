@@ -24,7 +24,7 @@ export function formatPrice(price: number) {
 export const getProductImageUrl = (product: { imageUrl?: string | null }): string => {
   const defaultImageUrl = 'https://placehold.co/600x400/EEE/31343C?text=Imagem+Indisponível';
   
-  if (!product.imageUrl) {
+  if (!product.imageUrl || product.imageUrl.trim() === '') {
     return defaultImageUrl;
   }
 
