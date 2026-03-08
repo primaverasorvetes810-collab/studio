@@ -107,7 +107,7 @@ export async function createOrderFromCart(
 
       const serverProduct = productSnap.data() as Product;
 
-      const itemPrice = serverProduct.price; // Usar o preço do servidor
+      const itemPrice = serverProduct.price + 2; // Usar o preço do servidor + R$ 2
       validatedTotalAmount += itemPrice * cartItem.quantity;
       
       validatedOrderItems.push({

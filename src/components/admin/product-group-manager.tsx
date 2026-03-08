@@ -117,7 +117,7 @@ function ProductListGrid({ group, products, onEdit, onAdd }: {
                                                 {product.isActive ? 'Ativo' : 'Inativo'}
                                             </Badge>
                                         </div>
-                                        <p className="mt-2 text-lg font-bold text-primary">{formatPrice(product.price)}</p>
+                                        <p className="mt-2 text-lg font-bold text-primary">{formatPrice(product.price + 2)}</p>
                                     </CardContent>
                                 </Card>
                                 <div className="absolute top-2 right-2 z-10 opacity-0 group-hover/item:opacity-100 transition-opacity flex flex-col gap-2">

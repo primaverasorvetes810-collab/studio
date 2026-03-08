@@ -42,7 +42,7 @@ export default function CartPage() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const total = cartItems.reduce(
-    (acc, item) => acc + item.product.price * item.quantity,
+    (acc, item) => acc + (item.product.price + 2) * item.quantity,
     0
   );
 
@@ -148,7 +148,7 @@ export default function CartPage() {
                         <div>
                           <h3 className="font-semibold break-words">{item.product.name}</h3>
                            <p className="text-sm font-medium text-muted-foreground">
-                            {formatPrice(item.product.price)}
+                            {formatPrice(item.product.price + 2)}
                           </p>
                         </div>
 
