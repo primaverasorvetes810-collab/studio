@@ -171,8 +171,12 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit, 
       
       if (product) {
         await updateProduct(product.id, payload);
+        // Manually update the state so the user sees the change immediately.
+        setProducts(prev => prev ? prev.map(p => p.id === product.id ? { ...p, ...payload, id: product.id } as WithId<Product> : p) : null);
       } else {
-        await createProduct(payload);
+        const newProduct = await createProduct(payload);
+        // Manually add the new product to the state.
+        setProducts(prev => prev ? [...prev, newProduct] : [newProduct]);
       }
       
       update({ id: toastId, title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });

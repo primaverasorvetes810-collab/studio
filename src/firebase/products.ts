@@ -13,6 +13,7 @@ import type { Product } from '@/lib/data/products';
 import { z } from 'zod';
 import { errorEmitter } from './error-emitter';
 import { FirestorePermissionError } from './errors';
+import type { WithId } from './firestore/use-collection';
 
 // Zod schema for creating/updating a product, including groupId
 export const ProductPayloadSchema = z.object({
@@ -30,12 +31,13 @@ export const ProductPayloadSchema = z.object({
 export type ProductPayload = z.infer<typeof ProductPayloadSchema>;
 
 
-export async function createProduct(payload: ProductPayload) {
+export async function createProduct(payload: ProductPayload): Promise<WithId<Product>> {
   const { firestore } = getClientSdks();
   const productsCollection = collection(firestore, 'products');
   const validatedPayload = ProductPayloadSchema.parse(payload);
   try {
-    await addDoc(productsCollection, validatedPayload);
+    const docRef = await addDoc(productsCollection, validatedPayload);
+    return { ...validatedPayload, id: docRef.id } as WithId<Product>;
   } catch (e: any) {
     errorEmitter.emit(
       'permission-error',
