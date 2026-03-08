@@ -58,7 +58,6 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<z.infer<typeof ProductPayloadSchema>>({
     resolver: zodResolver(ProductPayloadSchema),
@@ -116,44 +115,41 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
     }
   };
 
-  const onSubmit = async (data: z.infer<typeof ProductPayloadSchema>) => {
-    setIsSubmitting(true);
-    const { id: toastId, update } = toast({
+  const onSubmit = (data: z.infer<typeof ProductPayloadSchema>) => {
+    onOpenChange(false); // Close dialog immediately
+
+    const processSubmit = async () => {
+      const { id: toastId, update } = toast({
         title: 'Salvando produto...',
-        description: 'Aguarde enquanto o produto é salvo.',
-    });
+        description: 'Aguarde enquanto processamos seu envio.',
+      });
 
-    try {
-        let uploadUrl: string | undefined = data.imageUrl?.startsWith('blob:') ? undefined : data.imageUrl;
-
-        if (imageFile) {
-            update({ id: toastId, title: 'Enviando imagem...', description: <Progress value={0} className="w-full" /> });
-            uploadUrl = await uploadFileAndGetURL(
-                storage,
-                imageFile,
-                'products',
-                (progress) => {
-                  update({
-                     id: toastId,
-                     title: 'Enviando imagem...',
-                     description: <Progress value={progress} className="w-full" />,
-                  });
-                }
-              );
-        }
+      try {
+        let finalImageUrl: string | undefined = data.imageUrl;
         
-        update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações no banco de dados.' });
+        if (imageFile) {
+           finalImageUrl = await uploadFileAndGetURL(
+            storage,
+            imageFile,
+            'products',
+            (progress) => {
+              update({
+                id: toastId,
+                title: 'Enviando imagem...',
+                description: <Progress value={progress} className="w-full" />,
+              });
+            }
+          );
+        } else if (finalImageUrl && finalImageUrl.startsWith('blob:')) {
+          finalImageUrl = undefined;
+        }
+
+        update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações.' });
 
         const payload: ProductPayload = {
-          name: data.name,
-          description: data.description,
-          price: data.price,
-          groupId: data.groupId,
+          ...data,
           subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
-          isActive: data.isActive,
-          manageStock: data.manageStock,
-          stock: data.manageStock ? data.stock : 0,
-          imageUrl: uploadUrl,
+          imageUrl: finalImageUrl,
         };
 
         if (product) {
@@ -162,15 +158,23 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
           await createProduct(payload);
         }
 
-        update({ id: toastId, title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });
-        onOpenChange(false); // Close dialog on success
-
-    } catch (error) {
-        console.error("Form submission error:", error);
-        update({ id: toastId, variant: 'destructive', title: "Erro", description: "Não foi possível salvar o produto." });
-    } finally {
-        setIsSubmitting(false);
-    }
+        update({
+          id: toastId,
+          title: 'Sucesso!',
+          description: product ? 'Produto atualizado.' : 'Novo produto adicionado.',
+        });
+      } catch (error) {
+        console.error('Form submission error:', error);
+        update({
+          id: toastId,
+          variant: 'destructive',
+          title: 'Erro',
+          description: 'Não foi possível salvar o produto.',
+        });
+      }
+    };
+    
+    processSubmit();
   };
 
   return (
@@ -200,10 +204,10 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                                             ref={fileInputRef}
                                             onChange={handleFileChange}
                                             accept="image/png, image/jpeg, image/gif, image/webp"
-                                            disabled={isCompressing || isSubmitting}
+                                            disabled={isCompressing}
                                         />
                                     </FormControl>
-                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isCompressing || isSubmitting}>
+                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isCompressing}>
                                         {isCompressing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
                                         {isCompressing ? 'Otimizando...' : (imageUrlValue ? 'Trocar Imagem' : 'Enviar Imagem')}
                                     </Button>
@@ -241,7 +245,7 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                             <FormItem>
                             <FormLabel>Nome</FormLabel>
                             <FormControl>
-                                <Input placeholder="Ex: Pote de Açaí 500ml" {...field} disabled={isSubmitting} />
+                                <Input placeholder="Ex: Pote de Açaí 500ml" {...field} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -253,7 +257,7 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Subgrupo</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
                                     <SelectValue placeholder="Selecione um subgrupo" />
@@ -280,7 +284,7 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                             <FormItem>
                             <FormLabel>Descrição</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="Descreva o produto..." {...field} disabled={isSubmitting} />
+                                <Textarea placeholder="Descreva o produto..." {...field} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -293,7 +297,7 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                             <FormItem>
                             <FormLabel>Preço (em R$)</FormLabel>
                             <FormControl>
-                                <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} disabled={isSubmitting} />
+                                <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -317,7 +321,6 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                                 <Switch
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  disabled={isSubmitting}
                                 />
                               </FormControl>
                             </FormItem>
@@ -339,7 +342,6 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                                 <Switch
                                   checked={field.value}
                                   onCheckedChange={field.onChange}
-                                  disabled={isSubmitting}
                                 />
                               </FormControl>
                             </FormItem>
@@ -354,7 +356,7 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                                 <FormItem>
                                 <FormLabel>Quantidade em Estoque</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))} disabled={isSubmitting}/>
+                                    <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))}/>
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -364,11 +366,11 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
                     </div>
                 </ScrollArea>
                 <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                         Cancelar
                     </Button>
-                    <Button type="submit" disabled={isCompressing || isSubmitting}>
-                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Salvar'}
+                    <Button type="submit" disabled={isCompressing}>
+                        Salvar
                     </Button>
                 </DialogFooter>
             </form>
