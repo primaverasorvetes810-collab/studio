@@ -146,7 +146,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalProducts}</div>
-            <p className="text-xs text-muted-foreground">Total de produtos ativos</p>
+            <p className="text-xs text-muted-foreground">Total de produtos cadastrados</p>
           </CardContent>
         </Card>
       </div>
