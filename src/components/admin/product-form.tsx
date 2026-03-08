@@ -38,21 +38,22 @@ import Image from 'next/image';
 import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
 import { Progress } from '../ui/progress';
-import { useStorage } from '@/firebase';
+import { useStorage, type WithId } from '@/firebase';
 import { uploadFileAndGetURL } from '@/firebase/storage';
 import { UploadCloud, Loader2 } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 
 type ProductFormProps = {
-  product: Product | null;
+  product: WithId<Product> | null;
   parentGroup: ProductGroup;
   onOpenChange: (open: boolean) => void;
   onFormSubmit: () => void;
+  setProducts: React.Dispatch<React.SetStateAction<WithId<Product>[] | null>>;
 };
 
 const GERAL_SUBGROUP_VALUE = '__GERAL__';
 
-export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }: ProductFormProps) {
+export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit, setProducts }: ProductFormProps) {
   const { toast } = useToast();
   const storage = useStorage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -117,6 +118,18 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
   };
 
   const onSubmit = async (data: z.infer<typeof ProductPayloadSchema>) => {
+    // Optimistically update the UI with the local blob URL for instant feedback
+    if (product && imageFile && data.imageUrl.startsWith('blob:')) {
+      setProducts(prevProducts => {
+          if (!prevProducts) return null;
+          return prevProducts.map(p =>
+              p.id === product.id 
+                  ? { ...p, ...data, imageUrl: data.imageUrl } 
+                  : p
+          );
+      });
+    }
+
     onFormSubmit(); // Close dialog immediately
     const { id: toastId, update } = toast({
         title: 'Salvando produto...',

@@ -19,7 +19,7 @@ export default function ProductsPage() {
     () => (firestore ? collection(firestore, 'products') : null),
     [firestore]
   );
-  const { data: products } = useCollection<Product>(productsQuery);
+  const { data: products, setData: setProducts } = useCollection<Product>(productsQuery);
 
   const productGroupsQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'productGroups') : null),
@@ -62,6 +62,7 @@ export default function ProductsPage() {
           parentGroup={activeGroup}
           onOpenChange={setIsFormOpen}
           onFormSubmit={handleFormClose}
+          setProducts={setProducts}
         />
       )}
     </>
