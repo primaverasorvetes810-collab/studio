@@ -87,6 +87,24 @@ export default function ProductsPage() {
       setActiveGroup(null);
     }
   };
+  
+  // Dedicated function to handle progress updates robustly.
+  const handleProgressUpdate = (tempId: string, progress: number) => {
+    setPendingProducts(prev => {
+      // Create a new array to ensure React detects the state change.
+      const newPendingProducts = [...prev];
+      const index = newPendingProducts.findIndex(p => p.tempId === tempId);
+      // If the item exists, update its progress.
+      if (index !== -1) {
+        newPendingProducts[index] = {
+          ...newPendingProducts[index],
+          progress: progress,
+        };
+      }
+      return newPendingProducts;
+    });
+  };
+
 
   const handleInitiateSave = (data: ProductPayload, imageFile: File | null) => {
     const tempId = crypto.randomUUID();
@@ -117,11 +135,8 @@ export default function ProductsPage() {
             storage,
             imageFile,
             'products',
-            (progress) => {
-              setPendingProducts(prev => 
-                prev.map(p => p.tempId === tempId ? { ...p, progress } : p)
-              );
-            }
+            // Use the new robust handler for progress updates.
+            (progress) => handleProgressUpdate(tempId, progress)
           );
         }
         

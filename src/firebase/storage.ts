@@ -24,7 +24,9 @@ export const uploadFileAndGetURL = (
 
         uploadTask.on('state_changed',
             (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                const progress = snapshot.totalBytes > 0 
+                    ? (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+                    : 0; // Guard against division by zero
                 onProgress(progress);
             },
             (error) => {
