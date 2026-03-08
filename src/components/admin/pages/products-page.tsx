@@ -28,6 +28,7 @@ export default function ProductsPage() {
   const [editingProduct, setEditingProduct] = useState<WithId<Product> | null>(null);
   const [activeGroup, setActiveGroup] = useState<ProductGroup | null>(null);
   const [pendingProducts, setPendingProducts] = useState<PendingProduct[]>([]);
+  const [openAccordion, setOpenAccordion] = useState<string>('');
 
   const productsQuery = useMemoFirebase(
     () => (firestore ? collection(firestore, 'products') : null),
@@ -45,12 +46,14 @@ export default function ProductsPage() {
   const handleEditProduct = (product: WithId<Product>, group: ProductGroup) => {
     setEditingProduct(product);
     setActiveGroup(group);
+    setOpenAccordion(group.id);
     setIsFormOpen(true);
   };
 
   const handleAddNewProduct = (group: ProductGroup) => {
     setEditingProduct(null);
     setActiveGroup(group);
+    setOpenAccordion(group.id);
     setIsFormOpen(true);
   };
 
@@ -135,6 +138,8 @@ export default function ProductsPage() {
           products={products}
           productGroups={productGroups}
           pendingProducts={pendingProducts}
+          openAccordion={openAccordion}
+          onAccordionChange={setOpenAccordion}
         />
       </div>
 

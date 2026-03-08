@@ -188,12 +188,14 @@ function ProductCountBadge({ count }: { count: number }) {
 }
 
 
-export function ProductGroupManager({ onAddProductClick, onEditProductClick, products, productGroups, pendingProducts }: { 
+export function ProductGroupManager({ onAddProductClick, onEditProductClick, products, productGroups, pendingProducts, openAccordion, onAccordionChange }: { 
     onAddProductClick: (group: ProductGroup) => void;
     onEditProductClick: (product: Product, group: ProductGroup) => void;
     products: Product[] | null;
     productGroups: ProductGroup[] | null;
     pendingProducts: PendingProduct[];
+    openAccordion: string;
+    onAccordionChange: (value: string) => void;
 }) {
   const { toast } = useToast();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -271,7 +273,13 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick, pro
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
         ) : (
-          <Accordion type="single" collapsible className="w-full space-y-1">
+          <Accordion 
+            type="single" 
+            collapsible 
+            className="w-full space-y-1"
+            value={openAccordion}
+            onValueChange={onAccordionChange}
+          >
             {filteredGroups.map((group) => {
                 const groupProducts = products?.filter(p => p.groupId === group.id) || [];
                 const groupPendingProducts = pendingProducts.filter(p => p.data.groupId === group.id);
