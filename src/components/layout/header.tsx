@@ -55,6 +55,7 @@ export default function Header() {
     { href: "/", label: "Produtos", icon: Home },
     { href: "/orders", label: "Meus Pedidos", icon: Box, requiresAuth: true },
     { href: "/ajuda", label: "Ajuda", icon: HelpCircle },
+    { href: "/admin", label: "Admin", icon: Shield },
   ];
 
   const renderLink = (link: (typeof navLinks)[0]) => {
