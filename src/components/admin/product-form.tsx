@@ -117,22 +117,14 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
   };
 
   const onSubmit = (data: z.infer<typeof ProductPayloadSchema>) => {
-    // Close the dialog immediately to unblock the user.
     onOpenChange(false);
-
-    // Show a toast that will be updated with progress.
     const { id: toastId, update } = toast({
       title: 'Salvando produto...',
       description: 'Seu produto está sendo salvo em segundo plano.',
     });
-
-    // We wrap the async logic in a self-executing async function
-    // to perform the upload and database write in the background.
     (async () => {
       try {
-        let uploadUrl: string | undefined = product?.imageUrl; // Keep existing image if editing
-
-        // If a new file was chosen, upload it and get the URL
+        let uploadUrl: string | undefined = data.imageUrl;
         if (imageFile) {
           update({ id: toastId, title: 'Enviando imagem...', description: <Progress value={0} className="w-full" /> });
           uploadUrl = await uploadFileAndGetURL(
@@ -147,13 +139,8 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
               });
             }
           );
-        } else if (!product) {
-            // If creating a new product without a file, ensure imageUrl is undefined
-            uploadUrl = undefined;
         }
-
         update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações no banco de dados.' });
-
         const payload: ProductPayload = {
           name: data.name,
           description: data.description,
@@ -163,17 +150,14 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
           isActive: data.isActive,
           manageStock: data.manageStock,
           stock: data.manageStock ? data.stock : 0,
-          imageUrl: uploadUrl, // Explicitly use the URL we determined
+          imageUrl: uploadUrl,
         };
-        
         if (product) {
           await updateProduct(product.id, payload);
         } else {
           await createProduct(payload);
         }
-        
         update({ id: toastId, title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });
-
       } catch (error) {
         console.error("Form submission error:", error);
         update({ id: toastId, variant: 'destructive', title: "Erro", description: "Não foi possível salvar o produto." });
