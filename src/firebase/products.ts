@@ -32,17 +32,12 @@ export const ProductPayloadSchema = z.object({
 export type ProductPayload = z.infer<typeof ProductPayloadSchema>;
 
 
-export async function createProduct(payload: ProductPayload): Promise<WithId<Product>> {
+export async function createProduct(payload: ProductPayload): Promise<void> {
   const { firestore } = getClientSdks();
   const productsCollection = collection(firestore, 'products');
   const validatedPayload = ProductPayloadSchema.parse(payload);
   try {
-    const docRef = await addDoc(productsCollection, validatedPayload);
-    const newDocSnap = await getDoc(docRef);
-    if (!newDocSnap.exists()) {
-        throw new Error("Falha ao criar o documento do produto.");
-    }
-    return { ...(newDocSnap.data() as Product), id: newDocSnap.id };
+    await addDoc(productsCollection, validatedPayload);
   } catch (e: any) {
     errorEmitter.emit(
       'permission-error',

@@ -118,18 +118,6 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit, 
   };
 
   const onSubmit = async (data: z.infer<typeof ProductPayloadSchema>) => {
-    // Optimistically update the UI with the local blob URL for instant feedback
-    if (product && imageFile && data.imageUrl?.startsWith('blob:')) {
-      setProducts(prevProducts => {
-          if (!prevProducts) return null;
-          return prevProducts.map(p =>
-              p.id === product.id 
-                  ? { ...p, ...data, imageUrl: data.imageUrl ?? '' } as WithId<Product>
-                  : p
-          );
-      });
-    }
-
     onFormSubmit(); // Close dialog immediately
     const { id: toastId, update } = toast({
         title: 'Salvando produto...',
@@ -166,16 +154,8 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit, 
       
       if (product) {
         await updateProduct(product.id, payload);
-        // Manually update the state so the user sees the change immediately.
-        setProducts(prev => {
-            if (!prev) return null;
-            const updatedProduct = { ...payload, id: product.id } as WithId<Product>;
-            return prev.map(p => p.id === product.id ? updatedProduct : p);
-        });
       } else {
-        const newProduct = await createProduct(payload);
-        // Manually add the new product to the state.
-        setProducts(prev => prev ? [...prev, newProduct] : [newProduct]);
+        await createProduct(payload);
       }
       
       update({ id: toastId, title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });
