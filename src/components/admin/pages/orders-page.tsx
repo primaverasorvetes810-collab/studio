@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { collectionGroup, doc, onSnapshot, query, updateDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { Order, OrderStatus, updateOrderStatus } from '@/firebase/orders';
@@ -20,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
 import { MoreVertical, Loader2, User, Phone, MapPin, Hash } from 'lucide-react';
 import {
@@ -52,6 +53,9 @@ const statusColors: Record<OrderStatus, string> = {
 
 const selectableStatuses: OrderStatus[] = ['Pendente', 'Pago', 'Enviado', 'Entregue'];
 
+type OrderFilterStatus = OrderStatus | 'Todos' | 'Atrasado';
+
+
 function playNotificationSound() {
     // Som de alerta alto de um recurso público
     const audio = new Audio('https://www.soundjay.com/misc/sounds/sonar-ping-sound-effect.mp3');
@@ -81,6 +85,7 @@ export default function OrdersPage() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [statusFilter, setStatusFilter] = useState<OrderFilterStatus>('Todos');
   const firestore = useFirestore();
   const { toast } = useToast();
   const previousOrdersRef = useRef<Order[]>([]);
@@ -135,42 +140,15 @@ export default function OrdersPage() {
     return () => unsubscribe();
 }, [firestore, toast]);
 
-
-  useEffect(() => {
-    const cancelOldOrders = async () => {
-      if (!firestore || allOrders.length === 0) return;
-
+  const isOrderDelayed = (order: Order): boolean => {
+    if (order.status === 'Pendente') {
       const now = new Date();
-      const twentyFourHours = 24 * 60 * 60 * 1000;
-      const ordersToCancel = allOrders.filter(order => {
-        if (!order.orderDate) return false;
-        
-        const isOld = now.getTime() - order.orderDate.toDate().getTime() > twentyFourHours;
-        const isCancellable = order.status === 'Pendente' || order.status === 'Enviado';
-        
-        return isOld && isCancellable;
-      });
-
-      if (ordersToCancel.length > 0) {
-        toast({
-          title: 'Limpeza automática',
-          description: `Cancelando ${ordersToCancel.length} pedido(s) com mais de 24 horas.`,
-        });
-
-        for (const order of ordersToCancel) {
-          try {
-            await updateOrderStatus(order.userId, order.id, 'Cancelado');
-          } catch (error) {
-            console.error(`Failed to cancel order ${order.id}:`, error);
-          }
-        }
-      }
-    };
-
-    if (!isLoading) {
-        cancelOldOrders();
+      const orderDate = order.orderDate.toDate();
+      const diffMinutes = (now.getTime() - orderDate.getTime()) / (1000 * 60);
+      return diffMinutes > 30;
     }
-  }, [allOrders, firestore, isLoading, toast]);
+    return false;
+  };
 
 
   const handleStatusChange = async (
@@ -196,15 +174,16 @@ export default function OrdersPage() {
     }
   };
 
-  const isOrderDelayed = (order: Order): boolean => {
-    if (order.status === 'Pendente') {
-      const now = new Date();
-      const orderDate = order.orderDate.toDate();
-      const diffMinutes = (now.getTime() - orderDate.getTime()) / (1000 * 60);
-      return diffMinutes > 30;
+  const filteredOrders = useMemo(() => {
+    if (statusFilter === 'Todos') {
+        return allOrders;
     }
-    return false;
-  };
+    if (statusFilter === 'Atrasado') {
+        return allOrders.filter(isOrderDelayed);
+    }
+    return allOrders.filter(order => order.status === statusFilter);
+  }, [statusFilter, allOrders]);
+
 
   if (isLoading) {
     return (
@@ -232,83 +211,95 @@ export default function OrdersPage() {
     <>
       <Card>
         <CardHeader className="p-4">
-          <CardTitle className="text-xl md:text-2xl">Todos os Pedidos Ativos</CardTitle>
+          <CardTitle className="text-xl md:text-2xl">Sistema de Pedidos</CardTitle>
           <CardDescription className="text-xs md:text-sm">
-            Gerencie todos os pedidos ativos. Pedidos com status 'Pendente' por mais de 30 minutos são destacados em vermelho.
+            Gerencie todos os pedidos. Pedidos pendentes por mais de 30 minutos são destacados.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0 md:p-6 md:pt-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[40%] px-2 py-2 md:px-4">Cliente</TableHead>
-                <TableHead className="px-2 py-2 md:px-4">Status</TableHead>
-                <TableHead className="hidden sm:table-cell px-2 py-2 md:px-4 max-w-[120px] truncate">Produtos</TableHead>
-                <TableHead className="px-2 py-2 md:px-4">
-                  <span className="sr-only">Ações</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {allOrders.length > 0 ? (
-                allOrders.map((order) => {
-                  const isDelayed = isOrderDelayed(order);
-                  const productNames = order.items
-                    .map((item) => `${item.product.name} (x${item.quantity})`)
-                    .join(', ');
-                  return (
-                    <TableRow
-                      key={order.id}
-                      className={cn(
-                        isDelayed && 'bg-red-500/10 hover:bg-red-500/20'
-                      )}
-                    >
-                      <TableCell className="w-[40%] pr-2 py-2 px-2 md:px-4">
-                        {renderClientName(order.userName)}
-                      </TableCell>
-                       <TableCell className="py-2 px-2 md:px-4">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                             <Badge className={cn("cursor-pointer", statusColors[order.status], isDelayed && 'border-red-500/50 text-red-500')} variant="outline">
-                               {order.status}
-                             </Badge>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start">
-                            {selectableStatuses.map((status) => (
-                              <DropdownMenuItem
-                                key={status}
-                                disabled={order.status === status}
-                                onSelect={() =>
-                                  handleStatusChange(order, status as OrderStatus)
-                                }
-                              >
-                                Marcar como {status}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell py-2 px-2 md:px-4 text-muted-foreground truncate max-w-[150px]">
-                        {productNames}
-                      </TableCell>
-                      <TableCell className="py-2 px-2 md:px-4">
-                         <Button aria-haspopup="true" size="icon" variant="ghost" className="h-8 w-8" onClick={() => setSelectedOrder(order)}>
-                           <MoreVertical className="h-4 w-4" />
-                           <span className="sr-only">Ver detalhes</span>
-                         </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
+          <Tabs defaultValue="Todos" onValueChange={(value) => setStatusFilter(value as OrderFilterStatus)}>
+             <TabsList className="grid w-full grid-cols-3 gap-2 sm:grid-cols-6 mb-4 h-auto flex-wrap p-1">
+                <TabsTrigger value="Todos">Todos</TabsTrigger>
+                <TabsTrigger value="Pendente">Pendentes</TabsTrigger>
+                <TabsTrigger value="Atrasado" className="text-destructive">Atrasados</TabsTrigger>
+                <TabsTrigger value="Pago">Pagos</TabsTrigger>
+                <TabsTrigger value="Enviado">Enviados</TabsTrigger>
+                <TabsTrigger value="Entregue">Entregues</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="border rounded-lg">
+            <Table>
+                <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
-                    Nenhum pedido encontrado.
-                  </TableCell>
+                    <TableHead className="w-[40%] px-2 py-2 md:px-4">Cliente</TableHead>
+                    <TableHead className="px-2 py-2 md:px-4">Status</TableHead>
+                    <TableHead className="hidden sm:table-cell px-2 py-2 md:px-4 max-w-[120px] truncate">Produtos</TableHead>
+                    <TableHead className="px-2 py-2 md:px-4">
+                    <span className="sr-only">Ações</span>
+                    </TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                {filteredOrders.length > 0 ? (
+                    filteredOrders.map((order) => {
+                    const isDelayed = order.status === 'Pendente' && isOrderDelayed(order);
+                    const productNames = order.items
+                        .map((item) => `${item.product.name} (x${item.quantity})`)
+                        .join(', ');
+                    return (
+                        <TableRow
+                        key={order.id}
+                        className={cn(
+                            isDelayed && 'bg-red-500/10 hover:bg-red-500/20'
+                        )}
+                        >
+                        <TableCell className="w-[40%] pr-2 py-2 px-2 md:px-4">
+                            {renderClientName(order.userName)}
+                        </TableCell>
+                        <TableCell className="py-2 px-2 md:px-4">
+                            <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Badge className={cn("cursor-pointer", statusColors[order.status], isDelayed && 'border-red-500/50 text-red-500')} variant="outline">
+                                {isDelayed ? 'Atrasado' : order.status}
+                                </Badge>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start">
+                                {selectableStatuses.map((status) => (
+                                <DropdownMenuItem
+                                    key={status}
+                                    disabled={order.status === status}
+                                    onSelect={() =>
+                                    handleStatusChange(order, status as OrderStatus)
+                                    }
+                                >
+                                    Marcar como {status}
+                                </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell py-2 px-2 md:px-4 text-muted-foreground truncate max-w-[150px]">
+                            {productNames}
+                        </TableCell>
+                        <TableCell className="py-2 px-2 md:px-4">
+                            <Button aria-haspopup="true" size="icon" variant="ghost" className="h-8 w-8" onClick={() => setSelectedOrder(order)}>
+                            <MoreVertical className="h-4 w-4" />
+                            <span className="sr-only">Ver detalhes</span>
+                            </Button>
+                        </TableCell>
+                        </TableRow>
+                    );
+                    })
+                ) : (
+                    <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                        Nenhum pedido com este status.
+                    </TableCell>
+                    </TableRow>
+                )}
+                </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -364,5 +355,3 @@ export default function OrdersPage() {
     </>
   );
 }
-
-    
