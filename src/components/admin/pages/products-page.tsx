@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFirestore, useMemoFirebase, useCollection, type WithId, useStorage } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Product, ProductGroup } from '@/lib/data/products';
@@ -9,6 +9,7 @@ import { ProductForm } from '../product-form';
 import { useToast } from '@/hooks/use-toast';
 import { createProduct, updateProduct, type ProductPayload } from '@/firebase/products';
 import { uploadFileAndGetURL } from '@/firebase/storage';
+import { uploadTracker } from '@/lib/upload-tracker';
 
 const GERAL_SUBGROUP_VALUE = '__GERAL__';
 
@@ -43,19 +44,40 @@ export default function ProductsPage() {
   );
   const { data: productGroups } = useCollection<ProductGroup>(productGroupsQuery);
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (uploadTracker.hasPendingUploads()) {
+        e.preventDefault();
+        e.returnValue = 'Você tem envios em andamento. Tem certeza que quer sair?';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   const handleEditProduct = (product: WithId<Product>, group: ProductGroup) => {
     setEditingProduct(product);
     setActiveGroup(group);
-    setOpenAccordion(group.id);
+    if (!openAccordion) {
+      onAccordionChange(group.id);
+    }
     setIsFormOpen(true);
   };
 
   const handleAddNewProduct = (group: ProductGroup) => {
     setEditingProduct(null);
     setActiveGroup(group);
-    setOpenAccordion(group.id);
+    if (openAccordion !== group.id) {
+      onAccordionChange(group.id);
+    }
     setIsFormOpen(true);
   };
+
+  const onAccordionChange = (value: string) => {
+    setOpenAccordion(value);
+  }
 
   const handleFormOpenChange = (open: boolean) => {
     setIsFormOpen(open);
@@ -80,6 +102,11 @@ export default function ProductsPage() {
     };
 
     setPendingProducts(prev => [...prev, newPendingProduct]);
+    uploadTracker.increment();
+    
+    if (data.groupId && openAccordion !== data.groupId) {
+        setOpenAccordion(data.groupId);
+    }
 
     const executeSave = async () => {
       try {
@@ -122,6 +149,7 @@ export default function ProductsPage() {
       } finally {
         setPendingProducts(prev => prev.filter(p => p.tempId !== tempId));
         URL.revokeObjectURL(localImageUrl);
+        uploadTracker.decrement();
       }
     };
 
@@ -139,7 +167,7 @@ export default function ProductsPage() {
           productGroups={productGroups}
           pendingProducts={pendingProducts}
           openAccordion={openAccordion}
-          onAccordionChange={setOpenAccordion}
+          onAccordionChange={onAccordionChange}
         />
       </div>
 
