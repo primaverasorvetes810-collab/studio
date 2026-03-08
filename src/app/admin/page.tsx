@@ -15,7 +15,6 @@ import ClientsPage from '@/components/admin/pages/clients-page';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
-import DeliveriesPage from '@/components/admin/pages/deliveries-page';
 import BirthdaysPage from '@/components/admin/pages/birthdays-page';
 import AdminHelpPage from './ajuda/page';
 import CarouselManagerPage from '@/components/admin/pages/carousel-manager-page';
@@ -30,12 +29,11 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle,
 import SettingsPage from '@/components/admin/pages/settings-page';
 
 
-type AdminSection = "dashboard" | "orders" | "deliveries" | "products" | "clients" | "birthdays" | "carousel" | "settings" | "help";
+type AdminSection = "dashboard" | "orders" | "products" | "clients" | "birthdays" | "carousel" | "settings" | "help";
 
 const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'orders', label: 'Pedidos', icon: ShoppingCart },
-    { id: 'deliveries', label: 'Entregas', icon: Truck },
+    { id: 'orders', label: 'Entregas', icon: Truck },
     { id: 'products', label: 'Produtos', icon: Package },
     { id: 'clients', label: 'Clientes', icon: Users },
     { id: 'birthdays', label: 'Aniversariantes', icon: Gift },
@@ -239,7 +237,6 @@ export default function AdminGatePage() {
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
           {activeSection === 'dashboard' && <DashboardPage />}
           {activeSection === 'orders' && <OrdersPage />}
-          {activeSection === 'deliveries' && <DeliveriesPage />}
           {activeSection === 'products' && <ProductsPage />}
           {activeSection === 'clients' && <ClientsPage />}
           {activeSection === 'birthdays' && <BirthdaysPage />}

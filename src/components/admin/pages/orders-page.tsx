@@ -218,11 +218,10 @@ export default function OrdersPage() {
         </CardHeader>
         <CardContent className="p-0 md:p-6 md:pt-0">
           <Tabs defaultValue="Todos" onValueChange={(value) => setStatusFilter(value as OrderFilterStatus)}>
-             <TabsList className="grid w-full grid-cols-3 gap-2 sm:grid-cols-6 mb-4 h-auto flex-wrap p-1">
+             <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 gap-2 mb-4 h-auto flex-wrap p-1">
                 <TabsTrigger value="Todos">Todos</TabsTrigger>
-                <TabsTrigger value="Pendente">Pendentes</TabsTrigger>
+                <TabsTrigger value="Pendente">Feitos Agora</TabsTrigger>
                 <TabsTrigger value="Atrasado" className="text-destructive">Atrasados</TabsTrigger>
-                <TabsTrigger value="Pago">Pagos</TabsTrigger>
                 <TabsTrigger value="Enviado">Enviados</TabsTrigger>
                 <TabsTrigger value="Entregue">Entregues</TabsTrigger>
             </TabsList>
