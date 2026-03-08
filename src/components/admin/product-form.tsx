@@ -115,53 +115,70 @@ export function ProductForm({ product, parentGroup, onOpenChange }: ProductFormP
     }
   };
 
-  const onSubmit = async (data: z.infer<typeof ProductPayloadSchema>) => {
+  const onSubmit = (data: z.infer<typeof ProductPayloadSchema>) => {
+    // Close the dialog immediately to unblock the user.
+    onOpenChange(false);
+
+    // Show a toast that will be updated with progress.
     const { id: toastId, update } = toast({
-        title: 'Salvando produto...',
-        description: 'Aguarde enquanto processamos seu envio.',
+      title: 'Salvando produto...',
+      description: 'Seu produto está sendo salvo em segundo plano.',
     });
 
-    let finalImageUrl = data.imageUrl;
+    // We wrap the async logic in a self-executing async function
+    // to perform the upload and database write in the background.
+    (async () => {
+      try {
+        let finalImageUrl = data.imageUrl;
 
-    try {
-      if (imageFile) {
-        finalImageUrl = await uploadFileAndGetURL(
-          storage,
-          imageFile,
-          'products',
-          (progress) => update({
-            id: toastId,
-            title: 'Enviando imagem...',
-            description: <Progress value={progress} className="w-full" />,
-          })
-        );
+        // If a new image file was selected, upload it and get the URL.
+        if (imageFile) {
+          finalImageUrl = await uploadFileAndGetURL(
+            storage,
+            imageFile,
+            'products',
+            (progress) => {
+              // Only update toast if it's not at 100% yet to avoid flicker
+              if (progress < 100) {
+                 update({
+                    id: toastId,
+                    title: 'Enviando imagem...',
+                    description: <Progress value={progress} className="w-full" />,
+                 });
+              }
+            }
+          );
+        }
+        
+        update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações no banco de dados.' });
+
+        // Prepare the final payload for Firestore.
+        const payload: ProductPayload = {
+          ...data,
+          imageUrl: finalImageUrl || undefined,
+          subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
+        };
+
+        if (!payload.manageStock) {
+          payload.stock = 0;
+        }
+        
+        // Create or update the product document in Firestore.
+        if (product) {
+          await updateProduct(product.id, payload);
+        } else {
+          await createProduct(payload);
+        }
+        
+        // Update the toast to show success.
+        update({ id: toastId, title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });
+
+      } catch (error) {
+        console.error("Form submission error:", error);
+        // If an error occurs, update the toast to show failure.
+        update({ id: toastId, variant: 'destructive', title: "Erro", description: "Não foi possível salvar o produto." });
       }
-      
-      update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações.' });
-
-      const payload: ProductPayload = {
-        ...data,
-        imageUrl: finalImageUrl || undefined,
-        subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
-      };
-
-      if (!payload.manageStock) {
-        payload.stock = 0;
-      }
-      
-      if (product) {
-        await updateProduct(product.id, payload);
-      } else {
-        await createProduct(payload);
-      }
-      
-      update({ id: toastId, title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });
-      onOpenChange(false); // Close dialog on success
-
-    } catch (error) {
-      console.error("Form submission error:", error);
-      update({ id: toastId, variant: 'destructive', title: "Erro", description: "Não foi possível salvar o produto." });
-    }
+    })();
   };
 
   return (
