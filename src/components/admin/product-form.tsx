@@ -32,29 +32,23 @@ import { z } from 'zod';
 import { ProductPayload, ProductPayloadSchema } from '@/firebase/products';
 import type { Product, ProductGroup } from '@/lib/data/products';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
 import { type WithId } from '@/firebase';
-import { UploadCloud, Loader2 } from 'lucide-react';
-import imageCompression from 'browser-image-compression';
-import { Progress } from '@/components/ui/progress';
+import { Image as ImageIcon, Loader2 } from 'lucide-react';
 
 type ProductFormProps = {
   product: WithId<Product> | null;
   parentGroup: ProductGroup;
   onOpenChange: (open: boolean) => void;
-  onInitiateSave: (data: ProductPayload, imageFile: File | null) => void;
+  onInitiateSave: (data: ProductPayload) => void;
 };
 
 const GERAL_SUBGROUP_VALUE = '__GERAL__';
 
 export function ProductForm({ product, parentGroup, onOpenChange, onInitiateSave }: ProductFormProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [isCompressing, setIsCompressing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
   const form = useForm<z.infer<typeof ProductPayloadSchema>>({
@@ -63,7 +57,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onInitiateSave
       name: product?.name ?? '',
       description: product?.description ?? '',
       price: product?.price ?? 0,
-      imageUrl: product?.imageUrl ?? undefined,
+      imageUrl: product?.imageUrl ?? '',
       stock: product?.stock ?? 0,
       groupId: product?.groupId ?? parentGroup.id,
       isActive: product?.isActive ?? true,
@@ -75,36 +69,9 @@ export function ProductForm({ product, parentGroup, onOpenChange, onInitiateSave
   const manageStock = form.watch('manageStock');
   const imageUrlValue = form.watch('imageUrl');
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsCompressing(true);
-    
-    const options = {
-      maxSizeMB: 0.4,
-      maxWidthOrHeight: 1024,
-      useWebWorker: true,
-    };
-
-    try {
-      const compressedFile = await imageCompression(file, options);
-      setImageFile(compressedFile);
-      const tempUrl = URL.createObjectURL(compressedFile);
-      form.setValue('imageUrl', tempUrl, { shouldValidate: true, shouldDirty: true });
-    } catch (error) {
-      console.error("Image compression error:", error);
-      setImageFile(file); // Fallback to original file
-      const tempUrl = URL.createObjectURL(file);
-      form.setValue('imageUrl', tempUrl, { shouldValidate: true, shouldDirty: true });
-    } finally {
-      setIsCompressing(false);
-    }
-  };
-
   const onSubmit = (data: z.infer<typeof ProductPayloadSchema>) => {
     setIsSaving(true);
-    onInitiateSave(data, imageFile);
+    onInitiateSave(data);
     onOpenChange(false);
   };
 
@@ -120,51 +87,41 @@ export function ProductForm({ product, parentGroup, onOpenChange, onInitiateSave
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
                 <ScrollArea className="max-h-[70vh] pr-6">
-                    <fieldset disabled={isCompressing || isSaving} className="grid gap-4 py-4">
+                    <fieldset disabled={isSaving} className="grid gap-4 py-4">
                         <FormField
                           control={form.control}
                           name="imageUrl"
                           render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>Imagem do Produto (Opcional)</FormLabel>
-                                  <div className="flex flex-col gap-4">
-                                    <FormControl>
-                                        <Input 
-                                            type="file" 
-                                            className="hidden"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            accept="image/png, image/jpeg, image/gif, image/webp"
-                                        />
-                                    </FormControl>
-                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
-                                        {isCompressing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
-                                        {isCompressing ? 'Otimizando...' : (imageUrlValue ? 'Trocar Imagem' : 'Enviar Imagem')}
-                                    </Button>
+                            <FormItem>
+                              <FormLabel>URL da Imagem (Opcional)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="https://exemplo.com/imagem.png" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                Cole a URL de uma imagem já hospedada na internet.
+                              </FormDescription>
+                              <FormMessage />
+                              <div className="mt-4 flex h-[232px] items-center justify-center rounded-lg border bg-muted p-4">
+                                {imageUrlValue ? (
+                                  <Image
+                                    src={imageUrlValue}
+                                    alt="Pré-visualização da imagem"
+                                    width={200}
+                                    height={200}
+                                    className="aspect-square rounded-md object-contain"
+                                    onError={(e) => {
+                                      e.currentTarget.src = 'https://placehold.co/600x400/EEE/31343C?text=URL+inválida';
+                                      e.currentTarget.alt = 'URL da imagem inválida ou inacessível';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="text-center text-sm text-muted-foreground">
+                                    <ImageIcon className="mx-auto mb-2 h-8 w-8" />
+                                    <p>Pré-visualização da imagem</p>
                                   </div>
-                                  <FormDescription>
-                                      A imagem é opcional, mas recomendada. Use a proporção 1:1 (ex: 800x800 pixels).
-                                  </FormDescription>
-                                  <FormMessage />
-                                  <div className="mt-4 flex h-[232px] items-center justify-center rounded-lg border bg-muted p-4">
-                                    {isCompressing ? (
-                                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                    ) : imageUrlValue ? (
-                                        <Image 
-                                            src={imageUrlValue} 
-                                            alt="Pré-visualização da imagem" 
-                                            width={200}
-                                            height={200}
-                                            className="aspect-square rounded-md object-contain"
-                                        />
-                                    ) : (
-                                        <div className="text-center text-sm text-muted-foreground">
-                                            <UploadCloud className="mx-auto mb-2 h-8 w-8" />
-                                            <p>Pré-visualização da imagem</p>
-                                        </div>
-                                    )}
-                                </div>
-                              </FormItem>
+                                )}
+                              </div>
+                            </FormItem>
                           )}
                         />
                         
@@ -296,10 +253,10 @@ export function ProductForm({ product, parentGroup, onOpenChange, onInitiateSave
                     </fieldset>
                 </ScrollArea>
                 <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isCompressing || isSaving}>
+                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
                         Cancelar
                     </Button>
-                    <Button type="submit" disabled={isCompressing || isSaving}>
+                    <Button type="submit" disabled={isSaving}>
                         {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                         {isSaving ? 'Salvando...' : 'Salvar'}
                     </Button>

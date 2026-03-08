@@ -1,34 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useFirestore, useMemoFirebase, useCollection, type WithId, useStorage } from '@/firebase';
+import { useState } from 'react';
+import { useFirestore, useMemoFirebase, useCollection, type WithId } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Product, ProductGroup } from '@/lib/data/products';
 import { ProductGroupManager } from '../product-group-manager';
 import { ProductForm } from '../product-form';
 import { useToast } from '@/hooks/use-toast';
 import { createProduct, updateProduct, type ProductPayload } from '@/firebase/products';
-import { uploadFileAndGetURL } from '@/firebase/storage';
-import { uploadTracker } from '@/lib/upload-tracker';
 
 const GERAL_SUBGROUP_VALUE = '__GERAL__';
 
-export type PendingProduct = {
-  tempId: string;
-  data: ProductPayload;
-  localImageUrl: string;
-  progress: number;
-};
-
 export default function ProductsPage() {
   const firestore = useFirestore();
-  const storage = useStorage();
   const { toast } = useToast();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<WithId<Product> | null>(null);
   const [activeGroup, setActiveGroup] = useState<ProductGroup | null>(null);
-  const [pendingProducts, setPendingProducts] = useState<PendingProduct[]>([]);
   const [openAccordion, setOpenAccordion] = useState<string>('');
 
   const productsQuery = useMemoFirebase(
@@ -43,19 +32,6 @@ export default function ProductsPage() {
     [firestore]
   );
   const { data: productGroups } = useCollection<ProductGroup>(productGroupsQuery);
-
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (uploadTracker.hasPendingUploads()) {
-        e.preventDefault();
-        e.returnValue = 'Você tem envios em andamento. Tem certeza que quer sair?';
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, []);
 
   const handleEditProduct = (product: WithId<Product>, group: ProductGroup) => {
     setEditingProduct(product);
@@ -87,88 +63,34 @@ export default function ProductsPage() {
       setActiveGroup(null);
     }
   };
-  
-  // Dedicated function to handle progress updates robustly.
-  const handleProgressUpdate = (tempId: string, progress: number) => {
-    setPendingProducts(prev => {
-      // Create a new array to ensure React detects the state change.
-      const newPendingProducts = [...prev];
-      const index = newPendingProducts.findIndex(p => p.tempId === tempId);
-      // If the item exists, update its progress.
-      if (index !== -1) {
-        newPendingProducts[index] = {
-          ...newPendingProducts[index],
-          progress: progress,
-        };
-      }
-      return newPendingProducts;
-    });
-  };
 
-
-  const handleInitiateSave = (data: ProductPayload, imageFile: File | null) => {
-    const tempId = crypto.randomUUID();
-    const localImageUrl = imageFile 
-      ? URL.createObjectURL(imageFile) 
-      : (data.imageUrl || 'https://placehold.co/600x400/EEE/31343C?text=Imagem');
-
-    const newPendingProduct: PendingProduct = {
-      tempId,
-      data,
-      localImageUrl,
-      progress: 0,
-    };
-
-    setPendingProducts(prev => [...prev, newPendingProduct]);
-    uploadTracker.increment();
-    
+  const handleInitiateSave = async (data: ProductPayload) => {
     if (data.groupId && openAccordion !== data.groupId) {
-        setOpenAccordion(data.groupId);
+      setOpenAccordion(data.groupId);
     }
 
-    const executeSave = async () => {
-      try {
-        let finalImageUrl = data.imageUrl;
+    try {
+      const payload: ProductPayload = {
+        ...data,
+        subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
+      };
 
-        if (imageFile) {
-          finalImageUrl = await uploadFileAndGetURL(
-            storage,
-            imageFile,
-            'products',
-            // Use the new robust handler for progress updates.
-            (progress) => handleProgressUpdate(tempId, progress)
-          );
-        }
-        
-        const payload: ProductPayload = {
-          ...data,
-          imageUrl: finalImageUrl,
-          subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
-        };
-        
-        if (editingProduct) {
-          await updateProduct(editingProduct.id, payload);
-          toast({ title: 'Sucesso!', description: 'Produto atualizado.' });
-        } else {
-          await createProduct(payload);
-          toast({ title: 'Sucesso!', description: 'Novo produto adicionado.' });
-        }
-
-      } catch (error) {
-        console.error('Save product error:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Erro ao Salvar',
-          description: 'Não foi possível salvar o produto.',
-        });
-      } finally {
-        setPendingProducts(prev => prev.filter(p => p.tempId !== tempId));
-        URL.revokeObjectURL(localImageUrl);
-        uploadTracker.decrement();
+      if (editingProduct) {
+        await updateProduct(editingProduct.id, payload);
+        toast({ title: 'Sucesso!', description: 'Produto atualizado.' });
+      } else {
+        await createProduct(payload);
+        toast({ title: 'Sucesso!', description: 'Novo produto adicionado.' });
       }
-    };
 
-    executeSave();
+    } catch (error) {
+      console.error('Save product error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao Salvar',
+        description: 'Não foi possível salvar o produto.',
+      });
+    }
   };
 
 
@@ -180,7 +102,6 @@ export default function ProductsPage() {
           onEditProductClick={handleEditProduct}
           products={products}
           productGroups={productGroups}
-          pendingProducts={pendingProducts}
           openAccordion={openAccordion}
           onAccordionChange={onAccordionChange}
         />

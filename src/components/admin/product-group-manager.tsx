@@ -26,14 +26,11 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import type { PendingProduct } from './pages/products-page';
-import { PendingProductCard } from './pending-product-card';
 
 
-function ProductListGrid({ group, products, pendingProducts, onEdit, onAdd }: { 
+function ProductListGrid({ group, products, onEdit, onAdd }: { 
     group: ProductGroup, 
     products: Product[],
-    pendingProducts: PendingProduct[],
     onEdit: (product: Product, group: ProductGroup) => void, 
     onAdd: (group: ProductGroup) => void 
 }) {
@@ -54,16 +51,6 @@ function ProductListGrid({ group, products, pendingProducts, onEdit, onAdd }: {
     }, {} as Record<string, Product[]>);
   }, [products]);
 
-  const groupedPendingProducts = useMemo(() => {
-    if (!pendingProducts) return {};
-    return pendingProducts.reduce((acc, product) => {
-        const subgroup = product.data.subgroup === '__GERAL__' || !product.data.subgroup ? 'Geral' : product.data.subgroup;
-        if (!acc[subgroup]) acc[subgroup] = [];
-        acc[subgroup].push(product);
-        return acc;
-    }, {} as Record<string, PendingProduct[]>);
-  }, [pendingProducts]);
-
 
   const handleToggleActive = (product: Product) => {
     const newStatus = !(product.isActive ?? true);
@@ -82,7 +69,7 @@ function ProductListGrid({ group, products, pendingProducts, onEdit, onAdd }: {
     setDeletingProduct(null);
   }
 
-  const hasContent = products.length > 0 || pendingProducts.length > 0;
+  const hasContent = products.length > 0;
   
   if (!hasContent) {
     return (
@@ -104,22 +91,12 @@ function ProductListGrid({ group, products, pendingProducts, onEdit, onAdd }: {
     <div className="w-full">
         {subgroups.map(subgroupName => {
             const currentRealProducts = groupedProducts[subgroupName] || [];
-            const currentPendingProducts = groupedPendingProducts[subgroupName] || [];
-            if (currentRealProducts.length === 0 && currentPendingProducts.length === 0) return null;
+            if (currentRealProducts.length === 0) return null;
 
             return (
                 <div key={subgroupName} className="border-t first:border-t-0">
                     <h4 className="px-4 pt-3 pb-2 text-sm font-semibold tracking-wider bg-muted/50">{subgroupName}</h4>
                     <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                        {currentPendingProducts.map(p => (
-                            <PendingProductCard
-                                key={p.tempId}
-                                name={p.data.name}
-                                price={p.data.price}
-                                localImageUrl={p.localImageUrl}
-                                progress={p.progress}
-                            />
-                        ))}
                          {currentRealProducts.map((product) => (
                             <div key={product.id} className="group/item relative">
                                  <Card className="group/card flex h-full flex-col overflow-hidden transition-all duration-300 hover:shadow-lg">
@@ -188,12 +165,11 @@ function ProductCountBadge({ count }: { count: number }) {
 }
 
 
-export function ProductGroupManager({ onAddProductClick, onEditProductClick, products, productGroups, pendingProducts, openAccordion, onAccordionChange }: { 
+export function ProductGroupManager({ onAddProductClick, onEditProductClick, products, productGroups, openAccordion, onAccordionChange }: { 
     onAddProductClick: (group: ProductGroup) => void;
     onEditProductClick: (product: Product, group: ProductGroup) => void;
     products: Product[] | null;
     productGroups: ProductGroup[] | null;
-    pendingProducts: PendingProduct[];
     openAccordion: string;
     onAccordionChange: (value: string) => void;
 }) {
@@ -282,7 +258,6 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick, pro
           >
             {filteredGroups.map((group) => {
                 const groupProducts = products?.filter(p => p.groupId === group.id) || [];
-                const groupPendingProducts = pendingProducts.filter(p => p.data.groupId === group.id);
                 return (
               <AccordionItem
                 value={group.id}
@@ -340,7 +315,6 @@ export function ProductGroupManager({ onAddProductClick, onEditProductClick, pro
                   <ProductListGrid
                     group={group}
                     products={groupProducts}
-                    pendingProducts={groupPendingProducts}
                     onEdit={onEditProductClick}
                     onAdd={onAddProductClick}
                   />

@@ -35,7 +35,6 @@ import {
 } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
-import { uploadTracker } from "@/lib/upload-tracker";
 
 export default function Header() {
   const { user, isUserLoading } = useUser();
@@ -43,14 +42,6 @@ export default function Header() {
   const router = useRouter();
 
   const handleSignOut = async () => {
-    if (uploadTracker.hasPendingUploads()) {
-      const confirmed = window.confirm(
-        "Você tem envios de produtos em andamento. Se você sair agora, eles serão cancelados. Deseja continuar?"
-      );
-      if (!confirmed) {
-        return; // User canceled logout
-      }
-    }
     await signOut(auth);
     router.push("/");
   };

@@ -131,32 +131,6 @@ export default function AdminHelpPage() {
               </Button>
           </CardContent>
       </Card>
-
-      <Card className="border-amber-500/50 bg-amber-500/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-amber-600 dark:text-amber-500">
-            <AlertTriangle />
-            Solucionando Problemas: Cadastro de Produtos
-          </CardTitle>
-          <CardDescription className="text-amber-700/80 dark:text-amber-500/80">
-            Entenda quais ações podem interromper um cadastro em andamento e como o sistema te protege.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-            <p className="text-muted-foreground">
-                Quando você cadastra um novo produto e envia uma imagem, o sistema inicia um processo de upload que pode levar alguns segundos. Para te proteger contra a perda de dados, implementamos uma trava de segurança.
-            </p>
-            <p className="font-semibold">As seguintes ações irão interromper o envio de um produto:</p>
-            <ul className="list-disc pl-5 text-muted-foreground space-y-1">
-                <li><strong>Sair da sua conta (Logout):</strong> O sistema irá exibir um alerta de confirmação antes de permitir que você saia.</li>
-                <li><strong>Fechar a aba ou janela do navegador:</strong> Seu navegador exibirá um alerta padrão, perguntando se você tem certeza que deseja sair da página.</li>
-                <li><strong>Recarregar a página (F5 ou Cmd+R):</strong> Assim como fechar a aba, o navegador pedirá uma confirmação antes de recarregar.</li>
-            </ul>
-            <p className="text-muted-foreground mt-2">
-                Se você confirmar qualquer uma dessas ações, o envio do produto em andamento será **cancelado**, e a "ficha de espera" desaparecerá. Para garantir o cadastro, aguarde a conclusão do progresso antes de realizar essas ações.
-            </p>
-        </CardContent>
-      </Card>
     </div>
   );
 }
