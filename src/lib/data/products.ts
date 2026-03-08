@@ -12,7 +12,7 @@ export type Product = {
   name: string;
   description: string;
   price: number;
-  imageUrl: string;
+  imageUrl?: string;
   stock: number;
   groupId: string; // Adicionado para associar ao ProductGroup
   isActive?: boolean;
@@ -21,3 +21,5 @@ export type Product = {
 };
 
 export const products: Product[] = productsData.products as Product[];
+
+    
