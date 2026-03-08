@@ -6,6 +6,7 @@ import {
   updateDoc,
   deleteDoc,
   collection,
+  getDoc,
 } from 'firebase/firestore';
 import { getClientSdks } from '@/firebase';
 import { deleteDocumentNonBlocking } from './non-blocking-updates';
@@ -37,7 +38,11 @@ export async function createProduct(payload: ProductPayload): Promise<WithId<Pro
   const validatedPayload = ProductPayloadSchema.parse(payload);
   try {
     const docRef = await addDoc(productsCollection, validatedPayload);
-    return { ...validatedPayload, id: docRef.id } as WithId<Product>;
+    const newDocSnap = await getDoc(docRef);
+    if (!newDocSnap.exists()) {
+        throw new Error("Falha ao criar o documento do produto.");
+    }
+    return { ...(newDocSnap.data() as Product), id: newDocSnap.id };
   } catch (e: any) {
     errorEmitter.emit(
       'permission-error',
