@@ -38,7 +38,6 @@ const statusColors: Record<OrderStatus, string> = {
   Enviado: "bg-blue-500/20 text-blue-500 border-blue-500/20",
   Entregue: "bg-green-500/20 text-green-500 border-green-500/20",
   Cancelado: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
-  Pago: "bg-blue-500/20 text-blue-500 border-blue-500/20",
 };
 
 export default function OrdersPage() {

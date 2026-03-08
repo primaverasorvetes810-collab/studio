@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -24,7 +25,7 @@ import type { CartItemWithProduct } from './cart';
 import type { Product } from '@/lib/data/products';
 import type { User as AuthUser } from 'firebase/auth';
 
-export type OrderStatus = 'Pendente' | 'Pago' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Atrasado';
+export type OrderStatus = 'Pendente' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Atrasado';
 
 export interface OrderItem {
   id: string;
