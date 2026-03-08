@@ -83,7 +83,10 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
     if (!file) return;
 
     setIsCompressing(true);
-    toast({ title: 'Otimizando imagem...', description: 'Aguarde um momento.' });
+    const { id: toastId, update } = toast({
+      title: 'Otimizando imagem...',
+      description: 'Isso leva apenas um instante.',
+    });
     
     const options = {
       maxSizeMB: 0.5,
@@ -96,16 +99,17 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
       setImageFile(compressedFile);
       const tempUrl = URL.createObjectURL(compressedFile);
       form.setValue('imageUrl', tempUrl, { shouldValidate: true, shouldDirty: true });
-      toast({ title: 'Imagem pronta!', description: 'A imagem foi otimizada para um envio mais rápido.' });
+      update({ id: toastId, title: 'Imagem pronta!', description: 'A imagem foi otimizada para o envio.' });
     } catch (error) {
       console.error("Image compression error:", error);
       setImageFile(file); // Fallback to original file
       const tempUrl = URL.createObjectURL(file);
       form.setValue('imageUrl', tempUrl, { shouldValidate: true, shouldDirty: true });
-      toast({
+      update({
+        id: toastId,
         variant: 'destructive',
         title: 'Falha na otimização',
-        description: 'Não foi possível otimizar a imagem. Ela será enviada no tamanho original.',
+        description: 'A imagem será enviada no tamanho original.',
       });
     } finally {
       setIsCompressing(false);
@@ -128,6 +132,7 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
           imageFile,
           'products',
           (progress) => update({
+            id: toastId,
             title: 'Enviando imagem...',
             description: <Progress value={progress} className="w-full" />,
           })
@@ -135,11 +140,11 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
       }
 
       if (!finalImageUrl) {
-        update({ variant: 'destructive', title: 'Erro', description: 'A imagem do produto é obrigatória.' });
+        update({ id: toastId, variant: 'destructive', title: 'Erro', description: 'A imagem do produto é obrigatória.' });
         return;
       }
       
-      update({ title: 'Finalizando...', description: 'Salvando informações.' });
+      update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações.' });
 
       const payload: ProductPayload = {
         ...data,
@@ -157,11 +162,11 @@ export function ProductForm({ product, parentGroup, onOpenChange, onFormSubmit }
         await createProduct(payload);
       }
       
-      update({ title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });
+      update({ id: toastId, title: "Sucesso!", description: product ? "Produto atualizado." : "Novo produto adicionado." });
 
     } catch (error) {
       console.error("Form submission error:", error);
-      update({ variant: 'destructive', title: "Erro", description: "Não foi possível salvar o produto." });
+      update({ id: toastId, variant: 'destructive', title: "Erro", description: "Não foi possível salvar o produto." });
     }
   };
 

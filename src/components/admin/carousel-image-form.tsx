@@ -73,7 +73,10 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
     if (!file) return;
 
     setIsCompressing(true);
-    toast({ title: 'Otimizando imagem...', description: 'Aguarde um momento.' });
+    const { id: toastId, update } = toast({ 
+        title: 'Otimizando imagem...', 
+        description: 'Isso leva apenas um instante.' 
+    });
 
     const options = {
       maxSizeMB: 0.8,
@@ -86,16 +89,17 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
       setImageFile(compressedFile);
       const tempUrl = URL.createObjectURL(compressedFile);
       form.setValue('imageUrl', tempUrl, { shouldValidate: true, shouldDirty: true });
-      toast({ title: 'Imagem pronta!', description: 'A imagem foi otimizada para um envio mais rápido.' });
+      update({ id: toastId, title: 'Imagem pronta!', description: 'A imagem foi otimizada para o envio.' });
     } catch (error) {
       console.error("Image compression error:", error);
       setImageFile(file); // Fallback to original
       const tempUrl = URL.createObjectURL(file);
       form.setValue('imageUrl', tempUrl, { shouldValidate: true, shouldDirty: true });
-      toast({
+      update({
+        id: toastId,
         variant: 'destructive',
         title: 'Falha na otimização',
-        description: 'Não foi possível otimizar a imagem. Ela será enviada no tamanho original.',
+        description: 'A imagem será enviada no tamanho original.',
       });
     } finally {
       setIsCompressing(false);
@@ -119,6 +123,7 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
           imageFile,
           'carousel',
           (progress) => update({
+            id: toastId,
             title: 'Enviando imagem...',
             description: <Progress value={progress} className="w-full" />,
           })
@@ -126,11 +131,11 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
       }
 
       if (!finalImageUrl) {
-        update({ variant: 'destructive', title: 'Erro', description: 'A imagem é obrigatória.' });
+        update({ id: toastId, variant: 'destructive', title: 'Erro', description: 'A imagem é obrigatória.' });
         return;
       }
       
-      update({ title: 'Finalizando...', description: 'Salvando informações.' });
+      update({ id: toastId, title: 'Finalizando...', description: 'Salvando informações.' });
 
       const payload = { ...data, imageUrl: finalImageUrl };
 
@@ -141,13 +146,14 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
       }
 
       update({
+        id: toastId,
         title: 'Sucesso!',
         description: image ? 'Imagem do carrossel atualizada.' : 'Nova imagem adicionada ao carrossel.',
       });
 
     } catch (error) {
       console.error('Form submission error:', error);
-      update({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar a imagem.' });
+      update({ id: toastId, variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar a imagem.' });
     }
   };
 
