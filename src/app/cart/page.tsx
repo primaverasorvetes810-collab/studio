@@ -60,6 +60,14 @@ export default function CartPage() {
     updateCartItemQuantity(user.uid, cartId, cartItemId, newQuantity);
   };
 
+  const playSuccessSound = () => {
+    const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-1.mp3');
+    audio.play().catch(error => {
+      // A reprodução automática pode falhar se o usuário não tiver interagido com a página
+      console.log("Falha ao reproduzir som de sucesso:", error);
+    });
+  }
+
   const handlePlaceOrder = async () => {
     if (!user || !cartId || cartItems.length === 0) {
       toast({
@@ -69,9 +77,19 @@ export default function CartPage() {
       });
       return;
     }
+     if (!paymentMethod) {
+      toast({
+        variant: 'destructive',
+        title: 'Forma de Pagamento',
+        description: 'Por favor, selecione uma forma de pagamento.',
+      });
+      return;
+    }
+
     setIsPlacingOrder(true);
     try {
       await createOrderFromCart(user, cartId, cartItems, paymentMethod);
+      playSuccessSound();
       toast({
         title: 'Pedido realizado!',
         description: 'Seu pedido foi criado com sucesso.',
@@ -215,7 +233,7 @@ export default function CartPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder}>
+              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder || !paymentMethod}>
                 {isPlacingOrder ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
