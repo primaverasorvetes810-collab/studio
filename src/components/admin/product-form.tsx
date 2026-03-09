@@ -184,7 +184,10 @@ export function ProductForm({ product, parentGroup, onOpenChange, onInitiateSave
                             <FormItem>
                             <FormLabel>Preço (em R$)</FormLabel>
                             <FormControl>
-                                <Input type="number" step="0.01" {...field} onChange={e => field.onChange(parseFloat(e.target.value))} />
+                                <Input type="number" step="0.01" {...field} onChange={e => {
+                                    const value = parseFloat(e.target.value);
+                                    field.onChange(isNaN(value) ? '' : value);
+                                }} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -243,7 +246,10 @@ export function ProductForm({ product, parentGroup, onOpenChange, onInitiateSave
                                 <FormItem>
                                 <FormLabel>Quantidade em Estoque</FormLabel>
                                 <FormControl>
-                                    <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))}/>
+                                    <Input type="number" {...field} onChange={e => {
+                                        const value = parseInt(e.target.value, 10);
+                                        field.onChange(isNaN(value) ? '' : value);
+                                    }}/>
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
