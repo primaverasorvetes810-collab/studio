@@ -28,7 +28,7 @@ import {
   User,
   LogOut,
   Menu,
-  Home,
+  Package,
   Box,
   HelpCircle,
   Shield,
@@ -52,7 +52,7 @@ export default function Header() {
   };
 
   const navLinks = [
-    { href: "/", label: "Produtos", icon: Home },
+    { href: "/products", label: "Produtos", icon: Package },
     { href: "/orders", label: "Meus Pedidos", icon: Box, requiresAuth: true },
     { href: "/ajuda", label: "Ajuda", icon: HelpCircle },
     { href: "/admin", label: "Admin", icon: Shield },
