@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import {
@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, PlusCircle, Pencil, Trash2, MoreVertical, ArrowUp, ArrowDown } from 'lucide-react';
+import { Loader2, PlusCircle, Pencil, Trash2, MoreVertical, ArrowUp, ArrowDown, GripVertical } from 'lucide-react';
 import Image from 'next/image';
 import {
   AlertDialog,
@@ -49,6 +49,10 @@ export default function CarouselManagerPage() {
 
   const { data: images, isLoading, setData: setImages } = useCollection<CarouselImage>(carouselImagesQuery);
 
+  // Drag and Drop state refs
+  const dragItem = useRef<number | null>(null);
+  const dragOverItem = useRef<number | null>(null);
+
   const handleAddNew = () => {
     setEditingImage(null);
     setIsFormOpen(true);
@@ -74,6 +78,19 @@ export default function CarouselManagerPage() {
     }
   };
   
+  const handleOrderUpdate = async (orderedImages: CarouselImage[]) => {
+      try {
+        const updates = orderedImages.map((img, idx) => ({
+          id: img.id,
+          order: idx,
+        }));
+        await updateCarouselImageOrder(updates);
+        toast({ title: 'Ordem atualizada!' });
+      } catch (error) {
+        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível reordenar as imagens.' });
+      }
+  };
+
   const handleMove = async (index: number, direction: 'up' | 'down') => {
       if (!images) return;
       const newIndex = direction === 'up' ? index - 1 : index + 1;
@@ -83,21 +100,24 @@ export default function CarouselManagerPage() {
       const [movedImage] = updatedImages.splice(index, 1);
       updatedImages.splice(newIndex, 0, movedImage);
   
-      // Optimistic update
       setImages(updatedImages);
-  
-      try {
-        const updates = updatedImages.map((img, idx) => ({
-          id: img.id,
-          order: idx,
-        }));
-        await updateCarouselImageOrder(updates);
-        toast({ title: 'Ordem atualizada!' });
-      } catch (error) {
-        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível reordenar as imagens.' });
-        setImages(images); // Revert on error
-      }
+      await handleOrderUpdate(updatedImages);
     };
+
+    const handleSort = () => {
+      if (!images || dragItem.current === null || dragOverItem.current === null) return;
+      
+      const newImages = [...images];
+      const draggedItemContent = newImages.splice(dragItem.current, 1)[0];
+      newImages.splice(dragOverItem.current, 0, draggedItemContent);
+      
+      dragItem.current = null;
+      dragOverItem.current = null;
+      
+      setImages(newImages);
+      handleOrderUpdate(newImages);
+    };
+
 
   return (
     <>
@@ -123,17 +143,30 @@ export default function CarouselManagerPage() {
           {!isLoading && (!images || images.length === 0) && (
             <p className="text-center text-muted-foreground py-8">Nenhuma imagem no carrossel.</p>
           )}
-          <div className="space-y-4">
+          <div className="space-y-2">
             {images?.map((image, index) => (
-              <Card key={image.id} className="flex items-center justify-between p-4 gap-4">
+              <div 
+                key={image.id}
+                draggable
+                onDragStart={() => (dragItem.current = index)}
+                onDragEnter={() => (dragOverItem.current = index)}
+                onDragEnd={handleSort}
+                onDragOver={(e) => e.preventDefault()}
+                className="flex items-center justify-between p-2 gap-4 rounded-lg border bg-background cursor-grab active:cursor-grabbing"
+              >
                 <div className="flex items-center gap-4">
+                   <GripVertical className="h-5 w-5 text-muted-foreground" />
                   <Image
                     src={image.imageUrl}
                     alt={image.altText || ''}
-                    width={128}
-                    height={72}
+                    width={100}
+                    height={56}
                     className="aspect-video rounded-md object-cover"
                   />
+                  <div className='flex flex-col'>
+                    <p className='font-medium'>{image.altText}</p>
+                    <p className='text-xs text-muted-foreground truncate max-w-xs'>{image.link || 'Sem link'}</p>
+                  </div>
                 </div>
                  <div className="flex-shrink-0">
                     <DropdownMenu>
@@ -165,7 +198,7 @@ export default function CarouselManagerPage() {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         </CardContent>
