@@ -33,7 +33,7 @@ export default function CategoryFilters({ groups, selectedId, onSelect }: Catego
                             <Shapes className="h-7 w-7" />
                         </Button>
                         <span className={cn(
-                            "text-sm font-medium text-muted-foreground",
+                            "text-xs font-medium text-muted-foreground",
                             selectedId === 'all' && "text-primary"
                         )}>
                             Todos
@@ -56,7 +56,7 @@ export default function CategoryFilters({ groups, selectedId, onSelect }: Catego
                                 <CategoryIcon categoryName={group.name} className="h-7 w-7" />
                             </Button>
                             <span className={cn(
-                                "text-sm font-medium text-muted-foreground truncate max-w-20",
+                                "text-xs font-medium text-muted-foreground",
                                 selectedId === group.id && "text-primary"
                             )}>
                                 {group.name}
