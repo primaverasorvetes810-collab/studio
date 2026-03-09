@@ -56,10 +56,8 @@ type OrderFilterStatus = OrderStatus | 'Todos' | 'Atrasado';
 
 
 function playNotificationSound() {
-    // Som de alerta alto de um recurso público
-    const audio = new Audio('https://www.soundjay.com/misc/sounds/sonar-ping-sound-effect.mp3');
+    const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
     audio.play().catch(error => {
-      // A reprodução automática pode ser bloqueada pelo navegador até que o usuário interaja com a página.
       console.log("Falha ao reproduzir som de notificação:", error);
     });
 }
@@ -108,7 +106,6 @@ export default function OrdersPage() {
             (a, b) => b.orderDate.toMillis() - a.orderDate.toMillis()
         );
 
-        // Check for new orders only after the initial load
         if (previousOrdersRef.current.length > 0) {
             const previousOrderIds = new Set(previousOrdersRef.current.map(o => o.id));
             const newOrders = sortedOrders.filter(
