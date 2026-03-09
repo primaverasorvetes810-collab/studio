@@ -65,7 +65,8 @@ export function ProductCard({ product }: ProductCardProps) {
       </CardContent>
        <CardFooter className="p-3 pt-0">
          <Button size="sm" className="w-full" onClick={handleAddToCart}>
-           Adicionar ao carrinho
+           <span className="sm:hidden">Adicionar</span>
+           <span className="hidden sm:inline">Adicionar ao carrinho</span>
         </Button>
       </CardFooter>
     </Card>
