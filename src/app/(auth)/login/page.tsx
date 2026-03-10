@@ -115,7 +115,7 @@ export default function LoginPage() {
                     <FormLabel>Senha</FormLabel>
                     <Link
                       href="/reset-password"
-                      className="ml-auto inline-block text-sm underline"
+                      className="ml-auto inline-block text-sm underline text-blue-600"
                     >
                       Esqueceu sua senha?
                     </Link>
@@ -135,7 +135,7 @@ export default function LoginPage() {
       </CardContent>
       <div className="mt-4 text-center text-base p-6 pt-0">
         Não tem uma conta?{" "}
-        <Link href="/register" className="underline">
+        <Link href="/register" className="underline text-blue-600">
           Cadastre-se
         </Link>
       </div>

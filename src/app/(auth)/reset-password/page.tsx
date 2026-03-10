@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
       </CardContent>
       <div className="mt-4 text-center text-base p-6 pt-0">
         Lembrou sua senha?{" "}
-        <Link href="/login" className="underline">
+        <Link href="/login" className="underline text-blue-600">
           Login
         </Link>
       </div>
