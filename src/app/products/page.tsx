@@ -65,7 +65,7 @@ export default function ProductsPage() {
       <HomeCarousel />
       <div className="my-8">
         <PageHeader
-          title="Nossos Produtos"
+          title="Faça seu pedido agora mesmo"
           description="Navegue por nossas categorias e encontre o que deseja."
         />
       </div>
