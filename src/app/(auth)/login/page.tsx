@@ -133,7 +133,7 @@ export default function LoginPage() {
           </form>
         </Form>
       </CardContent>
-      <div className="mt-4 text-center text-sm p-6 pt-0">
+      <div className="mt-4 text-center text-base p-6 pt-0">
         Não tem uma conta?{" "}
         <Link href="/register" className="underline">
           Cadastre-se

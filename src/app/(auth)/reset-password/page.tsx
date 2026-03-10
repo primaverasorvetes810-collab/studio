@@ -88,7 +88,7 @@ export default function ResetPasswordPage() {
           </form>
         </Form>
       </CardContent>
-      <div className="mt-4 text-center text-sm p-6 pt-0">
+      <div className="mt-4 text-center text-base p-6 pt-0">
         Lembrou sua senha?{" "}
         <Link href="/login" className="underline">
           Login

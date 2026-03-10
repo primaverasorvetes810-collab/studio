@@ -206,7 +206,7 @@ export default function RegisterPage() {
           </form>
         </Form>
       </CardContent>
-      <div className="mt-4 text-center text-sm p-6 pt-0">
+      <div className="mt-4 text-center text-base p-6 pt-0">
         Já tem uma conta?{" "}
         <Link href="/login" className="underline">
           Login
