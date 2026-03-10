@@ -7,7 +7,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BookOpen, BarChart2, ShoppingCart, Truck, Package, Users, Gift, Bell, AlertTriangle } from "lucide-react";
+import { BookOpen, BarChart2, Truck, Package, Users, Gift, Bell, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,14 +18,9 @@ const adminFaqs = [
     content: "O Dashboard é a sua visão geral. Ele mostra métricas importantes como receita total, número de pedidos, total de clientes e a quantidade de produtos cadastrados. Use-o para ter um pulso rápido do seu negócio. O gráfico de visão geral mostra suas vendas mensais."
   },
   {
-    icon: ShoppingCart,
-    title: "Pedidos",
-    content: "Nesta seção, você pode ver todos os pedidos feitos na sua loja, de todos os clientes. É aqui que você gerencia o ciclo de vida de um pedido, alterando seu status de 'Pendente' para 'Pago', 'Enviado', 'Entregue' ou 'Cancelado'."
-  },
-  {
     icon: Truck,
     title: "Entregas",
-    content: "A aba Entregas é o seu centro de logística. Ela filtra automaticamente todos os pedidos que estão com status 'Pago' ou 'Enviado', mostrando o que precisa ser preparado e despachado. Aqui você encontra o endereço e contato do cliente para a entrega."
+    content: "A aba Entregas é o seu centro de logística. Aqui você gerencia todos os pedidos recebidos. Use as abas ('Feitos Agora', 'Atrasados', 'Enviados') para filtrar e acompanhar o ciclo de vida de cada pedido, desde 'Pendente' até 'Entregue'."
   },
   {
     icon: Package,
@@ -129,6 +124,27 @@ export default function AdminHelpPage() {
               <Button onClick={handleTestNotification}>
                   Testar Notificação
               </Button>
+          </CardContent>
+      </Card>
+
+      <Card>
+          <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                  <Download className="text-primary" />
+                  Instalando o Aplicativo (PWA)
+              </CardTitle>
+              <CardDescription>
+                  Você sabia que este site pode ser instalado como um aplicativo no seu computador ou celular? Isso permite acesso rápido e uma experiência mais integrada.
+              </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+              <p className="font-semibold">Como Instalar:</p>
+              <ul className="list-disc pl-5 text-muted-foreground text-sm space-y-1">
+                <li><strong>No Computador (Chrome/Edge):</strong> Procure por um ícone de instalação (geralmente um monitor com uma seta para baixo) na barra de endereço do navegador e clique em "Instalar".</li>
+                <li><strong>No Celular (Android/Chrome):</strong> Abra o menu do navegador (três pontos) e selecione "Instalar aplicativo" ou "Adicionar à tela inicial".</li>
+                <li><strong>No iPhone (iOS/Safari):</strong> Toque no ícone de compartilhamento (um quadrado com uma seta para cima) e depois selecione "Adicionar à Tela de Início".</li>
+              </ul>
+              <p className="pt-2 text-sm text-muted-foreground">Depois de instalado, o painel funcionará como um aplicativo nativo, e as notificações de novos pedidos chegarão diretamente no seu dispositivo.</p>
           </CardContent>
       </Card>
     </div>
