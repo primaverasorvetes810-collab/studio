@@ -22,93 +22,77 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth, initiateEmailSignUp } from "@/firebase";
-import { useRouter } from "next/navigation";
+import { useAuth, initiateEmailSignIn } from "@/firebase";
 import { FirebaseError } from "firebase/app";
+import { useRouter } from "next/navigation";
 
-const registerSchema = z.object({
-  fullName: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
+const loginSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um e-mail válido." }),
-  password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres." }),
-  birthDate: z.string().min(1, { message: "A data de nascimento é obrigatória." }),
-  phone: z.string().min(1, { message: "O telefone é obrigatório." }),
-  address: z.string().min(1, { message: "O endereço é obrigatório." }),
-  neighborhood: z.string().min(1, { message: "O bairro é obrigatório." }),
-  city: z.string().min(1, { message: "A cidade é obrigatória." }),
+  password: z.string().min(1, { message: "A senha é obrigatória." }),
 });
 
-type RegisterFormValues = z.infer<typeof registerSchema>;
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function RegisterPage() {
   const { toast } = useToast();
   const auth = useAuth();
   const router = useRouter();
 
-  const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
-      fullName: "",
       email: "",
       password: "",
-      birthDate: "",
-      phone: "",
-      address: "",
-      neighborhood: "",
-      city: "",
     },
   });
 
-  const onSubmit = async (data: RegisterFormValues) => {
+  const onSubmit = async (data: LoginFormValues) => {
+    form.clearErrors();
     try {
-      await initiateEmailSignUp(auth, data);
+      await initiateEmailSignIn(auth, data.email, data.password);
       toast({
-        title: "Conta Criada!",
-        description: "Seu cadastro foi realizado com sucesso. Redirecionando...",
+        title: "Login bem-sucedido!",
+        description: "Redirecionando para a página de produtos...",
       });
       router.push("/");
-    } catch (error) {
-      if (error instanceof FirebaseError && error.code === 'auth/email-already-in-use') {
-        toast({
-          variant: "destructive",
-          title: "Erro no Cadastro",
-          description: "Este e-mail já está em uso por outra conta.",
-        });
-        form.setError("email", { type: "manual", message: "Este e-mail já está em uso." });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Erro no Cadastro",
-          description: "Ocorreu um erro inesperado ao criar sua conta.",
-        });
-        console.error("Registration error:", error);
+    } catch (error: any) {
+      let title = "Ocorreu um erro";
+      let description = "Não foi possível fazer o login. Tente novamente mais tarde.";
+
+      if (error instanceof FirebaseError) {
+        switch (error.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            title = "Credenciais inválidas";
+            description = "O e-mail ou a senha que você digitou está incorreto.";
+            break;
+          case 'auth/too-many-requests':
+            title = "Muitas tentativas";
+            description = "O acesso a esta conta foi temporariamente desativado. Tente novamente mais tarde.";
+            break;
+        }
       }
+      
+      toast({
+        variant: "destructive",
+        title: title,
+        description: description,
+      });
     }
   };
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-2xl">Cadastre-se</CardTitle>
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl">Login</CardTitle>
         <CardDescription>
-          Digite suas informações para criar uma conta
+          Digite seu e-mail abaixo para fazer login em sua conta
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-            <FormField
-              control={form.control}
-              name="fullName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome completo</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Usuário Primavera" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="email"
@@ -127,7 +111,15 @@ export default function RegisterPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Senha</FormLabel>
+                  <div className="flex items-center">
+                    <FormLabel>Senha</FormLabel>
+                    <Link
+                      href="/reset-password"
+                      className="ml-auto inline-block text-sm underline text-blue-600"
+                    >
+                      Esqueceu sua senha?
+                    </Link>
+                  </div>
                   <FormControl>
                     <Input type="password" {...field} />
                   </FormControl>
@@ -135,81 +127,16 @@ export default function RegisterPage() {
                 </FormItem>
               )}
             />
-             <FormField
-              control={form.control}
-              name="birthDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Data de Nascimento</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Telefone</FormLabel>
-                  <FormControl>
-                    <Input placeholder="(11) 99999-9999" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Endereço</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Rua das Flores, 123" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="neighborhood"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bairro</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Centro" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cidade</FormLabel>
-                  <FormControl>
-                    <Input placeholder="São Paulo" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "Criando..." : "Criar uma conta"}
+              {form.formState.isSubmitting ? "Entrando..." : "Login"}
             </Button>
           </form>
         </Form>
       </CardContent>
       <div className="mt-4 text-center text-base p-6 pt-0">
-        Já tem uma conta?{" "}
+        Não tem uma conta?{" "}
         <Link href="/login" className="underline text-blue-600">
-          Login
+          Cadastre-se
         </Link>
       </div>
     </Card>
