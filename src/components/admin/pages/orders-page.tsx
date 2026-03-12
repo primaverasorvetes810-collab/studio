@@ -56,7 +56,7 @@ type OrderFilterStatus = OrderStatus | 'Todos' | 'Atrasado';
 
 
 function playNotificationSound() {
-    const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
+    const audio = new Audio('https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3');
     audio.play().catch(error => {
       console.log("Falha ao reproduzir som de notificação:", error);
     });
