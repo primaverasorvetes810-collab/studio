@@ -85,7 +85,11 @@ export default function ClientsPage() {
           })
         );
 
-        setClientsWithStats(processedClients.sort((a, b) => b.registerTime.toMillis() - a.registerTime.toMillis()));
+        setClientsWithStats(processedClients.sort((a, b) => {
+            const timeA = a.registerTime?.toMillis() ?? 0;
+            const timeB = b.registerTime?.toMillis() ?? 0;
+            return timeB - timeA;
+        }));
       } catch (err) {
         console.error("Falha ao carregar dados:", err);
         setError('Falha ao carregar clientes. Verifique as permissões do Firestore.');
@@ -196,7 +200,7 @@ export default function ClientsPage() {
                         <Separator />
                         <div className="space-y-2">
                             <h3 className="font-semibold flex items-center gap-2 text-primary"><Calendar size={16} /> Histórico e Atividade</h3>
-                            <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Cliente desde:</span> {selectedClient.registerTime.toDate().toLocaleDateString()}</p>
+                            <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Cliente desde:</span> {selectedClient.registerTime ? selectedClient.registerTime.toDate().toLocaleDateString() : 'Não disponível'}</p>
                             <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Último pedido:</span> {selectedClient.lastOrderDate || 'Nenhum pedido'}</p>
                             <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Total de pedidos:</span> {selectedClient.totalOrders}</p>
                             <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Total gasto:</span> {formatPrice(selectedClient.totalSpent)}</p>
