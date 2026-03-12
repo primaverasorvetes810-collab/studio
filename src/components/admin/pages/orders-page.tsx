@@ -41,6 +41,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn, formatPrice } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { initializeAudio, playNotificationSound } from '@/lib/sound';
 
 const statusColors: Record<OrderStatus, string> = {
   Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/30',
@@ -54,13 +55,6 @@ const selectableStatuses: OrderStatus[] = ['Pendente', 'Enviado', 'Entregue'];
 
 type OrderFilterStatus = OrderStatus | 'Todos' | 'Atrasado';
 
-
-function playNotificationSound() {
-    const audio = new Audio('https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3');
-    audio.play().catch(error => {
-      console.log("Falha ao reproduzir som de notificação:", error);
-    });
-}
 
 function sendNotification(title: string, options: NotificationOptions) {
   if (!('Notification' in window)) return;
@@ -86,6 +80,10 @@ export default function OrdersPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const previousOrdersRef = useRef<Order[]>([]);
+
+  useEffect(() => {
+    initializeAudio();
+  }, []);
 
   useEffect(() => {
     if (!firestore) return;

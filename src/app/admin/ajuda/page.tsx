@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { BookOpen, BarChart2, Truck, Package, Users, Gift, Bell, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from 'react';
+import { initializeAudio, playNotificationSound } from '@/lib/sound';
 
 const adminFaqs = [
   {
@@ -41,15 +43,12 @@ const adminFaqs = [
 
 export default function AdminHelpPage() {
     const { toast } = useToast();
+
+    useEffect(() => {
+        initializeAudio();
+    }, []);
     
     const handleTestNotification = () => {
-        const playTestSound = () => {
-            const audio = new Audio('https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3');
-            audio.play().catch(error => {
-              console.log("Falha ao reproduzir som de teste:", error);
-            });
-        }
-
         if (!("Notification" in window)) {
           toast({
             variant: "destructive",
@@ -60,7 +59,7 @@ export default function AdminHelpPage() {
         }
     
         if (Notification.permission === "granted") {
-          playTestSound();
+          playNotificationSound();
           new Notification("Primavera Delivery", {
             body: "Este é um alarme de teste! Você está pronto para receber notificações.",
             icon: "/icons/icon-192x192.png",
@@ -68,7 +67,7 @@ export default function AdminHelpPage() {
         } else if (Notification.permission !== "denied") {
           Notification.requestPermission().then((permission) => {
             if (permission === "granted") {
-              playTestSound();
+              playNotificationSound();
               new Notification("Permissão concedida!", {
                 body: "Agora você pode receber notificações.",
                 icon: "/icons/icon-192x192.png",
