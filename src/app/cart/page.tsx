@@ -35,6 +35,7 @@ import { useRouter } from 'next/navigation';
 import { calculateShipping } from '@/ai/flows/calculate-shipping-flow';
 import { getDoc, doc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { cn } from '@/lib/utils';
 
 
 export default function CartPage() {
@@ -218,7 +219,7 @@ export default function CartPage() {
       <div className="mt-8 flex flex-col lg:flex-row gap-8">
         <div className="flex-1">
           <Card>
-            <CardContent className="p-6">
+            <CardContent className={cn("p-6", !isStoreOpen && 'grayscale')}>
               <ul className="divide-y divide-border">
                 {cartItems.map((item) => {
                   const imageUrl = getProductImageUrl(item.product);
@@ -252,6 +253,7 @@ export default function CartPage() {
                               }
                               min={1}
                               className="h-8 w-16"
+                              disabled={!isStoreOpen}
                             />
                           </div>
                           <Button
@@ -259,6 +261,7 @@ export default function CartPage() {
                             size="icon"
                             className="text-muted-foreground hover:text-destructive"
                             onClick={() => handleRemoveItem(item.id)}
+                            disabled={!isStoreOpen}
                           >
                             <Trash2 className="h-4 w-4" />
                              <span className="sr-only">Remover item</span>
@@ -316,7 +319,7 @@ export default function CartPage() {
                 >
                   Forma de Pagamento
                 </label>
-                <Select onValueChange={setPaymentMethod} value={paymentMethod}>
+                <Select onValueChange={setPaymentMethod} value={paymentMethod} disabled={!isStoreOpen}>
                   <SelectTrigger id="payment-method">
                     <SelectValue placeholder="Selecione um método" />
                   </SelectTrigger>
