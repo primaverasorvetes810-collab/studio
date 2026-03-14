@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Calculates shipping cost based on distance using Google Maps API.
+ * @fileOverview Calculates shipping cost based on predefined delivery zones by neighborhood.
  * - calculateShipping - A function that calculates shipping fee.
  * - ShippingInput - The input type for the calculateShipping function.
  * - ShippingOutput - The return type for the calculateShipping function.
@@ -8,15 +8,14 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import axios from 'axios';
 
 const ShippingInputSchema = z.object({
-  clientAddress: z.string().describe('The full address of the client for delivery.'),
+  clientAddress: z.string().describe('The full address of the client for delivery, including street, neighborhood, and city.'),
 });
 export type ShippingInput = z.infer<typeof ShippingInputSchema>;
 
 const ShippingOutputSchema = z.object({
-  distance: z.number().optional().describe('The distance in kilometers.'),
+  distance: z.number().optional().describe('The distance in kilometers (no longer used).'),
   fee: z.number().optional().describe('The calculated shipping fee.'),
   error: z.string().optional().describe('An error message if calculation fails.'),
 });
@@ -29,52 +28,41 @@ const calculateShippingFlow = ai.defineFlow(
     outputSchema: ShippingOutputSchema,
   },
   async (input) => {
-    const API_KEY = process.env.GOOGLE_MAPS_API_KEY;
-    if (!API_KEY) {
-        console.error("Google Maps API key is not set in .env.local");
-        return { error: 'A configuração da API de mapas está incompleta.' };
-    }
-
-    const originAddress = process.env.STORE_ADDRESS;
-    if (!originAddress) {
-        console.error("Store address is not set in .env.local");
-        return { error: 'O endereço da loja não está configurado.' };
-    }
+    // Define your delivery zones and fees here by neighborhood.
+    // The keys are the fee in string format (e.g., "5.00") and the values are arrays of neighborhood names in lowercase.
+    const deliveryZones = {
+        '5.00': ['centro', 'jardim paulista', 'vila progresso', 'jardim faculdade'],
+        '8.00': ['parque campolim', 'jardim américa', 'jardim santa rosalia', 'além ponte'],
+        '12.00': ['jardim simus', 'wanel ville', 'parque são bento', 'cajuru do sul'],
+    };
 
     const { clientAddress } = input;
-    const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(originAddress)}&destinations=${encodeURIComponent(clientAddress)}&key=${API_KEY}&language=pt-BR&units=metric`;
+    
+    // Attempt to extract neighborhood from the address string.
+    // This logic assumes a common address format like "Street, 123, Neighborhood, City"
+    const addressParts = clientAddress.split(',').map(part => part.trim().toLowerCase());
+    
+    // Heuristic: The neighborhood is often the second to last part of a full address string.
+    const clientNeighborhood = addressParts.length >= 2 ? addressParts[addressParts.length - 2] : '';
+    
+    if (!clientNeighborhood) {
+        return { error: 'Endereço inválido.' };
+    }
 
-    try {
-      const response = await axios.get(url);
-      
-      if (response.data.status !== 'OK' || response.data.rows[0].elements[0].status !== 'OK') {
-          const status = response.data.rows[0]?.elements[0]?.status;
-          console.error('Google Maps API Error:', status || response.data.error_message);
-          
-          if (status === 'NOT_FOUND' || status === 'ZERO_RESULTS') {
-            return { error: 'Não foi possível encontrar o endereço de destino.' };
-          }
-          return { error: 'Não foi possível calcular a distância.' };
-      }
+    // Find the fee for the client's neighborhood
+    let foundFee: number | null = null;
+    for (const fee in deliveryZones) {
+        const neighborhoods = deliveryZones[fee as keyof typeof deliveryZones];
+        if (neighborhoods.includes(clientNeighborhood)) {
+            foundFee = parseFloat(fee);
+            break;
+        }
+    }
 
-      const distanceInMeters = response.data.rows[0].elements[0].distance.value;
-      const distanceInKm = distanceInMeters / 1000;
-
-      // Tiered pricing logic as suggested
-      let fee: number | null = null;
-      if (distanceInKm <= 2) fee = 5.00;
-      else if (distanceInKm <= 5) fee = 8.00;
-      else if (distanceInKm <= 8) fee = 12.00;
-
-      if (fee === null) {
-          return { distance: distanceInKm, error: `Fora da nossa área de entrega (${distanceInKm.toFixed(1)} km).` };
-      }
-
-      return { distance: distanceInKm, fee };
-
-    } catch (error: any) {
-      console.error("Error calculating shipping:", error.message);
-      return { error: 'Ocorreu um erro ao calcular o frete.' };
+    if (foundFee !== null) {
+        return { fee: foundFee };
+    } else {
+        return { error: 'Fora da nossa área de entrega.' };
     }
   }
 );
