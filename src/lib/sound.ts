@@ -58,14 +58,22 @@ class AudioService {
     if (!this.audio) this.initialize();
     
     if (this.audio) {
-      this.audio.loop = false; // Notifications should not loop
-      this.audio.currentTime = 0; // Always restart for notifications
-      const playPromise = this.audio.play();
+      // If music is already playing (as background), just restart it as an alert.
+      if (!this.audio.paused) {
+        this.audio.currentTime = 0;
+      } else {
+        // If paused, try to play it as a one-shot notification.
+        // This may be blocked by the browser if there's no recent user interaction.
+        this.audio.loop = false;
+        this.audio.currentTime = 0;
+        const playPromise = this.audio.play();
 
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.error("Notification sound playback failed:", error);
-        });
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            // This error is expected if the user hasn't interacted with the page.
+            console.log("Notification sound was blocked by the browser, which is expected without recent user interaction.");
+          });
+        }
       }
     }
   }
