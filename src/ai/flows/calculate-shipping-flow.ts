@@ -33,14 +33,11 @@ const calculateShippingFlow = ai.defineFlow(
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     const storeAddress = process.env.STORE_ADDRESS;
 
-    if (!apiKey) {
-      console.error('Google Maps API key is not configured.');
-      return { error: 'Erro de configuração do servidor.' };
+    if (!apiKey || !storeAddress) {
+      console.error('Google Maps API key or Store Address is not configured in .env.local. Please check the file and ensure GOOGLE_MAPS_API_KEY and STORE_ADDRESS are set.');
+      return { error: 'Serviço de entrega indisponível.' };
     }
-    if (!storeAddress) {
-      console.error('Store address is not configured.');
-      return { error: 'Erro de configuração do servidor.' };
-    }
+    
     if (!clientAddress) {
       return { error: 'Endereço do cliente inválido.' };
     }
@@ -63,11 +60,11 @@ const calculateShippingFlow = ai.defineFlow(
         if (status === 'ZERO_RESULTS' || status === 'NOT_FOUND') {
             return { error: 'Não foi possível encontrar o endereço.' };
         }
-        return { error: 'Erro ao calcular a distância.' };
+        return { error: 'Não foi possível calcular o frete para este endereço.' };
       }
     } catch (error) {
       console.error('Error calling Google Maps API:', error);
-      return { error: 'Falha na comunicação com o serviço de mapas.' };
+      return { error: 'Serviço de mapas indisponível.' };
     }
   }
 );
