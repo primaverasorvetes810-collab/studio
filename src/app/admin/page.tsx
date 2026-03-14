@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { Loader2, ShieldAlert, KeyRound, Home, Truck, Package, Users, Gift, Settings, LifeBuoy, Image as ImageIcon, Shield, Menu } from 'lucide-react';
@@ -55,7 +55,7 @@ export default function AdminGatePage() {
 
   const { allOrders, isLoading: areOrdersLoading } = useAllAdminOrders();
 
-  const isOrderDelayed = (order: Order): boolean => {
+  const isOrderDelayed = useCallback((order: Order): boolean => {
     if (order.status === 'Pendente') {
       const now = new Date();
       const orderDate = order.orderDate.toDate();
@@ -63,11 +63,11 @@ export default function AdminGatePage() {
       return diffMinutes > 30;
     }
     return false;
-  };
+  }, []);
   
   const hasPendingOrders = useMemo(() => {
-    return allOrders.some(order => order.status === 'Pendente');
-  }, [allOrders]);
+    return allOrders.some(order => order.status === 'Pendente' && !isOrderDelayed(order));
+  }, [allOrders, isOrderDelayed]);
 
 
   const correctPassword = "810Primavera*";
