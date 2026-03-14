@@ -8,7 +8,7 @@ let notificationAudio: HTMLAudioElement | null = null;
 // We can call this once when the app loads or a relevant component mounts.
 export function initializeAudio() {
   if (typeof window !== 'undefined' && !notificationAudio) {
-    notificationAudio = new Audio('https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3');
+    notificationAudio = new Audio('https://res.cloudinary.com/dh88bfqo0/video/upload/v1773503835/MC_Ryan_SP_MC_Jacar%C3%A9_e_MC_Meno_K_DJ_Japa_NK_e_DJ_Davi_DogDog_-_POSSO_AT%C3%89_N%C3%83O_TE_DAR_FLORES_n5DbjaZMNSE_xy7kk9.mp3');
     notificationAudio.preload = 'auto';
   }
 }
