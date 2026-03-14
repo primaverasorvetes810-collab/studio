@@ -1,46 +1,40 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause } from 'lucide-react';
-
-const audioUrl = 'https://res.cloudinary.com/dh88bfqo0/video/upload/v1773503835/MC_Ryan_SP_MC_Jacar%C3%A9_e_MC_Meno_K_DJ_Japa_NK_e_DJ_Davi_DogDog_-_POSSO_AT%C3%89_N%C3%83O_TE_DAR_FLORES_n5DbjaZMNSE_xy7kk9.mp3';
+import { audioService } from '@/lib/sound';
 
 export default function AudioPlayer() {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // We need to create the audio element on the client side
-    // to avoid SSR issues.
-    if (typeof window !== 'undefined') {
-        audioRef.current = new Audio(audioUrl);
-        audioRef.current.loop = true; // Loop the music
-        setIsMounted(true);
-    }
+    // Initialize the service on mount. This creates the Audio element.
+    audioService.initialize();
+    setIsMounted(true);
+    
+    // Sync UI with the shared audio service state
+    const onPlay = () => setIsPlaying(true);
+    const onPause = () => setIsPlaying(false);
 
+    audioService.on('play', onPlay);
+    audioService.on('pause', onPause);
+
+    // Set initial state
+    setIsPlaying(audioService.isPlaying);
+
+    // Cleanup listeners
     return () => {
-      // Cleanup: pause and nullify on unmount
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      audioService.off('play', onPlay);
+      audioService.off('pause', onPause);
     };
   }, []);
 
   const togglePlayPause = () => {
-    if (!audioRef.current) return;
-
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play().catch(error => {
-        console.error("Audio playback failed:", error);
-        // Handle autoplay policy errors if necessary
-      });
-    }
-    setIsPlaying(!isPlaying);
+    // This click from the user gives the browser permission
+    // to play audio from the shared audioService instance.
+    audioService.toggleBackgroundMusic();
   };
   
   if (!isMounted) {

@@ -1,37 +1,100 @@
 'use client';
 
-// Create a single Audio object instance to be reused.
-// This can help with browser autoplay policies, as the element exists before play() is called.
-let notificationAudio: HTMLAudioElement | null = null;
+type EventCallback = () => void;
 
-// Function to initialize the audio element.
-// We can call this once when the app loads or a relevant component mounts.
-export function initializeAudio() {
-  if (typeof window !== 'undefined' && !notificationAudio) {
-    notificationAudio = new Audio('https://res.cloudinary.com/dh88bfqo0/video/upload/v1773503835/MC_Ryan_SP_MC_Jacar%C3%A9_e_MC_Meno_K_DJ_Japa_NK_e_DJ_Davi_DogDog_-_POSSO_AT%C3%89_N%C3%83O_TE_DAR_FLORES_n5DbjaZMNSE_xy7kk9.mp3');
-    notificationAudio.preload = 'auto';
+class AudioService {
+  private audio: HTMLAudioElement | null = null;
+  private isInitialized = false;
+  private audioUrl: string;
+  private listeners: Record<string, EventCallback[]> = {};
+
+  constructor(audioUrl: string) {
+    this.audioUrl = audioUrl;
+  }
+
+  private emit(event: 'play' | 'pause') {
+    this.listeners[event]?.forEach(callback => callback());
+  }
+  
+  on(event: 'play' | 'pause', callback: EventCallback) {
+    if (!this.listeners[event]) {
+      this.listeners[event] = [];
+    }
+    this.listeners[event].push(callback);
+  }
+
+  off(event: 'play' | 'pause', callback: EventCallback) {
+    if (this.listeners[event]) {
+      this.listeners[event] = this.listeners[event].filter(cb => cb !== callback);
+    }
+  }
+
+  initialize() {
+    if (this.isInitialized || typeof window === 'undefined') {
+      return;
+    }
+    
+    this.audio = new Audio(this.audioUrl);
+    this.audio.preload = 'auto';
+
+    this.audio.onplay = () => this.emit('play');
+    this.audio.onpause = () => this.emit('pause');
+    this.audio.onended = () => {
+        // When a non-looping sound (like a notification) ends, it stops playing.
+        // Firing 'pause' makes the UI update correctly.
+        if (!this.audio?.loop) {
+            this.emit('pause'); 
+        }
+    };
+
+    this.isInitialized = true;
+  }
+
+  get isPlaying(): boolean {
+      return !!this.audio && !this.audio.paused;
+  }
+
+  playNotification() {
+    if (!this.audio) this.initialize();
+    
+    if (this.audio) {
+      this.audio.loop = false; // Notifications should not loop
+      this.audio.currentTime = 0; // Always restart for notifications
+      const playPromise = this.audio.play();
+
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error("Notification sound playback failed:", error);
+        });
+      }
+    }
+  }
+
+  toggleBackgroundMusic() {
+      if (!this.audio) this.initialize();
+      if (!this.audio) return;
+
+      if (this.isPlaying) {
+          this.audio.pause();
+      } else {
+          this.audio.loop = true;
+          // Don't reset time for toggle, just resume
+          const playPromise = this.audio.play();
+          if (playPromise !== undefined) {
+              playPromise.catch(error => console.error("Background music playback failed:", error));
+          }
+      }
   }
 }
 
-// Function to play the sound.
+const audioUrl = 'https://res.cloudinary.com/dh88bfqo0/video/upload/v1773503835/MC_Ryan_SP_MC_Jacar%C3%A9_e_MC_Meno_K_DJ_Japa_NK_e_DJ_Davi_DogDog_-_POSSO_AT%C3%89_N%C3%83O_TE_DAR_FLORES_n5DbjaZMNSE_xy7kk9.mp3';
+
+export const audioService = new AudioService(audioUrl);
+
+export function initializeAudio() {
+  audioService.initialize();
+}
+
 export function playNotificationSound() {
-  // Ensure audio is initialized
-  if (!notificationAudio) {
-    initializeAudio();
-  }
-
-  if (notificationAudio) {
-    // Rewind to the start in case it's played again quickly
-    notificationAudio.currentTime = 0;
-    
-    // play() returns a promise which can be used to handle errors.
-    const playPromise = notificationAudio.play();
-
-    if (playPromise !== undefined) {
-      playPromise.catch(error => {
-        console.error("Audio playback failed:", error);
-        // In a real app, you might want to inform the user that audio is blocked.
-      });
-    }
-  }
+  audioService.playNotification();
 }
