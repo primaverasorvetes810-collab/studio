@@ -41,10 +41,12 @@ export default function CartPage() {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
-  const total = cartItems.reduce(
-    (acc, item) => acc + (item.product.price + 2) * item.quantity,
+  const subtotal = cartItems.reduce(
+    (acc, item) => acc + item.product.price * item.quantity,
     0
   );
+  const shippingFee = 5.00;
+  const total = subtotal + shippingFee;
 
   const handleRemoveItem = (cartItemId: string) => {
     if (!user || !cartId) return;
@@ -166,7 +168,7 @@ export default function CartPage() {
                         <div>
                           <h3 className="font-semibold break-words">{item.product.name}</h3>
                            <p className="text-sm font-medium text-muted-foreground">
-                            {formatPrice(item.product.price + 2)}
+                            {formatPrice(item.product.price)}
                           </p>
                         </div>
 
@@ -206,6 +208,14 @@ export default function CartPage() {
               <CardTitle>Resumo do Pedido</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-4">
+               <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{formatPrice(subtotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Taxa de Entrega</span>
+                <span>{formatPrice(shippingFee)}</span>
+              </div>
               <Separator />
               <div className="flex justify-between font-bold">
                 <span>Total</span>

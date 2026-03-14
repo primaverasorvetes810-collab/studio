@@ -66,6 +66,8 @@ export interface Order {
   userCity?: string;
   orderDate: Timestamp;
   paymentMethod: string;
+  subtotal: number;
+  shippingFee: number;
   totalAmount: number;
   status: OrderStatus;
   items: OrderItemWithProduct[];
@@ -173,7 +175,7 @@ export async function createOrderFromCart(
         console.warn("Não foi possível buscar o perfil do usuário durante a criação do pedido:", e);
     }
 
-    let validatedTotalAmount = 0;
+    let subtotal = 0;
     const validatedOrderItems = [];
 
     for (const cartItem of cartItems) {
@@ -186,8 +188,8 @@ export async function createOrderFromCart(
 
       const serverProduct = productSnap.data() as Product;
 
-      const itemPrice = serverProduct.price + 2; 
-      validatedTotalAmount += itemPrice * cartItem.quantity;
+      const itemPrice = serverProduct.price; 
+      subtotal += itemPrice * cartItem.quantity;
       
       validatedOrderItems.push({
         id: cartItem.id, // cartItemId
@@ -197,6 +199,9 @@ export async function createOrderFromCart(
         product: { ...serverProduct, id: cartItem.productId }
       });
     }
+
+    const shippingFee = 5.00;
+    const totalAmount = subtotal + shippingFee;
 
     const newOrderData = {
       userId,
@@ -208,7 +213,9 @@ export async function createOrderFromCart(
       userCity: userData.city || '',
       orderDate: serverTimestamp(),
       paymentMethod,
-      totalAmount: validatedTotalAmount,
+      subtotal,
+      shippingFee,
+      totalAmount,
       status: 'Pendente' as const,
       items: validatedOrderItems,
     };

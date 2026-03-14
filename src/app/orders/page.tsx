@@ -156,6 +156,23 @@ export default function OrdersPage() {
                             </li>
                         ))}
                     </ul>
+                    
+                    {order.subtotal !== undefined && order.shippingFee !== undefined ? (
+                        <>
+                            <Separator />
+                            <ul className="space-y-1 text-sm text-muted-foreground">
+                                <li className="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span>{formatPrice(order.subtotal)}</span>
+                                </li>
+                                <li className="flex justify-between">
+                                    <span>Taxa de Entrega</span>
+                                    <span>{formatPrice(order.shippingFee)}</span>
+                                </li>
+                            </ul>
+                        </>
+                    ) : null}
+
                     <Separator />
                     <div className="flex justify-between font-semibold">
                         <span>Total</span>

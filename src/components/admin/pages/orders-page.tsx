@@ -250,6 +250,21 @@ export default function OrdersPage({ allOrders, isLoading, isOrderDelayed }: Ord
                                     </li>
                                 ))}
                             </ul>
+                            {selectedOrder.subtotal !== undefined && selectedOrder.shippingFee !== undefined ? (
+                                <>
+                                    <Separator className="my-2"/>
+                                    <ul className="space-y-1 text-sm pl-6">
+                                        <li className="flex justify-between text-muted-foreground">
+                                            <span>Subtotal</span>
+                                            <span>{formatPrice(selectedOrder.subtotal)}</span>
+                                        </li>
+                                        <li className="flex justify-between text-muted-foreground">
+                                            <span>Taxa de Entrega</span>
+                                            <span>{formatPrice(selectedOrder.shippingFee)}</span>
+                                        </li>
+                                    </ul>
+                                </>
+                            ) : null}
                             <Separator className="my-2"/>
                             <div className="flex justify-between font-bold text-sm pl-6">
                                 <span>Total</span>

@@ -60,7 +60,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <CardDescription className="line-clamp-2 text-xs">{product.description}</CardDescription>
         </div>
         <div className="mt-2">
-            <p className="mb-2 text-lg font-bold text-primary">{formatPrice(product.price + 2)}</p>
+            <p className="mb-2 text-lg font-bold text-primary">{formatPrice(product.price)}</p>
         </div>
       </CardContent>
        <CardFooter className="p-3 pt-0">

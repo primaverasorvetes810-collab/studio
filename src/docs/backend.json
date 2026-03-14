@@ -150,7 +150,6 @@
         "price",
         "stock",
         "isActive",
-        "imageUrl",
         "manageStock"
       ]
     },
@@ -227,9 +226,17 @@
           "type": "string",
           "description": "Payment method used for the order (Pix, Dinheiro, Cartão de Crédito ou Débito)."
         },
+        "subtotal": {
+            "type": "number",
+            "description": "The total amount of the items in the order, before shipping."
+        },
+        "shippingFee": {
+            "type": "number",
+            "description": "The fee charged for shipping the order."
+        },
         "totalAmount": {
           "type": "number",
-          "description": "Total amount of the order."
+          "description": "Total amount of the order (subtotal + shipping)."
         }
       },
       "required": [
@@ -237,6 +244,8 @@
         "userId",
         "orderDate",
         "paymentMethod",
+        "subtotal",
+        "shippingFee",
         "totalAmount"
       ]
     },
