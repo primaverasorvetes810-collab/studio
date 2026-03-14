@@ -46,9 +46,9 @@ const calculateShippingFlow = ai.defineFlow(
     // Adicione ou remova bairros e ajuste os valores conforme necessário.
     // Os nomes dos bairros serão comparados sem distinção de maiúsculas/minúsculas ou acentos.
     const deliveryZones: Record<string, string[]> = {
-      '5.00': ['centro', 'vila progresso', 'jardim europa'],
-      '8.00': ['parque campolim', 'jardim paulista', 'jardim america', 'alem ponte'],
-      '12.00': ['jardim simus', 'wanel ville', 'cajuru do sul', 'eden'],
+      '5.00': ['centro', 'vila nova'],
+      '8.00': ['jardim paulista', 'jardim europa'],
+      '12.00': ['parque industrial', 'zona norte'],
     };
 
     const normalizedNeighborhood = normalizeString(neighborhood);
