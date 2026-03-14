@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Calculates shipping cost based on predefined delivery zones by neighborhood.
- * - calculateShipping - A function that calculates shipping fee.
+ * - calculateShipping - a function that calculates shipping fee.
  * - ShippingInput - The input type for the calculateShipping function.
  * - ShippingOutput - The return type for the calculateShipping function.
  */
@@ -10,7 +10,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const ShippingInputSchema = z.object({
-  clientAddress: z.string().describe('The full address of the client for delivery, including street, neighborhood, and city.'),
+  neighborhood: z.string().describe("The client's neighborhood for delivery."),
 });
 export type ShippingInput = z.infer<typeof ShippingInputSchema>;
 
@@ -36,17 +36,13 @@ const calculateShippingFlow = ai.defineFlow(
         '12.00': ['jardim simus', 'wanel ville', 'parque são bento', 'cajuru do sul'],
     };
 
-    const { clientAddress } = input;
+    const { neighborhood } = input;
     
-    // Attempt to extract neighborhood from the address string.
-    // This logic assumes a common address format like "Street, 123, Neighborhood, City"
-    const addressParts = clientAddress.split(',').map(part => part.trim().toLowerCase());
-    
-    // Heuristic: The neighborhood is often the second to last part of a full address string.
-    const clientNeighborhood = addressParts.length >= 2 ? addressParts[addressParts.length - 2] : '';
+    // Normalize the client's neighborhood for comparison
+    const clientNeighborhood = neighborhood.trim().toLowerCase();
     
     if (!clientNeighborhood) {
-        return { error: 'Endereço inválido.' };
+        return { error: 'Bairro inválido.' };
     }
 
     // Find the fee for the client's neighborhood
