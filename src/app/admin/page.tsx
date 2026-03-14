@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -27,6 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import SettingsPage from '@/components/admin/pages/settings-page';
+import AudioPlayer from '@/components/audio-player';
 
 
 type AdminSection = "dashboard" | "orders" | "products" | "clients" | "birthdays" | "carousel" | "settings" | "help";
@@ -157,95 +157,96 @@ export default function AdminGatePage() {
 
   return (
     <TooltipProvider>
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <nav className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
-          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-            <Link href="/" className="flex items-center gap-2 font-semibold">
-              <Shield className="h-6 w-6 text-primary" />
-              <span className="">Painel Admin</span>
-            </Link>
-          </div>
-          <div className="flex-1">
-            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-               {navItems.map(item => (
-                 <button
-                    key={item.id}
-                    onClick={() => setActiveSection(item.id as AdminSection)}
-                    className={cn(
-                        "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                        activeSection === item.id && "bg-muted text-primary"
-                    )}
-                 >
-                    <item.icon className="h-4 w-4" />
-                    {item.label}
-                 </button>
-               ))}
-            </nav>
-          </div>
-        </div>
-      </nav>
-      <div className="flex flex-col">
-         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0 md:hidden"
-                >
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle navigation menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="flex flex-col">
-                 <SheetHeader>
-                  <SheetTitle className="sr-only">Menu do Painel</SheetTitle>
-                  <SheetDescription className="sr-only">Navegue pelas seções do painel de administração.</SheetDescription>
-                </SheetHeader>
-                <nav className="grid gap-2 text-base font-medium">
-                  <SheetClose asChild>
-                    <Link
-                      href="#"
-                      className="flex items-center gap-2 text-lg font-semibold mb-4"
-                    >
-                      <Shield className="h-6 w-6 text-primary" />
-                      <span >Painel Admin</span>
-                    </Link>
-                  </SheetClose>
-                  {navItems.map((item) => (
-                    <SheetClose asChild key={item.id}>
-                      <button
-                        onClick={() => setActiveSection(item.id as AdminSection)}
-                        className={cn(
-                            "flex items-center gap-4 rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground",
-                            activeSection === item.id && "bg-muted text-foreground"
-                        )}
-                      >
-                        <item.icon className="h-5 w-5" />
-                        {item.label}
-                      </button>
-                    </SheetClose>
-                  ))}
-                </nav>
-              </SheetContent>
-            </Sheet>
-            <div className="w-full flex-1">
-                <h1 className="text-lg font-semibold md:text-2xl">{navItems.find(item => item.id === activeSection)?.label}</h1>
+      <AudioPlayer />
+      <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+        <nav className="hidden border-r bg-muted/40 md:block">
+          <div className="flex h-full max-h-screen flex-col gap-2">
+            <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+              <Link href="/" className="flex items-center gap-2 font-semibold">
+                <Shield className="h-6 w-6 text-primary" />
+                <span className="">Painel Admin</span>
+              </Link>
             </div>
-         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
-          {activeSection === 'dashboard' && <DashboardPage />}
-          {activeSection === 'orders' && <OrdersPage />}
-          {activeSection === 'products' && <ProductsPage />}
-          {activeSection === 'clients' && <ClientsPage />}
-          {activeSection === 'birthdays' && <BirthdaysPage />}
-          {activeSection === 'carousel' && <CarouselManagerPage />}
-          {activeSection === 'settings' && <SettingsPage />}
-          {activeSection === 'help' && <AdminHelpPage />}
-        </main>
+            <div className="flex-1">
+              <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+                {navItems.map(item => (
+                  <button
+                      key={item.id}
+                      onClick={() => setActiveSection(item.id as AdminSection)}
+                      className={cn(
+                          "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                          activeSection === item.id && "bg-muted text-primary"
+                      )}
+                  >
+                      <item.icon className="h-4 w-4" />
+                      {item.label}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
+        </nav>
+        <div className="flex flex-col">
+          <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0 md:hidden"
+                  >
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle navigation menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="flex flex-col">
+                  <SheetHeader>
+                    <SheetTitle className="sr-only">Menu do Painel</SheetTitle>
+                    <SheetDescription className="sr-only">Navegue pelas seções do painel de administração.</SheetDescription>
+                  </SheetHeader>
+                  <nav className="grid gap-2 text-base font-medium">
+                    <SheetClose asChild>
+                      <Link
+                        href="#"
+                        className="flex items-center gap-2 text-lg font-semibold mb-4"
+                      >
+                        <Shield className="h-6 w-6 text-primary" />
+                        <span >Painel Admin</span>
+                      </Link>
+                    </SheetClose>
+                    {navItems.map((item) => (
+                      <SheetClose asChild key={item.id}>
+                        <button
+                          onClick={() => setActiveSection(item.id as AdminSection)}
+                          className={cn(
+                              "flex items-center gap-4 rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground",
+                              activeSection === item.id && "bg-muted text-foreground"
+                          )}
+                        >
+                          <item.icon className="h-5 w-5" />
+                          {item.label}
+                        </button>
+                      </SheetClose>
+                    ))}
+                  </nav>
+                </SheetContent>
+              </Sheet>
+              <div className="w-full flex-1">
+                  <h1 className="text-lg font-semibold md:text-2xl">{navItems.find(item => item.id === activeSection)?.label}</h1>
+              </div>
+          </header>
+          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
+            {activeSection === 'dashboard' && <DashboardPage />}
+            {activeSection === 'orders' && <OrdersPage />}
+            {activeSection === 'products' && <ProductsPage />}
+            {activeSection === 'clients' && <ClientsPage />}
+            {activeSection === 'birthdays' && <BirthdaysPage />}
+            {activeSection === 'carousel' && <CarouselManagerPage />}
+            {activeSection === 'settings' && <SettingsPage />}
+            {activeSection === 'help' && <AdminHelpPage />}
+          </main>
+        </div>
       </div>
-    </div>
     </TooltipProvider>
   );
 }
