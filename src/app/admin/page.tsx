@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import SettingsPage from '@/components/admin/pages/settings-page';
+import AudioPlayer from '@/components/audio-player';
 
 
 type AdminSection = "dashboard" | "orders" | "products" | "clients" | "birthdays" | "carousel" | "settings" | "help";
@@ -245,6 +246,7 @@ export default function AdminGatePage() {
           </main>
         </div>
       </div>
+      <AudioPlayer />
     </TooltipProvider>
   );
 }

@@ -1,64 +1,81 @@
 'use client';
 
-// A singleton class to manage a single Audio instance.
+type Event = 'play' | 'pause';
+type Callback = () => void;
+
 class AudioService {
   private audio: HTMLAudioElement | null = null;
   private isInitialized = false;
+  public isPlaying = false;
+  private listeners: { [key in Event]?: Callback[] } = {};
 
-  /**
-   * Initializes the Audio element. Should be called once when the app loads.
-   * This is safe to call multiple times.
-   */
-  initialize() {
-    // Avoid re-initializing in a client-side environment
-    if (this.isInitialized || typeof window === 'undefined') {
-      return;
+  // --- Event Emitter Methods ---
+  on(event: Event, callback: Callback) {
+    if (!this.listeners[event]) {
+      this.listeners[event] = [];
     }
+    this.listeners[event]?.push(callback);
+  }
+
+  off(event: Event, callback: Callback) {
+    if (!this.listeners[event]) return;
+    this.listeners[event] = this.listeners[event]?.filter(cb => cb !== callback);
+  }
+
+  private emit(event: Event) {
+    this.listeners[event]?.forEach(cb => cb());
+  }
+  // --- End Event Emitter ---
+
+  initialize() {
+    if (this.isInitialized || typeof window === 'undefined') return;
     
     const audioUrl = 'https://res.cloudinary.com/dh88bfqo0/video/upload/v1773503835/MC_Ryan_SP_MC_Jacar%C3%A9_e_MC_Meno_K_DJ_Japa_NK_e_DJ_Davi_DogDog_-_POSSO_AT%C3%89_N%C3%83O_TE_DAR_FLORES_n5DbjaZMNSE_xy7kk9.mp3';
     this.audio = new Audio(audioUrl);
-    this.audio.preload = 'auto'; // Preload the audio file
+    this.audio.loop = true; // Loop for background music
+    this.audio.preload = 'auto';
     this.isInitialized = true;
+
+    this.audio.onplay = () => {
+      this.isPlaying = true;
+      this.emit('play');
+    };
+    this.audio.onpause = () => {
+      this.isPlaying = false;
+      this.emit('pause');
+    };
   }
 
-  /**
-   * Attempts to play the notification sound from the beginning.
-   * This requires a prior user interaction with the page to succeed in most browsers.
-   */
-  playNotification() {
-    // Ensure the audio is initialized
+  toggleBackgroundMusic() {
+    if (!this.audio) this.initialize();
+    if (this.audio) {
+      if (this.isPlaying) {
+        this.audio.pause();
+      } else {
+        // This click gives the browser permission to play audio.
+        this.audio.play().catch(e => console.error("Error playing background music:", e));
+      }
+    }
+  }
+
+  playNotificationAlert() {
     if (!this.audio) this.initialize();
     
     if (this.audio) {
-      this.audio.currentTime = 0; // Always play from the start for an alert
-      const playPromise = this.audio.play();
-
-      // The play() method returns a promise. We should handle potential errors,
-      // which are common due to browser autoplay policies.
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          // This error is expected if the user hasn't interacted with the page yet.
-          // We log it for debugging but don't show a toast, as it's not a "bug".
-          console.log("Audio playback was blocked by the browser. A user interaction (like clicking the 'test notification' button) is required to enable sound.");
-        });
+      // Always play from the beginning for an alert
+      this.audio.currentTime = 0;
+      
+      // If it's paused, play it.
+      if (this.audio.paused) {
+          const playPromise = this.audio.play();
+          if (playPromise !== undefined) {
+              playPromise.catch(error => {
+                  console.log("Notification sound alert was blocked by the browser. A user interaction is required.");
+              });
+          }
       }
     }
   }
 }
 
-// Create a single, shared instance of the AudioService.
-const audioService = new AudioService();
-
-/**
- * A hook or component should call this once on mount to set up the audio element.
- */
-export function initializeAudio() {
-  audioService.initialize();
-}
-
-/**
- * Call this function to attempt to play the notification sound.
- */
-export function playNotificationSound() {
-  audioService.playNotification();
-}
+export const audioService = new AudioService();
