@@ -20,9 +20,10 @@ const ShippingOutputSchema = z.object({
 });
 export type ShippingOutput = z.infer<typeof ShippingOutputSchema>;
 
-// Helper function to normalize strings for comparison (lowercase, no accents)
+// Helper function to normalize strings for comparison (lowercase, no accents, trimmed)
 const normalizeString = (str: string) => {
     return str
+        .trim()
         .toLowerCase()
         .normalize("NFD") // Decompose accented characters
         .replace(/[\u0300-\u036f]/g, ""); // Remove diacritical marks
