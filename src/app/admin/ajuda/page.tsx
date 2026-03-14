@@ -49,6 +49,10 @@ export default function AdminHelpPage() {
     }, []);
     
     const handleTestNotification = () => {
+        // First, play the sound. This click is the user interaction needed to grant permission.
+        playNotificationSound();
+
+        // Then, handle the visual notification permission.
         if (!("Notification" in window)) {
           toast({
             variant: "destructive",
@@ -59,23 +63,21 @@ export default function AdminHelpPage() {
         }
     
         if (Notification.permission === "granted") {
-          playNotificationSound();
           new Notification("Primavera Delivery", {
-            body: "Este é um alarme de teste! Você está pronto para receber notificações.",
+            body: "Este é um alarme de teste! Se você ouviu o som, está tudo pronto.",
             icon: "/icons/icon-192x192.png",
           });
         } else if (Notification.permission !== "denied") {
           Notification.requestPermission().then((permission) => {
             if (permission === "granted") {
-              playNotificationSound();
               new Notification("Permissão concedida!", {
-                body: "Agora você pode receber notificações.",
+                body: "Agora você pode receber notificações visuais e sonoras.",
                 icon: "/icons/icon-192x192.png",
               });
             } else {
                 toast({
                     title: 'Permissão negada',
-                    description: 'Você não receberá notificações.'
+                    description: 'Você não receberá notificações visuais.'
                 });
             }
           });
@@ -83,7 +85,7 @@ export default function AdminHelpPage() {
             toast({
                 variant: "destructive",
                 title: 'Permissão de notificação bloqueada',
-                description: 'Você precisa permitir notificações nas configurações do seu navegador.'
+                description: 'Você precisa permitir notificações visuais nas configurações do seu navegador.'
             });
         }
     };
@@ -121,16 +123,15 @@ export default function AdminHelpPage() {
           <CardHeader>
               <CardTitle className="flex items-center gap-2">
                   <Bell className="text-primary" />
-                  Testar Notificações
+                  Ativar Alertas Sonoros
               </CardTitle>
               <CardDescription>
-                  Permita notificações em seu navegador para receber alertas, como quando um novo pedido chegar.
-                  Clique no botão para pedir permissão e enviar uma notificação de teste para o seu dispositivo.
+                  Para que o alarme de novos pedidos toque, seu navegador precisa de permissão. Clique no botão abaixo para ativar e testar o som. **É necessário fazer isso uma vez por sessão de uso do painel.**
               </CardDescription>
           </CardHeader>
           <CardContent>
               <Button onClick={handleTestNotification}>
-                  Testar Notificação
+                  Ativar e Testar Alerta
               </Button>
           </CardContent>
       </Card>
