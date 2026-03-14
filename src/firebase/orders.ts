@@ -157,7 +157,8 @@ export async function createOrderFromCart(
   user: AuthUser,
   cartId: string,
   cartItems: CartItemWithProduct[],
-  paymentMethod: string
+  paymentMethod: string,
+  shippingFee: number,
 ) {
   const { firestore } = getClientSdks();
   const userId = user.uid;
@@ -200,7 +201,6 @@ export async function createOrderFromCart(
       });
     }
 
-    const shippingFee = 5.00;
     const totalAmount = subtotal + shippingFee;
 
     const newOrderData = {

@@ -7,7 +7,7 @@ import {
   updateCartItemQuantity,
   useCart,
 } from '@/firebase/cart';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -26,27 +26,85 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice, getProductImageUrl } from '@/lib/utils';
-import { CreditCard, Trash2, Loader2 } from 'lucide-react';
+import { CreditCard, Trash2, Loader2, MapPin } from 'lucide-react';
 import PageHeader from '@/components/page-header';
 import { useToast } from '@/hooks/use-toast';
-import { useState } from 'react';
-import { createOrderFromCart } from '@/firebase/orders';
+import { useState, useEffect } from 'react';
+import { createOrderFromCart, type User as UserProfile } from '@/firebase/orders';
 import { useRouter } from 'next/navigation';
+import { calculateShipping } from '@/ai/flows/calculate-shipping-flow';
+import { getDoc, doc } from 'firebase/firestore';
+
 
 export default function CartPage() {
   const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const { cartItems, isLoading: isCartLoading, cartId } = useCart(user?.uid);
   const { toast } = useToast();
   const router = useRouter();
+  
   const [paymentMethod, setPaymentMethod] = useState('');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  
+  const [shippingFee, setShippingFee] = useState<number | null>(null);
+  const [shippingError, setShippingError] = useState<string | null>(null);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+
+
+  useEffect(() => {
+    if (user && firestore) {
+      setIsProfileLoading(true);
+      const userDocRef = doc(firestore, 'users', user.uid);
+      getDoc(userDocRef)
+        .then(docSnap => {
+          if (docSnap.exists()) {
+            setUserProfile({ id: docSnap.id, ...docSnap.data() } as UserProfile);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsProfileLoading(false));
+    } else {
+        setIsProfileLoading(false);
+    }
+  }, [user, firestore]);
+
+  useEffect(() => {
+    if (userProfile?.address && userProfile.city) {
+      const fullAddress = `${userProfile.address}, ${userProfile.neighborhood}, ${userProfile.city}`;
+      setIsCalculatingShipping(true);
+      setShippingError(null);
+      setShippingFee(null);
+
+      calculateShipping({ clientAddress: fullAddress })
+        .then(result => {
+          if (result.fee) {
+            setShippingFee(result.fee);
+          } else {
+            setShippingError(result.error || 'Erro desconhecido.');
+            setShippingFee(null);
+          }
+        })
+        .catch(err => {
+          setShippingError('Falha na comunicação.');
+          setShippingFee(null);
+        })
+        .finally(() => {
+          setIsCalculatingShipping(false);
+        });
+    } else if (userProfile) { // User profile loaded, but no address
+        setShippingError('Endereço não cadastrado.');
+        setShippingFee(null);
+    }
+  }, [userProfile]);
 
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.product.price * item.quantity,
     0
   );
-  const shippingFee = 5.00;
-  const total = subtotal + shippingFee;
+  const total = shippingFee !== null ? subtotal + shippingFee : subtotal;
 
   const handleRemoveItem = (cartItemId: string) => {
     if (!user || !cartId) return;
@@ -65,7 +123,6 @@ export default function CartPage() {
   const playSuccessSound = () => {
     const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-1.mp3');
     audio.play().catch(error => {
-      // A reprodução automática pode falhar se o usuário não tiver interagido com a página
       console.log("Falha ao reproduzir som de sucesso:", error);
     });
   }
@@ -87,10 +144,18 @@ export default function CartPage() {
       });
       return;
     }
+    if (shippingFee === null) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro no Frete',
+        description: shippingError || 'Não foi possível calcular o frete. Verifique seu endereço de cadastro.',
+      });
+      return;
+    }
 
     setIsPlacingOrder(true);
     try {
-      await createOrderFromCart(user, cartId, cartItems, paymentMethod);
+      await createOrderFromCart(user, cartId, cartItems, paymentMethod, shippingFee);
       playSuccessSound();
       toast({
         title: 'Pedido realizado!',
@@ -98,14 +163,14 @@ export default function CartPage() {
       });
       router.push('/orders');
     } catch (error: any) {
-      // Generic error handling is managed by the global listener,
-      // so no specific catch block is needed here.
     } finally {
       setIsPlacingOrder(false);
     }
   };
 
-  if (isUserLoading || isCartLoading) {
+  const isLoading = isUserLoading || isCartLoading || isProfileLoading;
+
+  if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <PageHeader title="Carrinho de Compras" />
@@ -115,7 +180,7 @@ export default function CartPage() {
       </div>
     );
   }
-
+  
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
@@ -212,9 +277,18 @@ export default function CartPage() {
                 <span>Subtotal</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Taxa de Entrega</span>
-                <span>{formatPrice(shippingFee)}</span>
+              <div className="flex justify-between items-center min-h-[24px]">
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  Taxa de Entrega
+                </span>
+                {isCalculatingShipping ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : shippingError ? (
+                  <span className="text-sm text-right font-semibold text-destructive">{shippingError}</span>
+                ) : shippingFee !== null ? (
+                  <span>{formatPrice(shippingFee)}</span>
+                ) : null}
               </div>
               <Separator />
               <div className="flex justify-between font-bold">
@@ -243,7 +317,7 @@ export default function CartPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder || !paymentMethod}>
+              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder || isCalculatingShipping || !paymentMethod}>
                 {isPlacingOrder ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -258,6 +332,17 @@ export default function CartPage() {
               </Button>
             </CardFooter>
           </Card>
+          {!userProfile?.address && !isProfileLoading && (
+            <Card className="mt-4 border-dashed">
+                <CardContent className="p-4 text-center text-sm text-muted-foreground">
+                    <p>Parece que você não tem um endereço cadastrado.</p>
+                    <Button variant="link" asChild className="p-0 h-auto">
+                        <Link href="/login">Atualize seu cadastro</Link>
+                    </Button>
+                     para calcular o frete.
+                </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
