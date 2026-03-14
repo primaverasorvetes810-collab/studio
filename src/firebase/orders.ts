@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   collection,
   addDoc,
@@ -17,6 +17,7 @@ import {
   updateDoc,
   increment,
   writeBatch,
+  onSnapshot,
 } from 'firebase/firestore';
 import { getClientSdks, useCollection, useMemoFirebase } from '@/firebase';
 import { errorEmitter } from './error-emitter';
@@ -24,6 +25,9 @@ import { FirestorePermissionError } from './errors';
 import type { CartItemWithProduct } from './cart';
 import type { Product } from '@/lib/data/products';
 import type { User as AuthUser } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
+import { formatPrice } from '@/lib/utils';
+
 
 export type OrderStatus = 'Pendente' | 'Enviado' | 'Entregue' | 'Cancelado' | 'Atrasado';
 
@@ -69,6 +73,84 @@ export interface Order {
 
 export interface OrderWithItems extends Order {}
 
+function sendVisualNotification(title: string, options: NotificationOptions) {
+  if (!('Notification' in window)) return;
+
+  if (Notification.permission === 'granted') {
+    new Notification(title, options);
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        new Notification(title, options);
+      }
+    });
+  }
+}
+
+export function useAllAdminOrders() {
+    const { firestore } = getClientSdks();
+    const [allOrders, setAllOrders] = useState<Order[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const { toast } = useToast();
+    const previousOrdersRef = useRef<Order[]>([]);
+
+    useEffect(() => {
+        if (!firestore) {
+          setIsLoading(false);
+          return;
+        };
+
+        const ordersQuery = collectionGroup(firestore, 'orders');
+        const q = query(ordersQuery);
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            let fetchedOrders: Order[] = [];
+            snapshot.forEach((doc) => {
+                fetchedOrders.push({ id: doc.id, ...doc.data() } as Order);
+            });
+
+            const activeOrders = fetchedOrders.filter(
+                (order) => order.status !== 'Cancelado'
+            );
+            const sortedOrders = activeOrders.sort(
+                (a, b) => b.orderDate.toMillis() - a.orderDate.toMillis()
+            );
+
+            // New order detection for visual notification
+            if (previousOrdersRef.current.length > 0) {
+                const previousOrderIds = new Set(previousOrdersRef.current.map(o => o.id));
+                const newOrders = sortedOrders.filter(
+                    o => !previousOrderIds.has(o.id) && o.status === 'Pendente'
+                );
+
+                newOrders.forEach(order => {
+                    sendVisualNotification('Novo Pedido Recebido!', {
+                        body: `Cliente: ${order.userName}\nTotal: ${formatPrice(order.totalAmount)}`,
+                        icon: '/icons/icon-192x192.png',
+                    });
+                });
+            }
+            
+            setAllOrders(sortedOrders);
+            previousOrdersRef.current = sortedOrders;
+            setIsLoading(false);
+        }, (error) => {
+            console.error("Error fetching all orders:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Erro ao carregar pedidos',
+                description: 'Não foi possível buscar os pedidos. Verifique as permissões do Firestore.',
+            });
+            setIsLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [firestore, toast]);
+
+    return { allOrders, isLoading };
+}
+
+
 export async function createOrderFromCart(
   user: AuthUser,
   cartId: string,
@@ -82,19 +164,15 @@ export async function createOrderFromCart(
     const userRef = doc(firestore, 'users', userId);
     let userData: Partial<User> = {};
     
-    // Tenta buscar os dados do perfil do usuário, mas não falha se não existirem
     try {
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
             userData = userSnap.data() as User;
         }
     } catch (e) {
-        // Registra o erro, mas continua, pois os dados do usuário não são críticos para a criação do pedido
         console.warn("Não foi possível buscar o perfil do usuário durante a criação do pedido:", e);
     }
 
-
-    // --- Validação de Preços ---
     let validatedTotalAmount = 0;
     const validatedOrderItems = [];
 
@@ -108,18 +186,17 @@ export async function createOrderFromCart(
 
       const serverProduct = productSnap.data() as Product;
 
-      const itemPrice = serverProduct.price + 2; // Usar o preço do servidor + R$ 2
+      const itemPrice = serverProduct.price + 2; 
       validatedTotalAmount += itemPrice * cartItem.quantity;
       
       validatedOrderItems.push({
         id: cartItem.id, // cartItemId
         productId: cartItem.productId,
         quantity: cartItem.quantity,
-        itemPrice: itemPrice, // Preço validado
+        itemPrice: itemPrice, 
         product: { ...serverProduct, id: cartItem.productId }
       });
     }
-    // --- Fim da Validação ---
 
     const newOrderData = {
       userId,
@@ -140,7 +217,6 @@ export async function createOrderFromCart(
 
     const batch = writeBatch(firestore);
 
-    // Limpar carrinho
     for (const item of cartItems) {
         const cartItemRef = doc(firestore, `users/${userId}/shoppingCarts/${cartId}/cartItems`, item.id);
         batch.delete(cartItemRef);

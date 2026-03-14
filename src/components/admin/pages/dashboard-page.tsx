@@ -22,8 +22,8 @@ import { formatPrice } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { CircleDollarSign, Package, ShoppingBag, Users, Loader2 } from 'lucide-react';
 import type { Order, OrderStatus } from '@/firebase/orders';
-import { collection, onSnapshot, collectionGroup } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { useEffect, useState, useMemo } from 'react';
 
 const statusColors: Record<OrderStatus, string> = {
   Pendente: "bg-yellow-500/20 text-yellow-500 border-yellow-500/20",
@@ -33,20 +33,18 @@ const statusColors: Record<OrderStatus, string> = {
   Atrasado: "bg-red-500/20 text-red-500 border-red-500/20",
 };
 
+interface DashboardPageProps {
+  allOrders: Order[];
+  isLoading: boolean;
+}
 
-export default function DashboardPage() {
+export default function DashboardPage({ allOrders, isLoading }: DashboardPageProps) {
     const firestore = useFirestore();
-    const [allOrders, setAllOrders] = useState<Order[]>([]);
-    const [totalRevenue, setTotalRevenue] = useState(0);
-    const [totalOrders, setTotalOrders] = useState(0);
     const [totalClients, setTotalClients] = useState(0);
     const [totalProducts, setTotalProducts] = useState(0);
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         if (!firestore) return;
-        
-        setIsLoading(true);
         
         const unsubscribers = [
             onSnapshot(collection(firestore, 'users'), 
@@ -56,46 +54,29 @@ export default function DashboardPage() {
             onSnapshot(collection(firestore, 'products'),
                 (snapshot) => setTotalProducts(snapshot.size),
                 (error) => console.error("Error fetching products count:", error)
-            ),
-            onSnapshot(collectionGroup(firestore, 'orders'),
-                (snapshot) => {
-                    const fetchedOrders: Order[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
-                    const sortedOrders = fetchedOrders.sort((a, b) => b.orderDate.toMillis() - a.orderDate.toMillis());
-                    
-                    setAllOrders(sortedOrders);
-
-                    const revenue = sortedOrders.reduce((acc, order) => acc + (order.status === 'Entregue' ? order.totalAmount : 0), 0);
-                    setTotalRevenue(revenue);
-                    setTotalOrders(sortedOrders.length);
-                    
-                    setIsLoading(false); // Data has been loaded or is empty
-                },
-                (error) => {
-                    console.error("Error fetching dashboard data:", error);
-                    setIsLoading(false); // Stop loading on error
-                }
             )
         ];
 
-        // Cleanup function to unsubscribe from all listeners on component unmount
         return () => unsubscribers.forEach(unsub => unsub());
 
     }, [firestore]);
 
+    const totalRevenue = useMemo(() => allOrders.reduce((acc, order) => acc + (order.status === 'Entregue' ? order.totalAmount : 0), 0), [allOrders]);
+    const totalOrders = useMemo(() => allOrders.length, [allOrders]);
 
-    const chartData = allOrders
-    .filter(order => order.status === 'Entregue' && order.orderDate)
-    .reduce((acc, order) => {
-        const month = order.orderDate.toDate().toLocaleString('default', { month: 'short' }).toUpperCase();
-        const existingMonth = acc.find(item => item.name === month);
-        if (existingMonth) {
-            existingMonth.total += order.totalAmount;
-        } else {
-            acc.push({ name: month, total: order.totalAmount });
-        }
-        return acc;
-    }, [] as { name: string; total: number }[])
-    .reverse();
+    const chartData = useMemo(() => allOrders
+      .filter(order => order.status === 'Entregue' && order.orderDate)
+      .reduce((acc, order) => {
+          const month = order.orderDate.toDate().toLocaleString('default', { month: 'short' }).toUpperCase();
+          const existingMonth = acc.find(item => item.name === month);
+          if (existingMonth) {
+              existingMonth.total += order.totalAmount;
+          } else {
+              acc.push({ name: month, total: order.totalAmount });
+          }
+          return acc;
+      }, [] as { name: string; total: number }[])
+      .reverse(), [allOrders]);
 
   if (isLoading) {
     return <div className="flex h-full items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;

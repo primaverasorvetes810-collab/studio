@@ -1,8 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useRef, useMemo } from 'react';
-import { collectionGroup, doc, onSnapshot, query, updateDoc } from 'firebase/firestore';
+import { useState, useMemo } from 'react';
 import { useFirestore } from '@/firebase';
 import { Order, OrderStatus, updateOrderStatus } from '@/firebase/orders';
 import {
@@ -22,7 +21,7 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
-import { MoreVertical, Loader2, User, Phone, MapPin, Hash, BellRing } from 'lucide-react';
+import { MoreVertical, Loader2, User, MapPin, Hash } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +40,6 @@ import { useToast } from '@/hooks/use-toast';
 import { cn, formatPrice } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { audioService } from '@/lib/sound';
 
 const statusColors: Record<OrderStatus, string> = {
   Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/30',
@@ -55,91 +53,17 @@ const selectableStatuses: OrderStatus[] = ['Pendente', 'Enviado', 'Entregue'];
 
 type OrderFilterStatus = OrderStatus | 'Todos' | 'Atrasado';
 
-
-function sendNotification(title: string, options: NotificationOptions) {
-  if (!('Notification' in window)) return;
-
-  if (Notification.permission === 'granted') {
-    audioService.playNotificationAlert();
-    new Notification(title, options);
-  } else if (Notification.permission !== 'denied') {
-    Notification.requestPermission().then((permission) => {
-      if (permission === 'granted') {
-        audioService.playNotificationAlert();
-        new Notification(title, options);
-      }
-    });
-  }
+interface OrdersPageProps {
+  allOrders: Order[];
+  isLoading: boolean;
+  isOrderDelayed: (order: Order) => boolean;
 }
 
-export default function OrdersPage() {
-  const [allOrders, setAllOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default function OrdersPage({ allOrders, isLoading, isOrderDelayed }: OrdersPageProps) {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [statusFilter, setStatusFilter] = useState<OrderFilterStatus>('Todos');
   const firestore = useFirestore();
   const { toast } = useToast();
-  const previousOrdersRef = useRef<Order[]>([]);
-
-  useEffect(() => {
-    if (!firestore) return;
-
-    const ordersQuery = collectionGroup(firestore, 'orders');
-    const q = query(ordersQuery);
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        let fetchedOrders: Order[] = [];
-        snapshot.forEach((doc) => {
-            fetchedOrders.push({ id: doc.id, ...doc.data() } as Order);
-        });
-
-        const activeOrders = fetchedOrders.filter(
-            (order) => order.status !== 'Cancelado'
-        );
-        const sortedOrders = activeOrders.sort(
-            (a, b) => b.orderDate.toMillis() - a.orderDate.toMillis()
-        );
-
-        if (previousOrdersRef.current.length > 0) {
-            const previousOrderIds = new Set(previousOrdersRef.current.map(o => o.id));
-            const newOrders = sortedOrders.filter(
-                o => !previousOrderIds.has(o.id) && o.status === 'Pendente'
-            );
-
-            newOrders.forEach(order => {
-                sendNotification('Novo Pedido Recebido!', {
-                    body: `Cliente: ${order.userName}\nTotal: ${formatPrice(order.totalAmount)}`,
-                    icon: '/icons/icon-192x192.png',
-                });
-            });
-        }
-        
-        setAllOrders(sortedOrders);
-        previousOrdersRef.current = sortedOrders;
-        setIsLoading(false);
-    }, (error) => {
-        console.error("Error fetching all orders:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Erro ao carregar pedidos',
-            description: 'Não foi possível buscar os pedidos. Verifique as permissões do Firestore.',
-        });
-        setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-}, [firestore, toast]);
-
-  const isOrderDelayed = (order: Order): boolean => {
-    if (order.status === 'Pendente') {
-      const now = new Date();
-      const orderDate = order.orderDate.toDate();
-      const diffMinutes = (now.getTime() - orderDate.getTime()) / (1000 * 60);
-      return diffMinutes > 30;
-    }
-    return false;
-  };
-
 
   const handleStatusChange = async (
     order: Order,
@@ -172,7 +96,7 @@ export default function OrdersPage() {
         return allOrders.filter(isOrderDelayed);
     }
     return allOrders.filter(order => order.status === statusFilter);
-  }, [statusFilter, allOrders]);
+  }, [statusFilter, allOrders, isOrderDelayed]);
 
 
   if (isLoading) {

@@ -32,7 +32,7 @@ class AudioService {
     
     const audioUrl = 'https://res.cloudinary.com/dh88bfqo0/video/upload/v1773510919/freesound_community-attention_tone_sm30-96953_knaykg.mp3';
     this.audio = new Audio(audioUrl);
-    this.audio.loop = true; // Loop for background music
+    this.audio.loop = true; // Alerts should loop
     this.audio.preload = 'auto';
     this.isInitialized = true;
 
@@ -45,36 +45,26 @@ class AudioService {
       this.emit('pause');
     };
   }
-
-  toggleBackgroundMusic() {
+  
+  play() {
     if (!this.audio) this.initialize();
-    if (this.audio) {
-      if (this.isPlaying) {
-        this.audio.pause();
-      } else {
-        // This click gives the browser permission to play audio.
-        this.audio.play().catch(e => console.error("Error playing background music:", e));
-      }
+    if (this.audio && !this.isPlaying) {
+        // This gives permission and starts playing.
+        this.audio.play().catch(e => console.error("Error playing alert sound:", e));
     }
   }
+  
+  pause() {
+     if (this.audio && this.isPlaying) {
+        this.audio.pause();
+     }
+  }
 
-  playNotificationAlert() {
-    if (!this.audio) this.initialize();
-    
-    if (this.audio) {
-      // If music is already playing, restart it to act as an alert
-      if (this.isPlaying) {
-          this.audio.currentTime = 0;
-          return;
-      }
-      
-      // If it's paused, try to play it.
-      const playPromise = this.audio.play();
-      if (playPromise !== undefined) {
-          playPromise.catch(error => {
-              console.log("Notification sound alert was blocked by the browser. A user interaction is required.");
-          });
-      }
+  toggle() {
+    if (this.isPlaying) {
+        this.pause();
+    } else {
+        this.play();
     }
   }
 }

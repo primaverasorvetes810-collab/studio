@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
-import { Loader2, ShieldAlert, KeyRound, Home, ShoppingCart, Truck, Package, Users, Gift, Settings, LifeBuoy, Image as ImageIcon, Shield, Menu } from 'lucide-react';
+import { Loader2, ShieldAlert, KeyRound, Home, Truck, Package, Users, Gift, Settings, LifeBuoy, Image as ImageIcon, Shield, Menu } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -27,6 +27,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import SettingsPage from '@/components/admin/pages/settings-page';
 import AudioPlayer from '@/components/audio-player';
+import { useAllAdminOrders, type Order } from '@/firebase/orders';
 
 
 type AdminSection = "dashboard" | "orders" | "products" | "clients" | "birthdays" | "carousel" | "settings" | "help";
@@ -52,6 +53,23 @@ export default function AdminGatePage() {
   const { toast } = useToast();
   const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
 
+  const { allOrders, isLoading: areOrdersLoading } = useAllAdminOrders();
+
+  const isOrderDelayed = (order: Order): boolean => {
+    if (order.status === 'Pendente') {
+      const now = new Date();
+      const orderDate = order.orderDate.toDate();
+      const diffMinutes = (now.getTime() - orderDate.getTime()) / (1000 * 60);
+      return diffMinutes > 30;
+    }
+    return false;
+  };
+  
+  const hasPendingOrders = useMemo(() => {
+    return allOrders.some(order => order.status === 'Pendente');
+  }, [allOrders]);
+
+
   const correctPassword = "810Primavera*";
 
   const handlePasswordCheck = () => {
@@ -67,7 +85,6 @@ export default function AdminGatePage() {
                 await setDoc(userRef, { isAdmin: true }, { merge: true });
             } catch (error) {
                 console.error("Falha ao definir a função de administrador:", error);
-                // Não bloqueie a interface do usuário para isso, mas registre-o.
             }
         }
         
@@ -235,8 +252,8 @@ export default function AdminGatePage() {
               </div>
           </header>
           <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
-            {activeSection === 'dashboard' && <DashboardPage />}
-            {activeSection === 'orders' && <OrdersPage />}
+            {activeSection === 'dashboard' && <DashboardPage allOrders={allOrders} isLoading={areOrdersLoading} />}
+            {activeSection === 'orders' && <OrdersPage allOrders={allOrders} isLoading={areOrdersLoading} isOrderDelayed={isOrderDelayed} />}
             {activeSection === 'products' && <ProductsPage />}
             {activeSection === 'clients' && <ClientsPage />}
             {activeSection === 'birthdays' && <BirthdaysPage />}
@@ -246,7 +263,7 @@ export default function AdminGatePage() {
           </main>
         </div>
       </div>
-      <AudioPlayer />
+      <AudioPlayer hasPendingOrders={hasPendingOrders} />
     </TooltipProvider>
   );
 }
