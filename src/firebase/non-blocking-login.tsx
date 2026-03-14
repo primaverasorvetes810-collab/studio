@@ -46,6 +46,7 @@ export function initiateEmailSignUp(authInstance: Auth, data: SignUpData): Promi
         address: data.address,
         neighborhood: data.neighborhood,
         city: data.city,
+        photoURL: user.photoURL || '',
       };
 
       // Inicia a gravação do documento do usuário, mas não bloqueia a promessa principal

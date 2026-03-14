@@ -54,6 +54,7 @@ export default function Header() {
   const navLinks = [
     { href: "/products", label: "Produtos", icon: Package },
     { href: "/orders", label: "Meus Pedidos", icon: Box, requiresAuth: true },
+    { href: "/profile", label: "Meu Perfil", icon: User, requiresAuth: true },
     { href: "/ajuda", label: "Ajuda", icon: HelpCircle },
     { href: "/admin", label: "Admin", icon: Shield },
   ];
@@ -224,6 +225,10 @@ export default function Header() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/profile')}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Meu Perfil</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sair</span>

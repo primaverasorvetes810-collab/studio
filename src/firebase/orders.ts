@@ -53,6 +53,7 @@ export interface User {
     address?: string;
     neighborhood?: string;
     city?: string;
+    photoURL?: string;
 }
 
 export interface Order {
