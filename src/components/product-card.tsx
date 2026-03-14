@@ -16,7 +16,7 @@ import { useUser, useStoreSettings } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { addProductToCart } from "@/firebase/cart";
-import { AlertCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type ProductCardProps = {
   product: Product;
@@ -33,13 +33,8 @@ export function ProductCard({ product }: ProductCardProps) {
   const isStoreOpen = settings?.isOpen ?? true; // Default to open while loading
 
   const handleAddToCart = () => {
-     if (!isStoreOpen) {
-        toast({
-            variant: "destructive",
-            title: "Loja Fechada",
-            description: settings?.notice || "Não estamos aceitando pedidos no momento.",
-        });
-        return;
+    if (!isStoreOpen) {
+      return;
     }
     if (!user) {
       router.push("/login");
@@ -53,7 +48,12 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Card className="group flex h-full flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/20">
+    <Card
+      className={cn(
+        'group flex h-full flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/20',
+        !isStoreOpen && 'grayscale'
+      )}
+    >
       <CardHeader className="p-0">
         <div className="relative aspect-square">
           <Image
@@ -63,12 +63,6 @@ export function ProductCard({ product }: ProductCardProps) {
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             data-ai-hint={imageHint}
           />
-           {!isStoreOpen && (
-              <div className="absolute inset-0 bg-background/70 backdrop-blur-sm flex flex-col items-center justify-center text-center p-2">
-                  <AlertCircle className="h-8 w-8 text-destructive mb-2" />
-                  <p className="text-sm font-semibold text-destructive">Loja Fechada</p>
-              </div>
-          )}
         </div>
       </CardHeader>
       <CardContent className="flex flex-grow flex-col p-3">

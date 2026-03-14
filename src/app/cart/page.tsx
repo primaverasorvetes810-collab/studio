@@ -131,11 +131,6 @@ export default function CartPage() {
 
   const handlePlaceOrder = async () => {
     if (!isStoreOpen) {
-      toast({
-        variant: 'destructive',
-        title: 'Loja Fechada',
-        description: settings?.notice || 'Não é possível finalizar pedidos no momento.',
-      });
       return;
     }
     if (!user || !cartId || cartItems.length === 0) {
