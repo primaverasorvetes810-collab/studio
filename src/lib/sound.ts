@@ -30,7 +30,7 @@ class AudioService {
   initialize() {
     if (this.isInitialized || typeof window === 'undefined') return;
     
-    const audioUrl = 'https://res.cloudinary.com/dh88bfqo0/video/upload/v1773503835/MC_Ryan_SP_MC_Jacar%C3%A9_e_MC_Meno_K_DJ_Japa_NK_e_DJ_Davi_DogDog_-_POSSO_AT%C3%89_N%C3%83O_TE_DAR_FLORES_n5DbjaZMNSE_xy7kk9.mp3';
+    const audioUrl = 'https://res.cloudinary.com/dh88bfqo0/video/upload/v1773510919/freesound_community-attention_tone_sm30-96953_knaykg.mp3';
     this.audio = new Audio(audioUrl);
     this.audio.loop = true; // Loop for background music
     this.audio.preload = 'auto';
@@ -62,17 +62,18 @@ class AudioService {
     if (!this.audio) this.initialize();
     
     if (this.audio) {
-      // Always play from the beginning for an alert
-      this.audio.currentTime = 0;
+      // If music is already playing, restart it to act as an alert
+      if (this.isPlaying) {
+          this.audio.currentTime = 0;
+          return;
+      }
       
-      // If it's paused, play it.
-      if (this.audio.paused) {
-          const playPromise = this.audio.play();
-          if (playPromise !== undefined) {
-              playPromise.catch(error => {
-                  console.log("Notification sound alert was blocked by the browser. A user interaction is required.");
-              });
-          }
+      // If it's paused, try to play it.
+      const playPromise = this.audio.play();
+      if (playPromise !== undefined) {
+          playPromise.catch(error => {
+              console.log("Notification sound alert was blocked by the browser. A user interaction is required.");
+          });
       }
     }
   }
