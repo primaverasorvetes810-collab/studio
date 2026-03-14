@@ -43,6 +43,13 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // --- Store Settings (Public Read, Admin Write) ---
+    // Controls global store status. Everyone can read it, only admins can change it.
+    match /storeSettings/{settingsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // --- User Profile ---
     // Users can create their own profile when they sign up.
     // They can read and update their own profile.

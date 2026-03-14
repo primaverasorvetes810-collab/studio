@@ -49,6 +49,11 @@
         "isAdmin": {
           "type": "boolean",
           "description": "Indicates if the user has administrator privileges."
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "URL of the user's profile picture.",
+          "format": "uri"
         }
       },
       "required": [
@@ -226,17 +231,9 @@
           "type": "string",
           "description": "Payment method used for the order (Pix, Dinheiro, Cartão de Crédito ou Débito)."
         },
-        "subtotal": {
-            "type": "number",
-            "description": "The total amount of the items in the order, before shipping."
-        },
-        "shippingFee": {
-            "type": "number",
-            "description": "The fee charged for shipping the order."
-        },
         "totalAmount": {
           "type": "number",
-          "description": "Total amount of the order (subtotal + shipping)."
+          "description": "Total amount of the order."
         }
       },
       "required": [
@@ -244,8 +241,6 @@
         "userId",
         "orderDate",
         "paymentMethod",
-        "subtotal",
-        "shippingFee",
         "totalAmount"
       ]
     },
@@ -329,7 +324,7 @@
         "status"
       ]
     },
-     "CarouselImage": {
+    "CarouselImage": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "CarouselImage",
       "type": "object",
@@ -359,6 +354,27 @@
         }
       },
       "required": ["id", "imageUrl", "altText", "order"]
+    },
+    "StoreSettings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "StoreSettings",
+      "type": "object",
+      "description": "Contains global settings for the store, like its open/closed status.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the settings document (e.g., 'global')."
+        },
+        "isOpen": {
+          "type": "boolean",
+          "description": "Indicates if the store is open to accept new orders."
+        },
+        "notice": {
+          "type": "string",
+          "description": "An optional message to display to users when the store is closed."
+        }
+      },
+      "required": [ "id", "isOpen" ]
     }
   },
   "auth": {
@@ -533,6 +549,22 @@
             {
               "name": "imageId",
               "description": "The unique identifier for the carousel image."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/storeSettings/{settingsId}",
+        "definition": {
+          "entityName": "StoreSettings",
+          "schema": {
+            "$ref": "#/backend/entities/StoreSettings"
+          },
+          "description": "Stores global settings for the application, like store open/closed status. Expected to contain only a single document with a known ID (e.g., 'global'). Publicly readable, admin writable.",
+          "params": [
+            {
+              "name": "settingsId",
+              "description": "The unique identifier for the settings document, typically 'global'."
             }
           ]
         }

@@ -8,6 +8,7 @@ import Footer from "@/components/layout/footer";
 import { FirebaseClientProvider } from "@/firebase";
 import { ThemeProvider } from "@/components/theme-provider";
 import WhatsAppButton from "@/components/whatsapp-button";
+import StoreClosedBanner from "@/components/store-closed-banner";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -66,6 +67,7 @@ export default function RootLayout({
           <FirebaseClientProvider>
             <div className="relative flex min-h-screen flex-col">
               <Header />
+              <StoreClosedBanner />
               <div className="flex-1">{children}</div>
               <Footer />
             </div>

@@ -7,7 +7,7 @@ import {
   updateCartItemQuantity,
   useCart,
 } from '@/firebase/cart';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useStoreSettings } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice, getProductImageUrl } from '@/lib/utils';
-import { CreditCard, Trash2, Loader2, MapPin } from 'lucide-react';
+import { CreditCard, Trash2, Loader2, MapPin, Info } from 'lucide-react';
 import PageHeader from '@/components/page-header';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
@@ -34,6 +34,7 @@ import { createOrderFromCart, type User as UserProfile } from '@/firebase/orders
 import { useRouter } from 'next/navigation';
 import { calculateShipping } from '@/ai/flows/calculate-shipping-flow';
 import { getDoc, doc } from 'firebase/firestore';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 
 export default function CartPage() {
@@ -52,6 +53,8 @@ export default function CartPage() {
   const [shippingFee, setShippingFee] = useState<number | null>(null);
   const [shippingError, setShippingError] = useState<string | null>(null);
   const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+  const { settings, isLoading: isSettingsLoading } = useStoreSettings();
+  const isStoreOpen = settings?.isOpen ?? true;
 
 
   useEffect(() => {
@@ -127,6 +130,14 @@ export default function CartPage() {
   }
 
   const handlePlaceOrder = async () => {
+    if (!isStoreOpen) {
+      toast({
+        variant: 'destructive',
+        title: 'Loja Fechada',
+        description: settings?.notice || 'Não é possível finalizar pedidos no momento.',
+      });
+      return;
+    }
     if (!user || !cartId || cartItems.length === 0) {
       toast({
         variant: 'destructive',
@@ -167,7 +178,7 @@ export default function CartPage() {
     }
   };
 
-  const isLoading = isUserLoading || isCartLoading || isProfileLoading;
+  const isLoading = isUserLoading || isCartLoading || isProfileLoading || isSettingsLoading;
 
   if (isLoading) {
     return (
@@ -267,6 +278,15 @@ export default function CartPage() {
           </Card>
         </div>
         <div className="w-full lg:w-96">
+           {!isStoreOpen && (
+              <Alert variant="destructive" className="mb-4">
+                  <Info className="h-4 w-4" />
+                  <AlertTitle>Loja Fechada</AlertTitle>
+                  <AlertDescription>
+                      {settings?.notice || 'Não estamos aceitando pedidos no momento.'}
+                  </AlertDescription>
+              </Alert>
+          )}
           <Card>
             <CardHeader>
               <CardTitle>Resumo do Pedido</CardTitle>
@@ -316,7 +336,7 @@ export default function CartPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder || isCalculatingShipping || !paymentMethod}>
+              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder || isCalculatingShipping || !paymentMethod || !isStoreOpen}>
                 {isPlacingOrder ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
