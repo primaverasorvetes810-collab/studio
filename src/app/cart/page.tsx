@@ -72,12 +72,14 @@ export default function CartPage() {
   }, [user, firestore]);
 
   useEffect(() => {
-    if (userProfile?.neighborhood) {
+    if (userProfile?.address && userProfile.neighborhood && userProfile.city) {
       setIsCalculatingShipping(true);
       setShippingError(null);
       setShippingFee(null);
 
-      calculateShipping({ neighborhood: userProfile.neighborhood })
+      const fullAddress = `${userProfile.address}, ${userProfile.neighborhood}, ${userProfile.city}`;
+
+      calculateShipping({ address: fullAddress })
         .then(result => {
           if (result.fee) {
             setShippingFee(result.fee);
@@ -94,7 +96,7 @@ export default function CartPage() {
           setIsCalculatingShipping(false);
         });
     } else if (userProfile) { // User profile loaded, but no address/neighborhood
-        setShippingError('Bairro não cadastrado.');
+        setShippingError('Endereço incompleto.');
         setShippingFee(null);
     }
   }, [userProfile]);
@@ -334,7 +336,7 @@ export default function CartPage() {
           {!userProfile?.address && !isProfileLoading && (
             <Card className="mt-4 border-dashed">
                 <CardContent className="p-4 text-center text-sm text-muted-foreground">
-                    <p>Parece que você não tem um endereço cadastrado.</p>
+                    <p>Parece que você não tem um endereço completo cadastrado.</p>
                     <Button variant="link" asChild className="p-0 h-auto">
                         <Link href="/profile">Atualize seu perfil</Link>
                     </Button>

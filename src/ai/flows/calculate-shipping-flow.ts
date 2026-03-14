@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Calculates shipping cost based on predefined delivery zones by neighborhood.
+ * @fileOverview Calculates shipping cost based on the real travel distance using Google Maps.
  * - calculateShipping - a function that calculates shipping fee.
  * - ShippingInput - The input type for the calculateShipping function.
  * - ShippingOutput - The return type for the calculateShipping function.
@@ -8,14 +8,15 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import axios from 'axios';
 
 const ShippingInputSchema = z.object({
-  neighborhood: z.string().describe("The client's neighborhood for delivery."),
+  address: z.string().describe("The client's full address for delivery."),
 });
 export type ShippingInput = z.infer<typeof ShippingInputSchema>;
 
 const ShippingOutputSchema = z.object({
-  distance: z.number().optional().describe('The distance in kilometers (no longer used).'),
+  distance: z.number().optional().describe('The distance in kilometers.'),
   fee: z.number().optional().describe('The calculated shipping fee.'),
   error: z.string().optional().describe('An error message if calculation fails.'),
 });
@@ -28,37 +29,45 @@ const calculateShippingFlow = ai.defineFlow(
     outputSchema: ShippingOutputSchema,
   },
   async (input) => {
-    // Define your delivery zones and fees here by neighborhood.
-    // The keys are the fee in string format (e.g., "5.00") and the values are arrays of neighborhood names in lowercase.
-    const deliveryZones = {
-        '5.00': ['centro', 'jardim paulista', 'vila progresso', 'jardim faculdade'],
-        '8.00': ['parque campolim', 'jardim américa', 'jardim santa rosalia', 'além ponte'],
-        '12.00': ['jardim simus', 'wanel ville', 'parque são bento', 'cajuru do sul'],
-    };
+    const { address: clientAddress } = input;
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const storeAddress = process.env.STORE_ADDRESS;
 
-    const { neighborhood } = input;
-    
-    // Normalize the client's neighborhood for comparison
-    const clientNeighborhood = neighborhood.trim().toLowerCase();
-    
-    if (!clientNeighborhood) {
-        return { error: 'Bairro inválido.' };
+    if (!apiKey) {
+      console.error('Google Maps API key is not configured.');
+      return { error: 'Erro de configuração do servidor.' };
+    }
+    if (!storeAddress) {
+      console.error('Store address is not configured.');
+      return { error: 'Erro de configuração do servidor.' };
+    }
+    if (!clientAddress) {
+      return { error: 'Endereço do cliente inválido.' };
     }
 
-    // Find the fee for the client's neighborhood
-    let foundFee: number | null = null;
-    for (const fee in deliveryZones) {
-        const neighborhoods = deliveryZones[fee as keyof typeof deliveryZones];
-        if (neighborhoods.includes(clientNeighborhood)) {
-            foundFee = parseFloat(fee);
-            break;
+    try {
+      const url = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${encodeURIComponent(storeAddress)}&destinations=${encodeURIComponent(clientAddress)}&key=${apiKey}`;
+      const response = await axios.get(url);
+
+      const result = response.data.rows[0]?.elements[0];
+
+      if (result?.status === 'OK') {
+        const distanceInMeters = result.distance.value;
+        const distanceInKm = distanceInMeters / 1000;
+        const fee = distanceInKm * 2;
+        
+        return { distance: distanceInKm, fee };
+      } else {
+        const status = result?.status || response.data.status;
+        console.error('Google Maps API Error:', status, response.data.error_message);
+        if (status === 'ZERO_RESULTS' || status === 'NOT_FOUND') {
+            return { error: 'Não foi possível encontrar o endereço.' };
         }
-    }
-
-    if (foundFee !== null) {
-        return { fee: foundFee };
-    } else {
-        return { error: 'Fora da nossa área de entrega.' };
+        return { error: 'Erro ao calcular a distância.' };
+      }
+    } catch (error) {
+      console.error('Error calling Google Maps API:', error);
+      return { error: 'Falha na comunicação com o serviço de mapas.' };
     }
   }
 );
