@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from '@/components/ui/badge';
-import { MoreVertical, Loader2, User, Phone, MapPin, Hash } from 'lucide-react';
+import { MoreVertical, Loader2, User, Phone, MapPin, Hash, BellRing } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,9 +80,15 @@ export default function OrdersPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const previousOrdersRef = useRef<Order[]>([]);
+  const [soundEnabled, setSoundEnabled] = useState(false);
 
   useEffect(() => {
-    initializeAudio();
+    // Sound is considered enabled for the session if we've stored it before.
+    if (sessionStorage.getItem('soundEnabled') === 'true') {
+      setSoundEnabled(true);
+      // We can initialize audio right away if permission was likely granted.
+      initializeAudio();
+    }
   }, []);
 
   useEffect(() => {
@@ -104,7 +110,8 @@ export default function OrdersPage() {
             (a, b) => b.orderDate.toMillis() - a.orderDate.toMillis()
         );
 
-        if (previousOrdersRef.current.length > 0) {
+        // Only trigger notification if sound has been enabled by the user
+        if (previousOrdersRef.current.length > 0 && soundEnabled) {
             const previousOrderIds = new Set(previousOrdersRef.current.map(o => o.id));
             const newOrders = sortedOrders.filter(
                 o => !previousOrderIds.has(o.id) && o.status === 'Pendente'
@@ -132,7 +139,7 @@ export default function OrdersPage() {
     });
 
     return () => unsubscribe();
-}, [firestore, toast]);
+}, [firestore, toast, soundEnabled]); // Add soundEnabled to dependencies
 
   const isOrderDelayed = (order: Order): boolean => {
     if (order.status === 'Pendente') {
@@ -166,6 +173,17 @@ export default function OrdersPage() {
         description: 'Não foi possível alterar o status do pedido.',
       });
     }
+  };
+
+  const handleEnableSound = () => {
+    initializeAudio(); // Make sure the audio element is ready
+    playNotificationSound(); // Play once on user click to get permission
+    sessionStorage.setItem('soundEnabled', 'true');
+    setSoundEnabled(true);
+    toast({
+      title: "Alertas sonoros ativados!",
+      description: "Você ouvirá um som quando novos pedidos chegarem.",
+    });
   };
 
   const filteredOrders = useMemo(() => {
@@ -203,6 +221,23 @@ export default function OrdersPage() {
 
   return (
     <>
+      {!soundEnabled && (
+        <Card className="mb-4 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3 text-amber-900 dark:text-amber-200">
+              <BellRing />
+              Ativar Alertas Sonoros
+            </CardTitle>
+            <CardDescription className="text-amber-800 dark:text-amber-300">
+              Clique no botão para permitir que seu navegador toque o alarme para novos pedidos. 
+              Isso é necessário uma vez por sessão.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={handleEnableSound} variant="secondary" className="bg-amber-200 text-amber-900 hover:bg-amber-300 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700">Ativar Som de Alerta</Button>
+          </CardContent>
+        </Card>
+      )}
       <Card>
         <CardHeader className="p-4">
           <CardTitle className="text-xl md:text-2xl">Sistema de Pedidos</CardTitle>

@@ -7,11 +7,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BookOpen, BarChart2, Truck, Package, Users, Gift, Bell, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useEffect } from 'react';
-import { initializeAudio, playNotificationSound } from '@/lib/sound';
+import { BookOpen, BarChart2, Truck, Package, Users, Gift, Download } from "lucide-react";
 
 const adminFaqs = [
   {
@@ -42,54 +38,6 @@ const adminFaqs = [
 ];
 
 export default function AdminHelpPage() {
-    const { toast } = useToast();
-
-    useEffect(() => {
-        initializeAudio();
-    }, []);
-    
-    const handleTestNotification = () => {
-        // First, play the sound. This click is the user interaction needed to grant permission.
-        playNotificationSound();
-
-        // Then, handle the visual notification permission.
-        if (!("Notification" in window)) {
-          toast({
-            variant: "destructive",
-            title: "Navegador não suportado",
-            description: "Este navegador não suporta notificações de desktop.",
-          });
-          return;
-        }
-    
-        if (Notification.permission === "granted") {
-          new Notification("Primavera Delivery", {
-            body: "Este é um alarme de teste! Se você ouviu o som, está tudo pronto.",
-            icon: "/icons/icon-192x192.png",
-          });
-        } else if (Notification.permission !== "denied") {
-          Notification.requestPermission().then((permission) => {
-            if (permission === "granted") {
-              new Notification("Permissão concedida!", {
-                body: "Agora você pode receber notificações visuais e sonoras.",
-                icon: "/icons/icon-192x192.png",
-              });
-            } else {
-                toast({
-                    title: 'Permissão negada',
-                    description: 'Você não receberá notificações visuais.'
-                });
-            }
-          });
-        } else {
-            toast({
-                variant: "destructive",
-                title: 'Permissão de notificação bloqueada',
-                description: 'Você precisa permitir notificações visuais nas configurações do seu navegador.'
-            });
-        }
-    };
-
   return (
     <div className="space-y-6">
       <Card>
@@ -117,23 +65,6 @@ export default function AdminHelpPage() {
             ))}
           </Accordion>
         </CardContent>
-      </Card>
-
-      <Card>
-          <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                  <Bell className="text-primary" />
-                  Ativar Alertas Sonoros
-              </CardTitle>
-              <CardDescription>
-                  Para que o alarme de novos pedidos toque, seu navegador precisa de permissão. Clique no botão abaixo para ativar e testar o som. **É necessário fazer isso uma vez por sessão de uso do painel.**
-              </CardDescription>
-          </CardHeader>
-          <CardContent>
-              <Button onClick={handleTestNotification}>
-                  Ativar e Testar Alerta
-              </Button>
-          </CardContent>
       </Card>
 
       <Card>
