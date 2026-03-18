@@ -37,9 +37,9 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-config" content="/icons/browserconfig.xml" />
-        <meta name="msapplication-TileColor" content="#f2c58a" />
+        <meta name="msapplication-TileColor" content="#D94A8C" />
         <meta name="msapplication-tap-highlight" content="no" />
-        <meta name="theme-color" content="#f2c58a" />
+        <meta name="theme-color" content="#D94A8C" />
 
         <link rel="preconnect" href="https://studio-3525319952-f1fd9.firebaseapp.com" />
         <link rel="preconnect" href="https://firestore.googleapis.com" />

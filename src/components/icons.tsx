@@ -4,9 +4,9 @@ import type { HTMLAttributes } from "react";
 
 export function PrimaveraLogo(props: HTMLAttributes<HTMLDivElement>) {
   return (
-    <div {...props} className={`relative w-[111px] ${props.className || ''}`}>
+    <div {...props} className={`relative w-32 ${props.className || ''}`}>
       <Image
-        src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773012860/Design_sem_nome-removebg-preview_je8igb.png"
+        src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773874955/logo_primavera_delivery_jcnww8.png"
         alt="Primavera Delivery Logo"
         fill
         priority
