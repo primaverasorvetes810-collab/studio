@@ -8,10 +8,17 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPrice(price: number) {
+  const cents = Math.round((price - Math.floor(price)) * 100);
+  let adjustedPrice = price;
+
+  if (cents === 99 || cents === 98) {
+    adjustedPrice = Math.ceil(price);
+  }
+
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-  }).format(price)
+  }).format(adjustedPrice);
 }
 
 /**
