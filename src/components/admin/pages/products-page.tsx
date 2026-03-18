@@ -6,14 +6,9 @@ import { collection } from 'firebase/firestore';
 import type { Product, ProductGroup } from '@/lib/data/products';
 import { ProductGroupManager } from '../product-group-manager';
 import { ProductForm } from '../product-form';
-import { useToast } from '@/hooks/use-toast';
-import { createProduct, updateProduct, type ProductPayload } from '@/firebase/products';
-
-const GERAL_SUBGROUP_VALUE = '__GERAL__';
 
 export default function ProductsPage() {
   const firestore = useFirestore();
-  const { toast } = useToast();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<WithId<Product> | null>(null);
@@ -24,7 +19,6 @@ export default function ProductsPage() {
     () => (firestore ? collection(firestore, 'products') : null),
     [firestore]
   );
-  // useCollection's onSnapshot listener will handle all UI updates automatically.
   const { data: products } = useCollection<Product>(productsQuery);
 
   const productGroupsQuery = useMemoFirebase(
@@ -57,42 +51,16 @@ export default function ProductsPage() {
 
   const handleFormOpenChange = (open: boolean) => {
     setIsFormOpen(open);
-    // If the form is closing, reset the editing state.
     if (!open) {
       setEditingProduct(null);
       setActiveGroup(null);
     }
   };
 
-  const handleInitiateSave = async (data: ProductPayload) => {
-    if (data.groupId && openAccordion !== data.groupId) {
-      setOpenAccordion(data.groupId);
-    }
-
-    try {
-      const payload: ProductPayload = {
-        ...data,
-        subgroup: data.subgroup === GERAL_SUBGROUP_VALUE ? '' : data.subgroup,
-      };
-
-      if (editingProduct) {
-        await updateProduct(editingProduct.id, payload);
-        toast({ title: 'Sucesso!', description: 'Produto atualizado.' });
-      } else {
-        await createProduct(payload);
-        toast({ title: 'Sucesso!', description: 'Novo produto adicionado.' });
-      }
-
-    } catch (error) {
-      console.error('Save product error:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Erro ao Salvar',
-        description: 'Não foi possível salvar o produto.',
-      });
-    }
-  };
-
+  const handleFormSubmit = () => {
+    setIsFormOpen(false); // Close the dialog
+    // Data will be re-fetched automatically by useCollection
+  }
 
   return (
     <>
@@ -112,7 +80,7 @@ export default function ProductsPage() {
           product={editingProduct}
           parentGroup={activeGroup}
           onOpenChange={handleFormOpenChange}
-          onInitiateSave={handleInitiateSave}
+          onFormSubmit={handleFormSubmit}
         />
       )}
     </>
