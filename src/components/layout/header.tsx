@@ -213,7 +213,7 @@ export default function Header() {
             className="inline-flex"
           >
             <Link href="/cart">
-              <ShoppingCart className="h-7 w-7" />
+              <ShoppingCart className="h-10 w-10" />
               <span className="sr-only">Carrinho de Compras</span>
             </Link>
           </Button>
