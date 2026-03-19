@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -54,10 +55,10 @@ export function CartDrawer() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="inline-flex relative">
+        <Button variant="ghost" className="relative h-14 w-14 rounded-full">
           <ShoppingCart className="h-10 w-10" />
           {totalItems > 0 && (
-            <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            <span className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
               {totalItems}
             </span>
           )}
