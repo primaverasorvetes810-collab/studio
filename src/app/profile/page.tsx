@@ -20,6 +20,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, Camera, User as UserIcon } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import type { User } from '@/firebase/orders';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { allowedNeighborhoods } from '@/lib/data/shipping-neighborhoods';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const profileSchema = z.object({
   fullName: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
@@ -255,12 +258,27 @@ export default function ProfilePage() {
                     name="neighborhood"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Bairro</FormLabel>
-                        <FormControl><Input {...field} /></FormControl>
-                        <FormMessage />
+                            <FormLabel>Bairro</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Selecione seu bairro" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <ScrollArea className="h-72">
+                                        {allowedNeighborhoods.map((neighborhood) => (
+                                            <SelectItem key={neighborhood} value={neighborhood}>
+                                            {neighborhood}
+                                            </SelectItem>
+                                        ))}
+                                    </ScrollArea>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
                         </FormItem>
                     )}
-                 />
+                    />
                  <FormField
                     control={form.control}
                     name="city"

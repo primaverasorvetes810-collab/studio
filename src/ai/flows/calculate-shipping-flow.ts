@@ -8,10 +8,10 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { allowedNeighborhoods } from '@/lib/data/shipping-neighborhoods';
 
 const ShippingInputSchema = z.object({
-  // This input is no longer used but kept for API compatibility.
-  neighborhood: z.string().optional().describe("The client's neighborhood for delivery."),
+  neighborhood: z.string().describe("The client's neighborhood for delivery."),
 });
 export type ShippingInput = z.infer<typeof ShippingInputSchema>;
 
@@ -21,6 +21,10 @@ const ShippingOutputSchema = z.object({
 });
 export type ShippingOutput = z.infer<typeof ShippingOutputSchema>;
 
+const normalizeString = (str: string) => {
+    return str.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 const calculateShippingFlow = ai.defineFlow(
   {
     name: 'calculateShippingFlow',
@@ -28,8 +32,18 @@ const calculateShippingFlow = ai.defineFlow(
     outputSchema: ShippingOutputSchema,
   },
   async (input) => {
-    // Returns a fixed shipping fee of 10.
-    return { fee: 10.00 };
+    if (!input.neighborhood) {
+        return { fee: 0, error: 'Bairro não informado.' };
+    }
+
+    const normalizedInput = normalizeString(input.neighborhood);
+    const isAllowed = allowedNeighborhoods.some(n => normalizeString(n) === normalizedInput);
+    
+    if (isAllowed) {
+      return { fee: 10.00 };
+    } else {
+      return { fee: 0, error: 'Não entregamos neste bairro.' };
+    }
   }
 );
 

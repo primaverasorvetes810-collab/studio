@@ -76,27 +76,35 @@ export default function CartPage() {
   }, [user, firestore]);
 
   useEffect(() => {
-    // This effect calculates the flat shipping fee once on mount.
+    if (isProfileLoading) return;
+
     setIsCalculatingShipping(true);
     setShippingError(null);
-    calculateShipping({ neighborhood: '' }) // Dummy data for compatibility
+    setShippingFee(null);
+
+    if (!userProfile?.neighborhood) {
+        setIsCalculatingShipping(false);
+        return;
+    }
+
+    calculateShipping({ neighborhood: userProfile.neighborhood })
       .then(result => {
-        if (result.fee !== undefined) {
+        if (result.fee !== undefined && !result.error) {
           setShippingFee(result.fee);
           setShippingError(null);
         } else {
-          setShippingError(result.error || 'Não foi possível calcular o frete.');
+          setShippingError(result.error || 'Não é possível entregar neste bairro.');
           setShippingFee(null);
         }
       })
       .catch(() => {
-        setShippingError('Falha ao obter o frete.');
+        setShippingError('Falha ao calcular o frete.');
         setShippingFee(null);
       })
       .finally(() => {
         setIsCalculatingShipping(false);
       });
-  }, []); // Run once on mount
+}, [userProfile, isProfileLoading]);
 
   const isProfileIncomplete = !userProfile?.address || !userProfile?.neighborhood || !userProfile?.city;
 
@@ -104,10 +112,10 @@ export default function CartPage() {
     (acc, item) => acc + item.product.price * item.quantity,
     0
   );
-  const total = shippingFee !== null ? subtotal + shippingFee : subtotal;
+  const total = subtotal + (shippingFee || 0);
 
   const handleRemoveItem = (cartItemId: string) => {
-    if (!user || !cartId) return;
+    if (!user || !cartId || !isStoreOpen) return;
     removeProductFromCart(user.uid, cartId, cartItemId);
     toast({
       title: 'Item removido!',
@@ -116,7 +124,7 @@ export default function CartPage() {
   };
 
   const handleQuantityChange = (cartItemId: string, newQuantity: number) => {
-    if (!user || !cartId || newQuantity < 1) return;
+    if (!user || !cartId || newQuantity < 1 || !isStoreOpen) return;
     updateCartItemQuantity(user.uid, cartId, cartItemId, newQuantity);
   };
 
@@ -132,11 +140,6 @@ export default function CartPage() {
       return;
     }
     if (!user || !cartId || cartItems.length === 0) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro no pedido',
-        description: 'Seu carrinho está vazio.',
-      });
       return;
     }
      if (!paymentMethod) {
@@ -147,27 +150,34 @@ export default function CartPage() {
       });
       return;
     }
-    if (shippingFee === null) {
+    if (isProfileIncomplete) {
+        toast({
+            variant: 'destructive',
+            title: 'Endereço Incompleto',
+            description: 'Por favor, atualize seu perfil com seu endereço completo para continuar.',
+        });
+        return;
+    }
+    if (shippingError) {
+        toast({
+            variant: 'destructive',
+            title: 'Erro na Entrega',
+            description: shippingError,
+        });
+        return;
+    }
+    if (subtotal > 0 && shippingFee === null) {
       toast({
         variant: 'destructive',
         title: 'Erro no Frete',
-        description: shippingError || 'Não foi possível calcular o frete.',
+        description: 'Ainda não foi possível calcular o frete para seu endereço.',
       });
       return;
     }
-    if (isProfileIncomplete) {
-      toast({
-        variant: 'destructive',
-        title: 'Endereço Incompleto',
-        description: 'Por favor, atualize seu perfil com seu endereço completo para continuar.',
-      });
-      return;
-    }
-
 
     setIsPlacingOrder(true);
     try {
-      await createOrderFromCart(user, cartId, cartItems, paymentMethod, shippingFee);
+      await createOrderFromCart(user, cartId, cartItems, paymentMethod, shippingFee || 0);
       playSuccessSound();
       toast({
         title: 'Pedido realizado!',
@@ -281,7 +291,7 @@ export default function CartPage() {
             </CardContent>
           </Card>
         </div>
-        <div className="w-full lg:w-96">
+        <div className="w-full lg:w-96 space-y-4">
            {!isStoreOpen && (
               <Alert variant="destructive" className="mb-4">
                   <Info className="h-4 w-4" />
@@ -291,7 +301,32 @@ export default function CartPage() {
                   </AlertDescription>
               </Alert>
           )}
-          <Card>
+
+           {isProfileIncomplete && !isProfileLoading && (
+            <Alert variant="default" className="border-primary/50">
+                <MapPin className="h-4 w-4" />
+                <AlertTitle>Endereço Incompleto</AlertTitle>
+                <AlertDescription>
+                    Seu endereço de entrega parece incompleto.
+                    <Link href="/profile" className="font-bold underline ml-1">
+                        Atualize seu perfil
+                    </Link>
+                     .
+                </AlertDescription>
+            </Alert>
+          )}
+
+           {shippingError && !isProfileIncomplete && (
+            <Alert variant="destructive">
+                <Info className="h-4 w-4" />
+                <AlertTitle>Fora da Área de Entrega</AlertTitle>
+                <AlertDescription>
+                    {shippingError}
+                </AlertDescription>
+            </Alert>
+          )}
+
+          <Card className={cn((isProfileIncomplete || !!shippingError) && 'opacity-60 pointer-events-none')}>
             <CardHeader>
               <CardTitle>Resumo do Pedido</CardTitle>
             </CardHeader>
@@ -305,13 +340,15 @@ export default function CartPage() {
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   Taxa de Entrega
                 </span>
-                {isCalculatingShipping ? (
+                 {isCalculatingShipping ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : shippingError ? (
                   <span className="text-sm text-right font-semibold text-destructive">{shippingError}</span>
                 ) : shippingFee !== null ? (
                   <span>{formatPrice(shippingFee)}</span>
-                ) : null}
+                ) : (
+                  <span className="text-sm text-muted-foreground">--</span>
+                )}
               </div>
               <Separator />
               <div className="flex justify-between font-bold">
@@ -340,7 +377,7 @@ export default function CartPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder || isCalculatingShipping || !paymentMethod || !isStoreOpen || isProfileIncomplete}>
+              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder || isCalculatingShipping || !paymentMethod || !isStoreOpen || isProfileIncomplete || !!shippingError}>
                 {isPlacingOrder ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -355,17 +392,6 @@ export default function CartPage() {
               </Button>
             </CardFooter>
           </Card>
-          {isProfileIncomplete && !isProfileLoading && (
-            <Card className="mt-4 border-dashed">
-                <CardContent className="p-4 text-center text-sm text-muted-foreground">
-                    <p>Seu endereço de entrega está incompleto.</p>
-                    <Button variant="link" asChild className="p-0 h-auto">
-                        <Link href="/profile">Atualize seu perfil</Link>
-                    </Button>
-                     para finalizar o pedido.
-                </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>

@@ -25,6 +25,15 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth, initiateEmailSignUp } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { allowedNeighborhoods } from "@/lib/data/shipping-neighborhoods";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const registerSchema = z.object({
   fullName: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres." }),
@@ -180,9 +189,22 @@ export default function LoginPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bairro</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Centro" {...field} />
-                  </FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecione seu bairro" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <ScrollArea className="h-72">
+                              {allowedNeighborhoods.map((neighborhood) => (
+                                  <SelectItem key={neighborhood} value={neighborhood}>
+                                  {neighborhood}
+                                  </SelectItem>
+                              ))}
+                          </ScrollArea>
+                        </SelectContent>
+                    </Select>
                   <FormMessage />
                 </FormItem>
               )}
