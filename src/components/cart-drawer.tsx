@@ -15,7 +15,7 @@ import { useCart, removeProductFromCart, updateCartItemQuantity } from '@/fireba
 import { useUser, useStoreSettings } from '@/firebase';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice, getProductImageUrl } from '@/lib/utils';
-import { ShoppingCart, Trash2, Loader2, Minus, Plus } from 'lucide-react';
+import { Trash2, Loader2, Minus, Plus } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -55,10 +55,15 @@ export function CartDrawer() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" className="relative h-16 w-16 rounded-full">
-          <ShoppingCart className="h-12 w-12" />
+        <Button variant="ghost" className="relative h-20 w-20 rounded-full">
+          <Image
+            src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773962015/Design_sem_nome__1_-removebg-preview_xvnfog.png"
+            alt="Carrinho de Compras"
+            fill
+            className="object-contain"
+          />
           {totalItems > 0 && (
-            <span className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-base font-bold text-primary-foreground">
+            <span className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
               {totalItems}
             </span>
           )}
@@ -76,7 +81,14 @@ export function CartDrawer() {
           </div>
         ) : cartItems.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-            <ShoppingCart className="h-16 w-16 text-muted-foreground" />
+            <div className="relative h-24 w-24 text-muted-foreground">
+                 <Image
+                    src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773962015/Design_sem_nome__1_-removebg-preview_xvnfog.png"
+                    alt="Carrinho de Compras Vazio"
+                    fill
+                    className="object-contain opacity-50"
+                  />
+            </div>
             <p className="font-semibold">Seu carrinho está vazio</p>
             <SheetClose asChild>
                 <Button asChild>
