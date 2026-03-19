@@ -55,10 +55,10 @@ export function CartDrawer() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" className="relative h-14 w-14 rounded-full">
-          <ShoppingCart className="h-10 w-10" />
+        <Button variant="ghost" className="relative h-16 w-16 rounded-full">
+          <ShoppingCart className="h-12 w-12" />
           {totalItems > 0 && (
-            <span className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+            <span className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-base font-bold text-primary-foreground">
               {totalItems}
             </span>
           )}
