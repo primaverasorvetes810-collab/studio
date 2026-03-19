@@ -9,7 +9,7 @@ export default function WhatsAppButton() {
       href="https://api.whatsapp.com/send?phone=5515996443440"
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-50 group"
+      className="fixed bottom-6 right-6 z-30 group"
       aria-label="Entre em contato via WhatsApp"
     >
       <div className="relative w-20 h-20 transition-transform duration-300 group-hover:scale-110">
