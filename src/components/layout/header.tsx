@@ -1,7 +1,7 @@
-
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { PrimaveraLogo } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,6 @@ import {
   ShoppingCart,
   User,
   LogOut,
-  Menu,
   Package,
   Box,
   HelpCircle,
@@ -72,7 +71,13 @@ export default function Header() {
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-6 w-6" />
+                <Image
+                  src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773958646/Delivery__5_-removebg-preview_tbxaii.png"
+                  alt="Abrir menu"
+                  width={24}
+                  height={24}
+                  className="object-contain"
+                />
                 <span className="sr-only">Abrir menu</span>
               </Button>
             </SheetTrigger>
