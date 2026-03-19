@@ -8,7 +8,6 @@ import Footer from "@/components/layout/footer";
 import { FirebaseClientProvider } from "@/firebase";
 import { ThemeProvider } from "@/components/theme-provider";
 import WhatsAppButton from "@/components/whatsapp-button";
-import StoreClosedBanner from "@/components/store-closed-banner";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -37,9 +36,9 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-config" content="/icons/browserconfig.xml" />
-        <meta name="msapplication-TileColor" content="#D94A8C" />
+        <meta name="msapplication-TileColor" content="#FF4D6D" />
         <meta name="msapplication-tap-highlight" content="no" />
-        <meta name="theme-color" content="#D94A8C" />
+        <meta name="theme-color" content="#FFF5E6" />
 
         <link rel="preconnect" href="https://studio-3525319952-f1fd9.firebaseapp.com" />
         <link rel="preconnect" href="https://firestore.googleapis.com" />
@@ -67,7 +66,6 @@ export default function RootLayout({
           <FirebaseClientProvider>
             <div className="relative flex min-h-screen flex-col">
               <Header />
-              <StoreClosedBanner />
               <div className="flex-1">{children}</div>
               <Footer />
             </div>
