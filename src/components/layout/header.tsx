@@ -42,26 +42,15 @@ export default function Header() {
   const auth = useAuth();
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-
-    if (isMounted) {
-      window.addEventListener("scroll", handleScroll);
-      handleScroll(); // Check on mount
-    }
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [isMounted]);
+    handleScroll(); // Set initial state
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
 
   const handleSignOut = async () => {
@@ -90,7 +79,7 @@ export default function Header() {
   return (
     <header className={cn(
       "sticky top-0 z-40 w-full transition-colors duration-300",
-      isMounted && isScrolled ? "border-b bg-background/80 backdrop-blur-sm" : "border-b border-transparent"
+      isScrolled ? "border-b bg-background/80 backdrop-blur-sm" : "border-b border-transparent"
     )}>
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
