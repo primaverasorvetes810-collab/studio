@@ -53,7 +53,7 @@ export default function CartPage() {
   
   const [shippingFee, setShippingFee] = useState<number | null>(null);
   const [shippingError, setShippingError] = useState<string | null>(null);
-  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(true);
   const { settings, isLoading: isSettingsLoading } = useStoreSettings();
   const isStoreOpen = settings?.isOpen ?? true;
 
@@ -76,32 +76,29 @@ export default function CartPage() {
   }, [user, firestore]);
 
   useEffect(() => {
-    if (userProfile?.neighborhood) {
-      setIsCalculatingShipping(true);
-      setShippingError(null);
-      setShippingFee(null);
-
-      calculateShipping({ neighborhood: userProfile.neighborhood })
-        .then(result => {
-          if (result.fee !== undefined) {
-            setShippingFee(result.fee);
-          } else {
-            setShippingError(result.error || 'Erro desconhecido.');
-            setShippingFee(null);
-          }
-        })
-        .catch(err => {
-          setShippingError('Falha na comunicação.');
+    // This effect calculates the flat shipping fee once on mount.
+    setIsCalculatingShipping(true);
+    setShippingError(null);
+    calculateShipping({ neighborhood: '' }) // Dummy data for compatibility
+      .then(result => {
+        if (result.fee !== undefined) {
+          setShippingFee(result.fee);
+          setShippingError(null);
+        } else {
+          setShippingError(result.error || 'Não foi possível calcular o frete.');
           setShippingFee(null);
-        })
-        .finally(() => {
-          setIsCalculatingShipping(false);
-        });
-    } else if (userProfile) { // User profile loaded, but no neighborhood
-        setShippingError('Bairro não cadastrado.');
+        }
+      })
+      .catch(() => {
+        setShippingError('Falha ao obter o frete.');
         setShippingFee(null);
-    }
-  }, [userProfile]);
+      })
+      .finally(() => {
+        setIsCalculatingShipping(false);
+      });
+  }, []); // Run once on mount
+
+  const isProfileIncomplete = !userProfile?.address || !userProfile?.neighborhood || !userProfile?.city;
 
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.product.price * item.quantity,
@@ -154,10 +151,19 @@ export default function CartPage() {
       toast({
         variant: 'destructive',
         title: 'Erro no Frete',
-        description: shippingError || 'Não foi possível calcular o frete. Verifique seu endereço de cadastro.',
+        description: shippingError || 'Não foi possível calcular o frete.',
       });
       return;
     }
+    if (isProfileIncomplete) {
+      toast({
+        variant: 'destructive',
+        title: 'Endereço Incompleto',
+        description: 'Por favor, atualize seu perfil com seu endereço completo para continuar.',
+      });
+      return;
+    }
+
 
     setIsPlacingOrder(true);
     try {
@@ -334,7 +340,7 @@ export default function CartPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder || isCalculatingShipping || !paymentMethod || !isStoreOpen}>
+              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder || isCalculatingShipping || !paymentMethod || !isStoreOpen || isProfileIncomplete}>
                 {isPlacingOrder ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -349,14 +355,14 @@ export default function CartPage() {
               </Button>
             </CardFooter>
           </Card>
-          {!userProfile?.neighborhood && !isProfileLoading && (
+          {isProfileIncomplete && !isProfileLoading && (
             <Card className="mt-4 border-dashed">
                 <CardContent className="p-4 text-center text-sm text-muted-foreground">
-                    <p>Seu bairro não está cadastrado.</p>
+                    <p>Seu endereço de entrega está incompleto.</p>
                     <Button variant="link" asChild className="p-0 h-auto">
                         <Link href="/profile">Atualize seu perfil</Link>
                     </Button>
-                     para calcular o frete.
+                     para finalizar o pedido.
                 </CardContent>
             </Card>
           )}
