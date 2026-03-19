@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -83,7 +82,7 @@ export default function Header() {
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
                 <Image
-                  src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773962848/Delivery__6_-removebg-preview_clakf0.png"
+                  src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773962848/Design_sem_nome__2_-removebg-preview_i3n025.png"
                   alt="Abrir menu"
                   width={24}
                   height={24}
