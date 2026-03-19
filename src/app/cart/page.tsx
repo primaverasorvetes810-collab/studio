@@ -230,157 +230,159 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <PageHeader title="Carrinho de Compras" />
-      <div className="mt-8 flex flex-col lg:flex-row gap-8 pb-32">
-        <div className="flex-1">
-          <Card>
-            <CardContent className={cn("p-6", !isStoreOpen && 'grayscale')}>
-              <ul className="divide-y divide-border">
-                {cartItems.map((item) => {
-                  const imageUrl = getProductImageUrl(item.product);
-                  const imageHint = item.product.name;
-                  return (
-                     <li key={item.id} className="flex items-start gap-4 py-4">
-                      <div className="relative h-24 w-24 flex-shrink-0 self-start overflow-hidden rounded-md">
-                        <Image
-                          src={imageUrl}
-                          alt={item.product.name}
-                          fill
-                          className="object-cover"
-                          data-ai-hint={imageHint}
-                        />
-                      </div>
-                      <div className="flex-1 flex flex-col min-w-0">
-                        <div>
-                          <h3 className="font-semibold break-words">{item.product.name}</h3>
-                           <p className="text-sm font-medium text-muted-foreground">
-                            {formatPrice(item.product.price)}
-                          </p>
+    <>
+      <div className="container mx-auto px-4 py-8">
+        <PageHeader title="Carrinho de Compras" />
+        <div className="mt-8 flex flex-col lg:flex-row gap-8 pb-32">
+          <div className="flex-1">
+            <Card>
+              <CardContent className={cn("p-6", !isStoreOpen && 'grayscale')}>
+                <ul className="divide-y divide-border">
+                  {cartItems.map((item) => {
+                    const imageUrl = getProductImageUrl(item.product);
+                    const imageHint = item.product.name;
+                    return (
+                      <li key={item.id} className="flex items-start gap-4 py-4">
+                        <div className="relative h-24 w-24 flex-shrink-0 self-start overflow-hidden rounded-md">
+                          <Image
+                            src={imageUrl}
+                            alt={item.product.name}
+                            fill
+                            className="object-cover"
+                            data-ai-hint={imageHint}
+                          />
                         </div>
-
-                        <div className="mt-2 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                             <Input
-                              type="number"
-                              value={item.quantity}
-                              onChange={(e) =>
-                                handleQuantityChange(item.id, parseInt(e.target.value))
-                              }
-                              min={1}
-                              className="h-8 w-16"
-                              disabled={!isStoreOpen}
-                            />
+                        <div className="flex-1 flex flex-col min-w-0">
+                          <div>
+                            <h3 className="font-semibold break-words">{item.product.name}</h3>
+                            <p className="text-sm font-medium text-muted-foreground">
+                              {formatPrice(item.product.price)}
+                            </p>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-muted-foreground hover:text-destructive"
-                            onClick={() => handleRemoveItem(item.id)}
-                            disabled={!isStoreOpen}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                             <span className="sr-only">Remover item</span>
-                          </Button>
+
+                          <div className="mt-2 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                value={item.quantity}
+                                onChange={(e) =>
+                                  handleQuantityChange(item.id, parseInt(e.target.value))
+                                }
+                                min={1}
+                                className="h-8 w-16"
+                                disabled={!isStoreOpen}
+                              />
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-muted-foreground hover:text-destructive"
+                              onClick={() => handleRemoveItem(item.id)}
+                              disabled={!isStoreOpen}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Remover item</span>
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="w-full lg:w-96 space-y-4">
-           {!isStoreOpen && (
-              <Alert variant="destructive" className="mb-4">
-                  <Info className="h-4 w-4" />
-                  <AlertTitle>Loja Fechada</AlertTitle>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="w-full lg:w-96 space-y-4">
+            {!isStoreOpen && (
+                <Alert variant="destructive" className="mb-4">
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Loja Fechada</AlertTitle>
+                    <AlertDescription>
+                        {settings?.notice || 'Não estamos aceitando pedidos no momento.'}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {isProfileIncomplete && !isProfileLoading && (
+              <Alert variant="default" className="border-primary/50">
+                  <MapPin className="h-4 w-4" />
+                  <AlertTitle>Endereço Incompleto</AlertTitle>
                   <AlertDescription>
-                      {settings?.notice || 'Não estamos aceitando pedidos no momento.'}
+                      Seu endereço de entrega parece incompleto.
+                      <Link href="/profile" className="font-bold underline ml-1">
+                          Atualize seu perfil
+                      </Link>
+                      .
                   </AlertDescription>
               </Alert>
-          )}
+            )}
 
-           {isProfileIncomplete && !isProfileLoading && (
-            <Alert variant="default" className="border-primary/50">
-                <MapPin className="h-4 w-4" />
-                <AlertTitle>Endereço Incompleto</AlertTitle>
-                <AlertDescription>
-                    Seu endereço de entrega parece incompleto.
-                    <Link href="/profile" className="font-bold underline ml-1">
-                        Atualize seu perfil
-                    </Link>
-                     .
-                </AlertDescription>
-            </Alert>
-          )}
+            {shippingError && !isProfileIncomplete && (
+              <Alert variant="destructive">
+                  <Info className="h-4 w-4" />
+                  <AlertTitle>Fora da Área de Entrega</AlertTitle>
+                  <AlertDescription>
+                      {shippingError}
+                  </AlertDescription>
+              </Alert>
+            )}
 
-           {shippingError && !isProfileIncomplete && (
-            <Alert variant="destructive">
-                <Info className="h-4 w-4" />
-                <AlertTitle>Fora da Área de Entrega</AlertTitle>
-                <AlertDescription>
-                    {shippingError}
-                </AlertDescription>
-            </Alert>
-          )}
-
-          <Card className={cn((isProfileIncomplete || !!shippingError) && 'opacity-60 pointer-events-none')}>
-            <CardHeader>
-              <CardTitle>Resumo do Pedido</CardTitle>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-               <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>{formatPrice(subtotal)}</span>
-              </div>
-              <div className="flex justify-between items-center min-h-[24px]">
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  Taxa de Entrega
-                </span>
-                 {isCalculatingShipping ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : shippingError ? (
-                  <span className="text-sm text-right font-semibold text-destructive">{shippingError}</span>
-                ) : shippingFee !== null ? (
-                  <span>{formatPrice(shippingFee)}</span>
-                ) : (
-                  <span className="text-sm text-muted-foreground">--</span>
-                )}
-              </div>
-              <Separator />
-              <div className="flex justify-between font-bold">
-                <span>Total</span>
-                <span>{formatPrice(total)}</span>
-              </div>
-              <div className="grid gap-2">
-                <label
-                  htmlFor="payment-method"
-                  className="text-sm font-medium"
-                >
-                  Forma de Pagamento
-                </label>
-                <Select onValueChange={setPaymentMethod} value={paymentMethod} disabled={!isStoreOpen}>
-                  <SelectTrigger id="payment-method">
-                    <SelectValue placeholder="Selecione um método" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Pix">Pix</SelectItem>
-                    <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                    <SelectItem value="Cartão de Crédito ou Débito">
-                      Cartão de Crédito/Débito
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+            <Card className={cn((isProfileIncomplete || !!shippingError) && 'opacity-60 pointer-events-none')}>
+              <CardHeader>
+                <CardTitle>Resumo do Pedido</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>{formatPrice(subtotal)}</span>
+                </div>
+                <div className="flex justify-between items-center min-h-[24px]">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    Taxa de Entrega
+                  </span>
+                  {isCalculatingShipping ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : shippingError ? (
+                    <span className="text-sm text-right font-semibold text-destructive">{shippingError}</span>
+                  ) : shippingFee !== null ? (
+                    <span>{formatPrice(shippingFee)}</span>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">--</span>
+                  )}
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold">
+                  <span>Total</span>
+                  <span>{formatPrice(total)}</span>
+                </div>
+                <div className="grid gap-2">
+                  <label
+                    htmlFor="payment-method"
+                    className="text-sm font-medium"
+                  >
+                    Forma de Pagamento
+                  </label>
+                  <Select onValueChange={setPaymentMethod} value={paymentMethod} disabled={!isStoreOpen}>
+                    <SelectTrigger id="payment-method">
+                      <SelectValue placeholder="Selecione um método" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pix">Pix</SelectItem>
+                      <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                      <SelectItem value="Cartão de Crédito ou Débito">
+                        Cartão de Crédito/Débito
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-       {cartItems.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-background via-background/95 to-transparent p-4 pt-12">
+      {cartItems.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-background via-background/95 to-transparent p-4 pt-12">
           <div className="container mx-auto max-w-2xl">
             <Button
               size="lg"
@@ -400,6 +402,6 @@ export default function CartPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
