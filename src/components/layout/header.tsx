@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  ShoppingCart,
   User,
   LogOut,
   Package,
@@ -37,6 +36,7 @@ import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { CartDrawer } from "@/components/cart-drawer";
 
 export default function Header() {
   const { user, isUserLoading } = useUser();
@@ -206,17 +206,7 @@ export default function Header() {
 
         {/* Right side icons */}
         <div className="flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="inline-flex"
-          >
-            <Link href="/cart">
-              <ShoppingCart className="h-10 w-10" />
-              <span className="sr-only">Carrinho de Compras</span>
-            </Link>
-          </Button>
+          <CartDrawer />
 
           {isUserLoading ? (
             <div className="hidden h-8 w-8 animate-pulse rounded-full bg-muted md:block" />
