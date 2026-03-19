@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -42,12 +43,14 @@ export default function Header() {
   const auth = useAuth();
   const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
     };
-    handleScroll(); // Set initial state
+    handleScroll();
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -79,7 +82,7 @@ export default function Header() {
   return (
     <header className={cn(
       "sticky top-0 z-40 w-full transition-colors duration-300",
-      isScrolled ? "border-b bg-background/80 backdrop-blur-sm" : "border-b border-transparent"
+      isMounted && isScrolled ? "border-b bg-background/80 backdrop-blur-sm" : "border-b border-transparent"
     )}>
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
