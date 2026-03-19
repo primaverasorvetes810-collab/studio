@@ -232,7 +232,7 @@ export default function CartPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <PageHeader title="Carrinho de Compras" />
-      <div className="mt-8 flex flex-col lg:flex-row gap-8">
+      <div className="mt-8 flex flex-col lg:flex-row gap-8 pb-32">
         <div className="flex-1">
           <Card>
             <CardContent className={cn("p-6", !isStoreOpen && 'grayscale')}>
@@ -376,24 +376,30 @@ export default function CartPage() {
                 </Select>
               </div>
             </CardContent>
-            <CardFooter>
-              <Button className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder || isCalculatingShipping || !paymentMethod || !isStoreOpen || isProfileIncomplete || !!shippingError}>
-                {isPlacingOrder ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Finalizando...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Finalizar Pedido
-                  </>
-                )}
-              </Button>
-            </CardFooter>
           </Card>
         </div>
       </div>
+       {cartItems.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-background via-background/95 to-transparent p-4 pt-12">
+          <div className="container mx-auto max-w-2xl">
+            <Button
+              size="lg"
+              className="w-full h-16 text-xl font-bold animate-pulse-deep shadow-2xl shadow-primary/30 flex justify-between items-center"
+              onClick={handlePlaceOrder}
+              disabled={isPlacingOrder || isCalculatingShipping || !paymentMethod || !isStoreOpen || isProfileIncomplete || !!shippingError}
+            >
+              <span>
+                {isPlacingOrder ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                  'Finalizar Pedido'
+                )}
+              </span>
+              <span>{formatPrice(total)}</span>
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

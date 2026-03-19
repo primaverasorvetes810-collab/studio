@@ -57,3 +57,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .animate-pulse-deep {
+    animation: pulse-deep 2.5s infinite;
+  }
+  @keyframes pulse-deep {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 hsla(var(--primary), 0.5);
+    }
+    50% {
+      transform: scale(1.025);
+      box-shadow: 0 0 0 15px hsla(var(--primary), 0);
+    }
+  }
+}
