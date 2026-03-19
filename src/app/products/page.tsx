@@ -3,14 +3,21 @@
 import { useMemo } from 'react';
 import PageHeader from '@/components/page-header';
 import { ProductCard } from '@/components/product-card';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import type { Product, ProductGroup } from '@/lib/data/products';
 import { collection, query, orderBy, where } from 'firebase/firestore';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ShoppingCart } from 'lucide-react';
 import HomeCarousel from '@/components/home-carousel';
+import { useCart } from '@/firebase/cart';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { formatPrice } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 export default function ProductsPage() {
   const firestore = useFirestore();
+  const { user } = useUser();
+  const { cartItems, isLoading: isCartLoading } = useCart(user?.uid);
 
   // 1. Fetch all groups and all active products once
   const productGroupsQuery = useMemoFirebase(() => {
@@ -59,9 +66,13 @@ export default function ProductsPage() {
   }, [productGroups, allProducts]);
 
   const isLoading = isLoadingGroups || isLoadingProducts;
+  
+  const totalItems = useMemo(() => cartItems.reduce((acc, item) => acc + item.quantity, 0), [cartItems]);
+  const subtotal = useMemo(() => cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0), [cartItems]);
+
 
   return (
-    <div>
+    <div className="pb-32">
       <HomeCarousel />
       <div className="container mx-auto px-4 py-8">
         <div className="my-8">
@@ -104,6 +115,25 @@ export default function ProductsPage() {
           </div>
         )}
       </div>
+      {totalItems > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-background via-background/95 to-transparent p-4 pt-12">
+          <div className="container mx-auto max-w-2xl">
+              <Button
+                asChild
+                size="lg"
+                className="w-full h-16 text-xl font-bold animate-pulse-deep shadow-2xl shadow-primary/30 flex justify-between items-center"
+              >
+                <Link href="/cart">
+                    <div className="flex items-center gap-3">
+                      <ShoppingCart />
+                      <span>Ver Carrinho ({totalItems})</span>
+                    </div>
+                    <span>{formatPrice(subtotal)}</span>
+                </Link>
+              </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
