@@ -61,47 +61,49 @@ export default function ProductsPage() {
   const isLoading = isLoadingGroups || isLoadingProducts;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
       <HomeCarousel />
-      <div className="my-8">
-        <PageHeader
-          title="Faça seu pedido agora mesmo"
-          description="Navegue por nossas categorias e encontre o que deseja."
-        />
-      </div>
-      
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="container mx-auto px-4 py-8">
+        <div className="my-8">
+          <PageHeader
+            title="Faça seu pedido agora mesmo"
+            description="Navegue por nossas categorias e encontre o que deseja."
+          />
         </div>
-      ) : (
-        <div className="space-y-12">
-          {groupedData.length > 0 ? (
-            groupedData.map((group) => (
-              <section key={group.id} aria-labelledby={`group-title-${group.id}`}>
-                <h2 id={`group-title-${group.id}`} className="text-3xl font-bold tracking-tight border-b-2 border-primary pb-2 mb-4">{group.name}</h2>
-                {group.description && <p className="text-muted-foreground mb-8">{group.description}</p>}
-                <div className="space-y-8">
-                  {group.subgroups.map(subgroup => (
-                    <div key={subgroup.name} aria-labelledby={`subgroup-title-${group.id}-${subgroup.name}`}>
-                      <h3 id={`subgroup-title-${group.id}-${subgroup.name}`} className="text-xl font-semibold mb-4 text-muted-foreground">{subgroup.name}</h3>
-                      <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-                        {subgroup.products.map((product) => (
-                          <ProductCard key={product.id} product={product} />
-                        ))}
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="space-y-12">
+            {groupedData.length > 0 ? (
+              groupedData.map((group) => (
+                <section key={group.id} aria-labelledby={`group-title-${group.id}`}>
+                  <h2 id={`group-title-${group.id}`} className="text-3xl font-bold tracking-tight border-b-2 border-primary pb-2 mb-4">{group.name}</h2>
+                  {group.description && <p className="text-muted-foreground mb-8">{group.description}</p>}
+                  <div className="space-y-8">
+                    {group.subgroups.map(subgroup => (
+                      <div key={subgroup.name} aria-labelledby={`subgroup-title-${group.id}-${subgroup.name}`}>
+                        <h3 id={`subgroup-title-${group.id}-${subgroup.name}`} className="text-xl font-semibold mb-4 text-muted-foreground">{subgroup.name}</h3>
+                        <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+                          {subgroup.products.map((product) => (
+                            <ProductCard key={product.id} product={product} />
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))
-          ) : (
-             <div className="mt-12 text-center text-muted-foreground">
-                <p>Nenhum produto disponível no momento.</p>
-             </div>
-          )}
-        </div>
-      )}
+                    ))}
+                  </div>
+                </section>
+              ))
+            ) : (
+               <div className="mt-12 text-center text-muted-foreground">
+                  <p>Nenhum produto disponível no momento.</p>
+               </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -11,7 +11,6 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Card, CardContent } from './ui/card';
 import { Loader2 } from 'lucide-react';
 import type { CarouselImage } from '@/firebase/carousel';
 import Autoplay from "embla-carousel-autoplay";
@@ -50,7 +49,7 @@ export default function HomeCarousel() {
 
   if (isLoading) {
     return (
-        <div className="flex justify-center items-center h-64 w-full bg-muted rounded-lg">
+        <div className="flex justify-center items-center aspect-[2.5/1] w-full bg-muted md:aspect-[3/1]">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
     );
@@ -61,7 +60,7 @@ export default function HomeCarousel() {
   }
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full -mt-16">
         <Carousel 
             setApi={setEmblaApi}
             className="w-full"
@@ -80,18 +79,17 @@ export default function HomeCarousel() {
           <CarouselContent>
             {images.map((image) => (
               <CarouselItem key={image.id}>
-                 <Card className="overflow-hidden">
-                    <CardContent className="relative aspect-[2.5/1] p-0">
-                        <Link href={image.link || '#'} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (!image.link) e.preventDefault();}}>
-                             <Image
-                                src={image.imageUrl}
-                                alt={image.altText || 'Carousel Image'}
-                                fill
-                                className="object-cover rounded-lg"
-                                />
-                        </Link>
-                    </CardContent>
-                </Card>
+                 <div className="relative aspect-[2.5/1] md:aspect-[3/1]">
+                    <Link href={image.link || '#'} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (!image.link) e.preventDefault();}}>
+                         <Image
+                            src={image.imageUrl}
+                            alt={image.altText || 'Carousel Image'}
+                            fill
+                            className="object-cover"
+                            priority
+                            />
+                    </Link>
+                </div>
               </CarouselItem>
             ))}
           </CarouselContent>
