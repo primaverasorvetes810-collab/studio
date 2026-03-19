@@ -84,7 +84,7 @@ export default function Header() {
       "sticky top-0 z-40 w-full transition-colors duration-300",
       isMounted && isScrolled ? "border-b bg-background/80 backdrop-blur-sm" : "border-b border-transparent"
     )}>
-      <div className="container mx-auto flex h-20 items-center justify-between px-4">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:h-20">
         <div className="flex items-center gap-2">
           {/* Mobile Menu Trigger */}
           <Sheet>
