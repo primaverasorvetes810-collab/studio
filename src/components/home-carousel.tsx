@@ -60,7 +60,7 @@ export default function HomeCarousel() {
   }
 
   return (
-    <div className="relative w-full -mt-16">
+    <div className="relative w-full">
         <Carousel 
             setApi={setEmblaApi}
             className="w-full"

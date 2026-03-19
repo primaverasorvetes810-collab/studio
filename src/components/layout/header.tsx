@@ -42,17 +42,10 @@ export default function Header() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const router = useRouter();
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    handleScroll();
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
 
@@ -81,8 +74,7 @@ export default function Header() {
 
   return (
     <header className={cn(
-      "sticky top-0 z-40 w-full transition-colors duration-300",
-      isMounted && isScrolled ? "border-b bg-background/80 backdrop-blur-sm" : "border-b border-transparent"
+      "sticky top-0 z-40 w-full border-b bg-background transition-colors duration-300"
     )}>
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:h-20">
         <div className="flex items-center gap-2">
