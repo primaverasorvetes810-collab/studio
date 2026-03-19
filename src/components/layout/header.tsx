@@ -83,7 +83,7 @@ export default function Header() {
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
                 <Image
-                  src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773958646/Delivery__5_-removebg-preview_tbxaii.png"
+                  src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773962848/Delivery__6_-removebg-preview_clakf0.png"
                   alt="Abrir menu"
                   width={24}
                   height={24}
