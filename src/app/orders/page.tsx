@@ -144,15 +144,15 @@ export default function OrdersPage() {
                 <AccordionTrigger className="px-6 py-4 hover:no-underline">
                   <div className="flex w-full items-center justify-between">
                     <div className="flex flex-col items-start text-left">
-                      <span className="font-bold">Pedido #{order.id.substring(0, 7)}</span>
+                      <span className="font-bold">{statusDisplayMessages[order.status]}</span>
                       <span className="text-sm text-muted-foreground">
-                        {order.orderDate ? order.orderDate.toDate().toLocaleDateString() : 'Processando...'}
+                        Pedido #{order.id.substring(0, 7)}
                       </span>
                     </div>
                     <div className="flex items-center gap-4">
                        <span className="hidden sm:inline font-bold text-primary">{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
                        <Badge className={cn("whitespace-nowrap", statusColors[order.status])} variant="outline">
-                         {statusDisplayMessages[order.status]}
+                         {order.status}
                        </Badge>
                     </div>
                   </div>
@@ -193,6 +193,10 @@ export default function OrdersPage() {
                      <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Forma de Pagamento</span>
                         <span>{order.paymentMethod}</span>
+                    </div>
+                     <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Data do Pedido</span>
+                        <span>{order.orderDate ? order.orderDate.toDate().toLocaleString() : 'Processando...'}</span>
                     </div>
                     {order.status === 'Pendente' && (
                         <>
