@@ -115,7 +115,7 @@ export default function OrdersPage() {
           description="Verifique o status dos seus pedidos recentes."
         />
         <p className="mt-4">Você ainda não fez nenhum pedido.</p>
-        <Button asChild className="mt-4">
+        <Button asChild className="mt-4 py-4 px-8 text-lg">
           <Link href="/">Ver Produtos</Link>
         </Button>
       </div>

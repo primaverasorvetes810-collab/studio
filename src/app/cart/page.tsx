@@ -176,7 +176,7 @@ export default function CartPage() {
       <div className="container mx-auto px-4 py-8 text-center">
         <PageHeader title="Carrinho de Compras" />
         <p className="mt-4">Seu carrinho está vazio.</p>
-        <Button asChild className="mt-4">
+        <Button asChild className="mt-4 py-4 px-8 text-lg">
           <Link href="/">Ver Produtos</Link>
         </Button>
       </div>

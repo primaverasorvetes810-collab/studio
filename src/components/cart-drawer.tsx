@@ -97,7 +97,7 @@ export function CartDrawer() {
             </div>
             <p className="font-semibold">Seu carrinho está vazio</p>
             <SheetClose asChild>
-                <Button asChild>
+                <Button asChild className="py-4 px-8 text-lg">
                     <Link href="/products">Ver produtos</Link>
                 </Button>
             </SheetClose>
