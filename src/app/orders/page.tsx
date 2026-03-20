@@ -40,6 +40,14 @@ const statusColors: Record<OrderStatus, string> = {
   Cancelado: "bg-gray-500/20 text-muted-foreground border-gray-500/20",
 };
 
+const statusDisplayMessages: Record<OrderStatus, string> = {
+  Pendente: "Estamos prestes a enviar",
+  Enviado: "Chegaremos em breve",
+  Entregue: "Obrigado pela preferência",
+  Atrasado: "Pedido Atrasado",
+  Cancelado: "Pedido Cancelado",
+};
+
 export default function OrdersPage() {
   const { user, isUserLoading } = useUser();
   const { orders, isLoading: areOrdersLoading, setOrders } = useUserOrders(user?.uid);
@@ -144,7 +152,7 @@ export default function OrdersPage() {
                     <div className="flex items-center gap-4">
                        <span className="hidden sm:inline font-bold text-primary">{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
                        <Badge className={cn("whitespace-nowrap", statusColors[order.status])} variant="outline">
-                         {order.status}
+                         {statusDisplayMessages[order.status]}
                        </Badge>
                     </div>
                   </div>
