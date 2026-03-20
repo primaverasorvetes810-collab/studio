@@ -316,14 +316,14 @@ export default function CartPage() {
               <CardFooter>
                  <Button
                     size="lg"
-                    className="w-full h-12 text-lg"
+                    className="w-full h-12 text-2xl"
                     onClick={handlePlaceOrder}
                     disabled={isPlacingOrder || !paymentMethod || !isStoreOpen || isProfileIncomplete}
                 >
                     {isPlacingOrder ? (
                     <Loader2 className="h-6 w-6 animate-spin" />
                     ) : (
-                    'Finalizar Pedido'
+                    'Finalize sua Compra'
                     )}
                 </Button>
               </CardFooter>
