@@ -115,25 +115,30 @@ export default function ProductsPage() {
           </div>
         )}
       </div>
-      {totalItems > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-background via-background/95 to-transparent p-4 pt-12">
-          <div className="container mx-auto max-w-2xl">
-              <Button
-                asChild
-                size="lg"
-                className="w-full h-16 text-xl font-bold animate-pulse-deep shadow-2xl shadow-primary/30 flex justify-between items-center"
-              >
-                <Link href="/cart">
-                    <div className="flex items-center gap-3">
-                      <ShoppingCart />
-                      <span>Ver Carrinho ({totalItems})</span>
-                    </div>
-                    <span>{formatPrice(subtotal)}</span>
-                </Link>
-              </Button>
-          </div>
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-background via-background/95 to-transparent p-4 pt-12">
+        <div className="container mx-auto max-w-2xl">
+            <Button
+              asChild
+              size="lg"
+              className={cn(
+                "w-full h-16 text-xl font-bold shadow-2xl shadow-primary/30 flex justify-between items-center",
+                totalItems > 0 && "animate-pulse-deep"
+              )}
+            >
+              <Link href="/cart">
+                  <div className="flex items-center gap-3">
+                    <ShoppingCart />
+                    {totalItems > 0 ? (
+                        <span>Ver Carrinho ({totalItems})</span>
+                    ) : (
+                        <span>Finalizar Pedido</span>
+                    )}
+                  </div>
+                  <span>{formatPrice(subtotal)}</span>
+              </Link>
+            </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
