@@ -145,9 +145,6 @@ export default function OrdersPage() {
                   <div className="flex w-full items-center justify-between">
                     <div className="flex flex-col items-start text-left">
                       <span className="font-bold">{statusDisplayMessages[order.status]}</span>
-                      <span className="text-sm text-muted-foreground">
-                        Pedido #{order.id.substring(0, 7)}
-                      </span>
                     </div>
                     <div className="flex items-center gap-4">
                        <span className="hidden sm:inline font-bold text-primary">{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
