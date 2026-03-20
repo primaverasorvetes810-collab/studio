@@ -387,7 +387,7 @@ export default function CartPage() {
                     {isPlacingOrder ? (
                     <Loader2 className="h-6 w-6 animate-spin" />
                     ) : (
-                    'Pedir Agora'
+                    'Finalizar Pedido'
                     )}
                 </Button>
               </CardFooter>

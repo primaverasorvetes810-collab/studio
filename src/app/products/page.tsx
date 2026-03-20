@@ -131,7 +131,7 @@ export default function ProductsPage() {
                     {totalItems > 0 ? (
                         <span>Ver Carrinho ({totalItems})</span>
                     ) : (
-                        <span>Pedir Agora</span>
+                        <span>Finalizar Pedido</span>
                     )}
                   </div>
                   <span>{formatPrice(subtotal)}</span>
