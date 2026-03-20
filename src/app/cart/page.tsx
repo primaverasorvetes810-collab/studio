@@ -35,6 +35,7 @@ import { useRouter } from 'next/navigation';
 import { getDoc, doc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from '@/lib/utils';
+import ConfettiScreen from '@/components/confetti-screen';
 
 
 export default function CartPage() {
@@ -54,6 +55,8 @@ export default function CartPage() {
   const isStoreOpen = settings?.isOpen ?? true;
 
   const [isMounted, setIsMounted] = useState(false);
+  const [isConfirmationVisible, setIsConfirmationVisible] = useState(false);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -137,11 +140,16 @@ export default function CartPage() {
         title: 'Pedido realizado!',
         description: 'Seu pedido foi criado com sucesso.',
       });
-      router.push('/orders');
+      setIsConfirmationVisible(true);
     } catch (error: any) {
     } finally {
       setIsPlacingOrder(false);
     }
+  };
+
+  const handleCloseConfirmation = () => {
+    setIsConfirmationVisible(false);
+    router.push('/orders');
   };
 
   const isLoading = isUserLoading || isCartLoading || isProfileLoading || isSettingsLoading;
@@ -331,6 +339,7 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+      <ConfettiScreen isOpen={isConfirmationVisible} onClose={handleCloseConfirmation} />
     </>
   );
 }
