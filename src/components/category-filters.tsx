@@ -2,10 +2,14 @@
 
 import type { ProductGroup } from "@/lib/data/products";
 import { Button } from "@/components/ui/button";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { CategoryIcon } from "./category-icon";
 import { Shapes } from "lucide-react";
+import {
+    Carousel,
+    CarouselContent,
+    CarouselItem,
+} from "@/components/ui/carousel";
 
 interface CategoryFiltersProps {
     groups: ProductGroup[];
@@ -17,55 +21,63 @@ export default function CategoryFilters({ groups, selectedId, onSelect }: Catego
     
     return (
         <div className="relative">
-            <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex w-max space-x-6 pb-4">
+            <Carousel
+                opts={{
+                    align: 'start',
+                    dragFree: true,
+                }}
+                className="w-full"
+            >
+                <CarouselContent className="-ml-6">
                      {/* "All" button */}
-                    <div 
-                        className="flex flex-col items-center gap-2 cursor-pointer"
-                        onClick={() => onSelect('all')}
-                        aria-label="Mostrar todas as categorias"
-                    >
-                        <Button
-                            variant={selectedId === 'all' ? 'default' : 'outline'}
-                            size="icon"
-                            className="h-16 w-16 rounded-full shadow-md"
-                        >
-                            <Shapes className="h-7 w-7" />
-                        </Button>
-                        <span className={cn(
-                            "text-xs font-medium text-muted-foreground",
-                            selectedId === 'all' && "text-primary"
-                        )}>
-                            Todos
-                        </span>
-                    </div>
-
-                    {/* Group buttons */}
-                    {groups.map(group => (
+                    <CarouselItem className="pl-6 basis-auto">
                         <div 
-                            key={group.id} 
-                            className="flex flex-col items-center gap-2 cursor-pointer"
-                            onClick={() => onSelect(group.id)}
-                            aria-label={`Filtrar por ${group.name}`}
+                            className="flex flex-col items-center gap-2 cursor-pointer w-16"
+                            onClick={() => onSelect('all')}
+                            aria-label="Mostrar todas as categorias"
                         >
                             <Button
-                                variant={selectedId === group.id ? 'default' : 'outline'}
+                                variant={selectedId === 'all' ? 'default' : 'outline'}
                                 size="icon"
                                 className="h-16 w-16 rounded-full shadow-md"
                             >
-                                <CategoryIcon categoryName={group.name} className="h-7 w-7" />
+                                <Shapes className="h-7 w-7" />
                             </Button>
                             <span className={cn(
-                                "text-xs font-medium text-muted-foreground",
-                                selectedId === group.id && "text-primary"
+                                "text-xs font-medium text-muted-foreground whitespace-normal text-center",
+                                selectedId === 'all' && "text-primary"
                             )}>
-                                {group.name}
+                                Todos
                             </span>
                         </div>
+                    </CarouselItem>
+
+                    {/* Group buttons */}
+                    {groups.map(group => (
+                        <CarouselItem key={group.id} className="pl-6 basis-auto">
+                            <div 
+                                className="flex flex-col items-center gap-2 cursor-pointer w-16"
+                                onClick={() => onSelect(group.id)}
+                                aria-label={`Filtrar por ${group.name}`}
+                            >
+                                <Button
+                                    variant={selectedId === group.id ? 'default' : 'outline'}
+                                    size="icon"
+                                    className="h-16 w-16 rounded-full shadow-md"
+                                >
+                                    <CategoryIcon categoryName={group.name} className="h-7 w-7" />
+                                </Button>
+                                <span className={cn(
+                                    "text-xs font-medium text-muted-foreground whitespace-normal text-center",
+                                    selectedId === group.id && "text-primary"
+                                )}>
+                                    {group.name}
+                                </span>
+                            </div>
+                        </CarouselItem>
                     ))}
-                </div>
-                <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+                </CarouselContent>
+            </Carousel>
         </div>
     );
 }
