@@ -2,7 +2,7 @@
 "use client";
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
-import { formatPrice } from "@/lib/utils";
+import { formatPriceAsString } from "@/lib/utils";
 
 interface OverviewChartProps {
     data: { name: string; total: number }[];
@@ -24,7 +24,7 @@ export function OverviewChart({ data }: OverviewChartProps) {
           fontSize={12}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(value) => `${formatPrice(value as number)}`}
+          tickFormatter={(value) => formatPriceAsString(value as number)}
         />
         <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
       </BarChart>

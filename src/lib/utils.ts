@@ -2,27 +2,44 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import type { Product } from "./data/products";
+import React from "react";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
 export function formatPrice(price: number) {
-  const cents = Math.round((price - Math.floor(price)) * 100);
-  let adjustedPrice = price;
+  const priceString = new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2, // Always show cents to split
+  }).format(price);
 
-  if (cents === 99 || cents === 98) {
-    adjustedPrice = Math.ceil(price);
-  }
+  const parts = priceString.split(',');
+  const integerPart = parts[0];
+  const fractionPart = parts[1];
 
-  const isInteger = adjustedPrice % 1 === 0;
+  return React.createElement(
+    React.Fragment,
+    null,
+    integerPart,
+    React.createElement(
+      'span',
+      { className: 'text-[0.7em] font-medium align-baseline tracking-tight' },
+      `,${fractionPart}`
+    )
+  );
+}
+
+export function formatPriceAsString(price: number) {
+  const isInteger = price % 1 === 0;
 
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
     minimumFractionDigits: isInteger ? 0 : 2,
     maximumFractionDigits: 2,
-  }).format(adjustedPrice);
+  }).format(price);
 }
 
 /**
