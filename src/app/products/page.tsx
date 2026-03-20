@@ -119,14 +119,15 @@ export default function ProductsPage() {
         <div className="container mx-auto max-w-2xl">
             <Button
               asChild
-              size="lg"
               className={cn(
-                "w-full h-16 text-xl font-bold shadow-2xl shadow-primary/30 flex justify-between items-center animate-pulse-deep"
+                "w-full font-bold shadow-2xl shadow-primary/30 flex justify-between items-center animate-pulse-deep",
+                "h-14 px-4 text-base rounded-lg",
+                "sm:h-16 sm:px-6 sm:text-xl"
               )}
             >
               <Link href="/cart">
-                  <div className="flex items-center gap-3">
-                    <ShoppingCart />
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
                     {totalItems > 0 ? (
                         <span>Ver Carrinho ({totalItems})</span>
                     ) : (
