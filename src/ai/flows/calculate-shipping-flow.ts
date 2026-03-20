@@ -21,10 +21,6 @@ const ShippingOutputSchema = z.object({
 });
 export type ShippingOutput = z.infer<typeof ShippingOutputSchema>;
 
-const normalizeString = (str: string) => {
-    return str.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
 const calculateShippingFlow = ai.defineFlow(
   {
     name: 'calculateShippingFlow',
@@ -35,9 +31,12 @@ const calculateShippingFlow = ai.defineFlow(
     if (!input.neighborhood) {
         return { fee: 0, error: 'Bairro não informado.' };
     }
-
-    const normalizedInput = normalizeString(input.neighborhood);
-    const isAllowed = allowedNeighborhoods.some(n => normalizeString(n) === normalizedInput);
+    
+    // Since the neighborhood is selected from a controlled list, a direct,
+    // case-sensitive comparison is safer and avoids normalization issues.
+    // We use .trim() as a simple precaution.
+    const trimmedNeighborhood = input.neighborhood.trim();
+    const isAllowed = allowedNeighborhoods.includes(trimmedNeighborhood);
     
     if (isAllowed) {
       return { fee: 10.00 };
