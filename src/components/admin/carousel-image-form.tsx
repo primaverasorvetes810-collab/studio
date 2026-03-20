@@ -28,7 +28,6 @@ import { createCarouselImage, updateCarouselImage } from '@/firebase/carousel';
 import { useState } from 'react';
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ImagePayloadSchema = z.object({
   imageUrl: z.string().min(1, 'A URL da imagem é obrigatória.').url('Por favor, insira uma URL de imagem válida.'),
@@ -92,80 +91,78 @@ export function CarouselImageForm({ image, onOpenChange, onFormSubmit, currentOr
             Insira o link da imagem e preencha os detalhes. Clique em salvar quando terminar.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[70vh] pr-6">
-            <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
-                <FormField
-                  control={form.control}
-                  name="imageUrl"
-                  render={({ field }) => (
-                      <FormItem>
-                          <FormLabel>URL da Imagem</FormLabel>
-                          <FormControl>
-                              <Input placeholder="https://.../imagem.jpg" {...field} />
-                          </FormControl>
-                           <div className="mt-4 flex h-[132px] items-center justify-center rounded-lg border bg-muted p-4">
-                                {imageUrlValue ? (
-                                    <Image 
-                                        src={imageUrlValue} 
-                                        alt="Pré-visualização da imagem" 
-                                        width={200}
-                                        height={100}
-                                        className="aspect-video rounded-md object-contain"
-                                    />
-                                ) : (
-                                    <div className="text-center text-sm text-muted-foreground">
-                                        <p>Pré-visualização da imagem</p>
-                                    </div>
-                                )}
-                            </div>
-                          <FormMessage />
-                      </FormItem>
-                  )}
-                />
-                <FormField
-                control={form.control}
-                name="altText"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Texto Alternativo (Descrição)</FormLabel>
-                    <FormControl>
-                        <Input placeholder="Ex: Promoção de sorvetes" {...field} />
-                    </FormControl>
-                     <FormDescription>
-                        Essencial para acessibilidade e SEO.
-                    </FormDescription>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="link"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Link (Opcional)</FormLabel>
-                    <FormControl>
-                        <Input placeholder="https://exemplo.com/pagina-da-promocao" {...field} />
-                    </FormControl>
-                     <FormDescription>
-                        Leva o usuário a uma página quando ele clica na imagem.
-                    </FormDescription>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <DialogFooter className="pt-4">
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
-                        Cancelar
-                    </Button>
-                    <Button type="submit" disabled={isSaving}>
-                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Salvar'}
-                    </Button>
-                </DialogFooter>
-            </form>
-            </Form>
-        </ScrollArea>
+        <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+            <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>URL da Imagem</FormLabel>
+                      <FormControl>
+                          <Input placeholder="https://.../imagem.jpg" {...field} />
+                      </FormControl>
+                       <div className="mt-4 flex h-[132px] items-center justify-center rounded-lg border bg-muted p-4">
+                            {imageUrlValue ? (
+                                <Image 
+                                    src={imageUrlValue} 
+                                    alt="Pré-visualização da imagem" 
+                                    width={200}
+                                    height={100}
+                                    className="aspect-video rounded-md object-contain"
+                                />
+                            ) : (
+                                <div className="text-center text-sm text-muted-foreground">
+                                    <p>Pré-visualização da imagem</p>
+                                </div>
+                            )}
+                        </div>
+                      <FormMessage />
+                  </FormItem>
+              )}
+            />
+            <FormField
+            control={form.control}
+            name="altText"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Texto Alternativo (Descrição)</FormLabel>
+                <FormControl>
+                    <Input placeholder="Ex: Promoção de sorvetes" {...field} />
+                </FormControl>
+                 <FormDescription>
+                    Essencial para acessibilidade e SEO.
+                </FormDescription>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="link"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Link (Opcional)</FormLabel>
+                <FormControl>
+                    <Input placeholder="https://exemplo.com/pagina-da-promocao" {...field} />
+                </FormControl>
+                 <FormDescription>
+                    Leva o usuário a uma página quando ele clica na imagem.
+                </FormDescription>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <DialogFooter className="pt-4">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
+                    Cancelar
+                </Button>
+                <Button type="submit" disabled={isSaving}>
+                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Salvar'}
+                </Button>
+            </DialogFooter>
+        </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

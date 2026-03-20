@@ -26,7 +26,6 @@ import { useToast } from '@/hooks/use-toast';
 import { createProductGroup, updateProductGroup, GroupPayload } from '@/firebase/product-groups';
 import type { ProductGroup } from '@/lib/data/products';
 import { Textarea } from '../ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { X, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '../ui/separator';
@@ -97,87 +96,85 @@ export function ProductGroupForm({ group, onOpenChange, onFormSubmit }: GroupFor
             Preencha os detalhes do grupo. Você pode adicionar subgrupos para organizar melhor os produtos.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[70vh] pr-6">
-            <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
-                <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Nome do Grupo</FormLabel>
-                    <FormControl>
-                        <Input placeholder="Ex: Açaí, Sorvetes, Bebidas" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Descrição (Opcional)</FormLabel>
-                    <FormControl>
-                        <Textarea placeholder="Descreva a categoria..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                
-                <Separator className='my-2' />
+        <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+            <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Nome do Grupo</FormLabel>
+                <FormControl>
+                    <Input placeholder="Ex: Açaí, Sorvetes, Bebidas" {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Descrição (Opcional)</FormLabel>
+                <FormControl>
+                    <Textarea placeholder="Descreva a categoria..." {...field} />
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+            />
+            
+            <Separator className='my-2' />
 
-                <div className="space-y-2">
-                    <FormLabel>Subgrupos</FormLabel>
-                    <div className="space-y-3 rounded-md border p-3">
-                        {subgroups.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
-                                {subgroups.map((sub) => (
-                                <Badge key={sub} variant="secondary">
-                                    {sub}
-                                    <button
-                                      type="button"
-                                      onClick={() => handleRemoveSubgroup(sub)}
-                                      className="ml-1.5 rounded-full p-0.5 text-secondary-foreground/50 hover:bg-destructive/80 hover:text-destructive-foreground"
-                                      aria-label={`Remover subgrupo ${sub}`}
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </button>
-                                </Badge>
-                                ))}
-                            </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                        <Input
-                            value={newSubgroup}
-                            onChange={(e) => setNewSubgroup(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    handleAddSubgroup();
-                                }
-                            }}
-                            placeholder="Ex: Cremosos, Frutados..."
-                        />
-                        <Button type="button" size="icon" onClick={handleAddSubgroup} disabled={!newSubgroup} aria-label="Adicionar subgrupo">
-                            <Plus className="h-4 w-4" />
-                        </Button>
+            <div className="space-y-2">
+                <FormLabel>Subgrupos</FormLabel>
+                <div className="space-y-3 rounded-md border p-3">
+                    {subgroups.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                            {subgroups.map((sub) => (
+                            <Badge key={sub} variant="secondary">
+                                {sub}
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveSubgroup(sub)}
+                                  className="ml-1.5 rounded-full p-0.5 text-secondary-foreground/50 hover:bg-destructive/80 hover:text-destructive-foreground"
+                                  aria-label={`Remover subgrupo ${sub}`}
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                            </Badge>
+                            ))}
                         </div>
+                    )}
+                    <div className="flex items-center gap-2">
+                    <Input
+                        value={newSubgroup}
+                        onChange={(e) => setNewSubgroup(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddSubgroup();
+                            }
+                        }}
+                        placeholder="Ex: Cremosos, Frutados..."
+                    />
+                    <Button type="button" size="icon" onClick={handleAddSubgroup} disabled={!newSubgroup} aria-label="Adicionar subgrupo">
+                        <Plus className="h-4 w-4" />
+                    </Button>
                     </div>
                 </div>
+            </div>
 
 
-                <DialogFooter className="pt-4">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                    Cancelar
-                </Button>
-                <Button type="submit">Salvar</Button>
-                </DialogFooter>
-            </form>
-            </Form>
-        </ScrollArea>
+            <DialogFooter className="pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                Cancelar
+            </Button>
+            <Button type="submit">Salvar</Button>
+            </DialogFooter>
+        </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

@@ -39,7 +39,6 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn, formatPrice, formatPriceAsString } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 const statusColors: Record<OrderStatus, string> = {
   Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/30',
@@ -229,58 +228,56 @@ export default function OrdersPage({ allOrders, isLoading, isOrderDelayed }: Ord
                 </DialogDescription>
             </DialogHeader>
             {selectedOrder && (
-                 <ScrollArea className="max-h-[70vh]">
-                     <div className="space-y-4 pr-6">
-                        <div className="space-y-2">
-                            <h3 className="font-semibold flex items-center gap-2"><User size={16} /> Cliente</h3>
-                            <p className="text-sm text-muted-foreground pl-6">{selectedOrder.userName}</p>
-                            <p className="text-sm text-muted-foreground pl-6">{selectedOrder.userEmail}</p>
-                            <p className="text-sm text-muted-foreground pl-6">{selectedOrder.userPhone}</p>
-                        </div>
-                        <Separator />
-                        <div className="space-y-2">
-                            <h3 className="font-semibold flex items-center gap-2"><MapPin size={16} /> Endereço de Entrega</h3>
-                            <p className="text-sm text-muted-foreground pl-6">{selectedOrder.userAddress}</p>
-                            <p className="text-sm text-muted-foreground pl-6">{selectedOrder.userNeighborhood}, {selectedOrder.userCity}</p>
-                        </div>
-                        <Separator />
-                        <div className="space-y-2">
-                            <h3 className="font-semibold flex items-center gap-2"><Hash size={16} /> Resumo do Pedido</h3>
-                            <ul className="space-y-1 text-sm text-muted-foreground pl-6">
-                                {selectedOrder.items.map(item => (
-                                    <li key={item.id} className='flex justify-between'>
-                                        <span>{item.product.name} x{item.quantity}</span>
-                                        <span>{isMounted ? formatPrice(item.itemPrice * item.quantity) : formatPriceAsString(item.itemPrice * item.quantity)}</span>
+                 <div className="space-y-4 pr-6">
+                    <div className="space-y-2">
+                        <h3 className="font-semibold flex items-center gap-2"><User size={16} /> Cliente</h3>
+                        <p className="text-sm text-muted-foreground pl-6">{selectedOrder.userName}</p>
+                        <p className="text-sm text-muted-foreground pl-6">{selectedOrder.userEmail}</p>
+                        <p className="text-sm text-muted-foreground pl-6">{selectedOrder.userPhone}</p>
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                        <h3 className="font-semibold flex items-center gap-2"><MapPin size={16} /> Endereço de Entrega</h3>
+                        <p className="text-sm text-muted-foreground pl-6">{selectedOrder.userAddress}</p>
+                        <p className="text-sm text-muted-foreground pl-6">{selectedOrder.userNeighborhood}, {selectedOrder.userCity}</p>
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                        <h3 className="font-semibold flex items-center gap-2"><Hash size={16} /> Resumo do Pedido</h3>
+                        <ul className="space-y-1 text-sm text-muted-foreground pl-6">
+                            {selectedOrder.items.map(item => (
+                                <li key={item.id} className='flex justify-between'>
+                                    <span>{item.product.name} x{item.quantity}</span>
+                                    <span>{isMounted ? formatPrice(item.itemPrice * item.quantity) : formatPriceAsString(item.itemPrice * item.quantity)}</span>
+                                </li>
+                            ))}
+                        </ul>
+                        {selectedOrder.subtotal !== undefined && selectedOrder.shippingFee !== undefined ? (
+                            <>
+                                <Separator className="my-2"/>
+                                <ul className="space-y-1 text-sm pl-6">
+                                    <li className="flex justify-between text-muted-foreground">
+                                        <span>Subtotal</span>
+                                        <span>{isMounted ? formatPrice(selectedOrder.subtotal) : formatPriceAsString(selectedOrder.subtotal)}</span>
                                     </li>
-                                ))}
-                            </ul>
-                            {selectedOrder.subtotal !== undefined && selectedOrder.shippingFee !== undefined ? (
-                                <>
-                                    <Separator className="my-2"/>
-                                    <ul className="space-y-1 text-sm pl-6">
-                                        <li className="flex justify-between text-muted-foreground">
-                                            <span>Subtotal</span>
-                                            <span>{isMounted ? formatPrice(selectedOrder.subtotal) : formatPriceAsString(selectedOrder.subtotal)}</span>
-                                        </li>
-                                        <li className="flex justify-between text-muted-foreground">
-                                            <span>Taxa de Entrega</span>
-                                            <span>{isMounted ? formatPrice(selectedOrder.shippingFee) : formatPriceAsString(selectedOrder.shippingFee)}</span>
-                                        </li>
-                                    </ul>
-                                </>
-                            ) : null}
-                            <Separator className="my-2"/>
-                            <div className="flex justify-between font-bold text-sm pl-6">
-                                <span>Total</span>
-                                <span>{isMounted ? formatPrice(selectedOrder.totalAmount) : formatPriceAsString(selectedOrder.totalAmount)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm pl-6">
-                                <span className="text-muted-foreground">Pagamento</span>
-                                <span>{selectedOrder.paymentMethod}</span>
-                            </div>
+                                    <li className="flex justify-between text-muted-foreground">
+                                        <span>Taxa de Entrega</span>
+                                        <span>{isMounted ? formatPrice(selectedOrder.shippingFee) : formatPriceAsString(selectedOrder.shippingFee)}</span>
+                                    </li>
+                                </ul>
+                            </>
+                        ) : null}
+                        <Separator className="my-2"/>
+                        <div className="flex justify-between font-bold text-sm pl-6">
+                            <span>Total</span>
+                            <span>{isMounted ? formatPrice(selectedOrder.totalAmount) : formatPriceAsString(selectedOrder.totalAmount)}</span>
                         </div>
-                     </div>
-                 </ScrollArea>
+                        <div className="flex justify-between text-sm pl-6">
+                            <span className="text-muted-foreground">Pagamento</span>
+                            <span>{selectedOrder.paymentMethod}</span>
+                        </div>
+                    </div>
+                 </div>
             )}
         </DialogContent>
       </Dialog>
