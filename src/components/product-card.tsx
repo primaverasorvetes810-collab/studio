@@ -83,7 +83,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <CardDescription className="line-clamp-2 text-xs">{product.description}</CardDescription>
         </div>
         <div className="mt-2">
-            <p className="text-3xl font-bold text-primary sm:text-4xl lg:text-5xl">{isMounted ? formatPrice(product.price) : formatPriceAsString(product.price)}</p>
+            <p className="text-2xl font-bold text-primary sm:text-3xl lg:text-4xl">{isMounted ? formatPrice(product.price) : formatPriceAsString(product.price)}</p>
         </div>
       </CardContent>
       <CardFooter className="p-2 pt-0">
