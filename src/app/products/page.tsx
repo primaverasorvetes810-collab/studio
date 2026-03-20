@@ -121,8 +121,7 @@ export default function ProductsPage() {
               asChild
               size="lg"
               className={cn(
-                "w-full h-16 text-xl font-bold shadow-2xl shadow-primary/30 flex justify-between items-center",
-                totalItems > 0 && "animate-pulse-deep"
+                "w-full h-16 text-xl font-bold shadow-2xl shadow-primary/30 flex justify-between items-center animate-pulse-deep"
               )}
             >
               <Link href="/cart">
