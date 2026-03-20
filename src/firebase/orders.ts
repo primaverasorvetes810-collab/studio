@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -66,6 +65,7 @@ export interface Order {
   userNeighborhood?: string;
   userCity?: string;
   orderDate: Timestamp;
+  statusUpdatedAt?: Timestamp;
   paymentMethod: string;
   subtotal: number;
   shippingFee: number;
@@ -213,6 +213,7 @@ export async function createOrderFromCart(
       userNeighborhood: userData.neighborhood || '',
       userCity: userData.city || '',
       orderDate: serverTimestamp(),
+      statusUpdatedAt: serverTimestamp(),
       paymentMethod,
       subtotal,
       shippingFee,
@@ -253,7 +254,7 @@ export async function updateOrderStatus(userId: string, orderId: string, status:
   const { firestore } = getClientSdks();
   const orderRef = doc(firestore, `users/${userId}/orders`, orderId);
   try {
-    await updateDoc(orderRef, { status });
+    await updateDoc(orderRef, { status, statusUpdatedAt: serverTimestamp() });
   } catch (e: any) {
      errorEmitter.emit(
       'permission-error',
@@ -282,10 +283,35 @@ export function useUserOrders(userId?: string) {
 
   useEffect(() => {
     if (ordersData) {
-        const sorted = [...ordersData].sort((a, b) => b.orderDate.toDate().getTime() - a.orderDate.toDate().getTime());
+        const now = new Date();
+        const thirtyMinutesAgo = now.getTime() - (30 * 60 * 1000);
+
+        const filtered = ordersData.filter(order => {
+            // Rule 1: Always hide "Cancelado" orders.
+            if (order.status === 'Cancelado') {
+                return false;
+            }
+
+            // Rule 2: Hide "Entregue" orders 30 minutes after they are delivered.
+            if (order.status === 'Entregue') {
+                // If statusUpdatedAt exists, check if it's within the last 30 mins.
+                if (order.statusUpdatedAt) {
+                    return order.statusUpdatedAt.toDate().getTime() > thirtyMinutesAgo;
+                }
+                // For older 'Entregue' orders without the timestamp, we'll keep them visible
+                // to avoid hiding historical data unexpectedly for the user.
+                return true;
+            }
+
+            // Show all other statuses (Pendente, Enviado, Atrasado).
+            return true;
+        });
+        
+        const sorted = [...filtered].sort((a, b) => b.orderDate.toDate().getTime() - a.orderDate.toDate().getTime());
         setLocalOrders(sorted);
     }
   }, [ordersData]);
+
 
   const handleSetOrders = (newOrders: OrderWithItems[] | ((prev: OrderWithItems[]) => OrderWithItems[])) => {
     if(typeof newOrders === 'function') {
