@@ -12,12 +12,15 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { formatPrice, formatPriceAsString } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import CategoryFilters from '@/components/category-filters';
 
 export default function ProductsPage() {
   const firestore = useFirestore();
   const { user } = useUser();
   const { cartItems, isLoading: isCartLoading } = useCart(user?.uid);
   const [isMounted, setIsMounted] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState('all');
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -39,7 +42,7 @@ export default function ProductsPage() {
   const groupedData = useMemo(() => {
     if (!productGroups || !allProducts) return [];
     
-    return productGroups.map(group => {
+    const allGroupedData = productGroups.map(group => {
       const groupProducts = allProducts.filter(p => p.groupId === group.id);
       
       const productsBySubgroup = groupProducts.reduce((acc, product) => {
@@ -64,9 +67,14 @@ export default function ProductsPage() {
         ...group,
         subgroups: orderedSubgroups,
       };
-    }).filter(group => group.subgroups.length > 0); // Only show groups that have products
+    });
 
-  }, [productGroups, allProducts]);
+    if (selectedGroupId === 'all') {
+        return allGroupedData.filter(group => group.subgroups.length > 0);
+    }
+    return allGroupedData.filter(group => group.id === selectedGroupId && group.subgroups.length > 0);
+
+  }, [productGroups, allProducts, selectedGroupId]);
 
   const isLoading = isLoadingGroups || isLoadingProducts;
   
@@ -77,8 +85,16 @@ export default function ProductsPage() {
   return (
     <div className="pb-32">
       <HomeCarousel />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 space-y-8">
         
+        {productGroups && productGroups.length > 0 && (
+          <CategoryFilters
+            groups={productGroups}
+            selectedId={selectedGroupId}
+            onSelect={setSelectedGroupId}
+          />
+        )}
+
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -106,7 +122,7 @@ export default function ProductsPage() {
               ))
             ) : (
                <div className="mt-12 text-center text-muted-foreground">
-                  <p>Nenhum produto disponível no momento.</p>
+                  <p>{selectedGroupId === 'all' ? 'Nenhum produto disponível no momento.' : 'Nenhum produto encontrado para esta categoria.'}</p>
                </div>
             )}
           </div>
