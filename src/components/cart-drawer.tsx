@@ -14,13 +14,14 @@ import { Button } from '@/components/ui/button';
 import { useCart, removeProductFromCart, updateCartItemQuantity } from '@/firebase/cart';
 import { useUser, useStoreSettings } from '@/firebase';
 import { Separator } from '@/components/ui/separator';
-import { formatPrice, getProductImageUrl } from '@/lib/utils';
+import { formatPrice, getProductImageUrl, formatPriceAsString } from '@/lib/utils';
 import { Trash2, Loader2, Minus, Plus } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
 
 export function CartDrawer() {
   const { user } = useUser();
@@ -28,6 +29,11 @@ export function CartDrawer() {
   const { settings } = useStoreSettings();
   const isStoreOpen = settings?.isOpen ?? true;
   const { toast } = useToast();
+
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
 
@@ -109,7 +115,7 @@ export function CartDrawer() {
                       </div>
                       <div className="flex flex-1 flex-col gap-1 min-w-0">
                         <span className="font-semibold truncate">{item.product.name}</span>
-                        <span className="text-sm text-muted-foreground">{formatPrice(item.product.price)}</span>
+                        <span className="text-sm text-muted-foreground">{isMounted ? formatPrice(item.product.price) : formatPriceAsString(item.product.price)}</span>
                         <div className="flex items-center justify-between mt-2">
                            <div className="flex items-center gap-2 rounded-full border">
                             <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={() => handleQuantityChange(item.id, item.quantity, -1)} disabled={!isStoreOpen}>
@@ -134,7 +140,7 @@ export function CartDrawer() {
             <SheetFooter className="p-6 pt-4 space-y-4">
               <div className="flex justify-between text-lg font-semibold">
                 <span>Subtotal</span>
-                <span>{formatPrice(subtotal)}</span>
+                <span>{isMounted ? formatPrice(subtotal) : formatPriceAsString(subtotal)}</span>
               </div>
               <p className="text-xs text-muted-foreground">Frete e impostos serão calculados na próxima etapa.</p>
               <SheetClose asChild>

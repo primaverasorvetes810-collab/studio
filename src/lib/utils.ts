@@ -32,12 +32,10 @@ export function formatPrice(price: number) {
 }
 
 export function formatPriceAsString(price: number) {
-  const isInteger = price % 1 === 0;
-
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-    minimumFractionDigits: isInteger ? 0 : 2,
+    minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(price);
 }

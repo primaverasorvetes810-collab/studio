@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PageHeader from "@/components/page-header";
 import {
@@ -15,7 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useUser } from '@/firebase';
 import { useUserOrders, type OrderWithItems, updateOrderStatus, OrderStatus } from '@/firebase/orders';
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatPriceAsString } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,10 @@ export default function OrdersPage() {
   const { toast } = useToast();
 
   const [orderToCancel, setOrderToCancel] = useState<OrderWithItems | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleCancelConfirm = async () => {
     if (!orderToCancel || !user) return;
@@ -138,7 +142,7 @@ export default function OrdersPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-4">
-                       <span className="hidden sm:inline font-bold text-primary">{formatPrice(order.totalAmount)}</span>
+                       <span className="hidden sm:inline font-bold text-primary">{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
                        <Badge className={cn("whitespace-nowrap", statusColors[order.status])} variant="outline">
                          {order.status}
                        </Badge>
@@ -152,7 +156,7 @@ export default function OrdersPage() {
                         {order.items.map((item) => (
                             <li key={item.id} className="flex justify-between text-sm">
                                 <span>{item.product.name} x {item.quantity}</span>
-                                <span>{formatPrice(item.itemPrice * item.quantity)}</span>
+                                <span>{isMounted ? formatPrice(item.itemPrice * item.quantity) : formatPriceAsString(item.itemPrice * item.quantity)}</span>
                             </li>
                         ))}
                     </ul>
@@ -163,11 +167,11 @@ export default function OrdersPage() {
                             <ul className="space-y-1 text-sm text-muted-foreground">
                                 <li className="flex justify-between">
                                     <span>Subtotal</span>
-                                    <span>{formatPrice(order.subtotal)}</span>
+                                    <span>{isMounted ? formatPrice(order.subtotal) : formatPriceAsString(order.subtotal)}</span>
                                 </li>
                                 <li className="flex justify-between">
                                     <span>Taxa de Entrega</span>
-                                    <span>{formatPrice(order.shippingFee)}</span>
+                                    <span>{isMounted ? formatPrice(order.shippingFee) : formatPriceAsString(order.shippingFee)}</span>
                                 </li>
                             </ul>
                         </>
@@ -176,7 +180,7 @@ export default function OrdersPage() {
                     <Separator />
                     <div className="flex justify-between font-semibold">
                         <span>Total</span>
-                        <span>{formatPrice(order.totalAmount)}</span>
+                        <span>{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
                     </div>
                      <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Forma de Pagamento</span>

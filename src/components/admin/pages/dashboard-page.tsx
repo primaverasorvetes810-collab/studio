@@ -18,7 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useFirestore } from '@/firebase';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, formatPriceAsString } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { CircleDollarSign, Package, ShoppingBag, Users, Loader2 } from 'lucide-react';
 import type { Order, OrderStatus } from '@/firebase/orders';
@@ -42,6 +42,10 @@ export default function DashboardPage({ allOrders, isLoading }: DashboardPagePro
     const firestore = useFirestore();
     const [totalClients, setTotalClients] = useState(0);
     const [totalProducts, setTotalProducts] = useState(0);
+    const [isMounted, setIsMounted] = useState(false);
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     useEffect(() => {
         if (!firestore) return;
@@ -93,7 +97,7 @@ export default function DashboardPage({ allOrders, isLoading }: DashboardPagePro
             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatPrice(totalRevenue)}</div>
+            <div className="text-2xl font-bold">{isMounted ? formatPrice(totalRevenue) : formatPriceAsString(totalRevenue)}</div>
             <p className="text-xs text-muted-foreground">
               Baseado em pedidos entregues
             </p>
@@ -165,7 +169,7 @@ export default function DashboardPage({ allOrders, isLoading }: DashboardPagePro
                             <TableCell>
                                <Badge className={statusColors[order.status]} variant="outline">{order.status}</Badge>
                             </TableCell>
-                            <TableCell className="text-right">{formatPrice(order.totalAmount)}</TableCell>
+                            <TableCell className="text-right">{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

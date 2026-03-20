@@ -3,7 +3,7 @@
 
 import Image from "next/image";
 import type { Product } from "@/lib/data/products";
-import { formatPrice, getProductImageUrl } from "@/lib/utils";
+import { formatPrice, getProductImageUrl, formatPriceAsString } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { addProductToCart } from "@/firebase/cart";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 type ProductCardProps = {
   product: Product;
@@ -32,6 +33,11 @@ export function ProductCard({ product }: ProductCardProps) {
   const router = useRouter();
   const { settings } = useStoreSettings();
   const isStoreOpen = settings?.isOpen ?? true;
+
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -78,7 +84,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <CardDescription className="line-clamp-2 text-xs">{product.description}</CardDescription>
         </div>
         <div className="mt-2">
-            <p className="text-4xl font-bold text-primary">{formatPrice(product.price)}</p>
+            <p className="text-4xl font-bold text-primary">{isMounted ? formatPrice(product.price) : formatPriceAsString(product.price)}</p>
         </div>
       </CardContent>
       <CardFooter className="p-2 pt-0">

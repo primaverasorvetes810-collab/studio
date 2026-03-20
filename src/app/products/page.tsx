@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import PageHeader from '@/components/page-header';
 import { ProductCard } from '@/components/product-card';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
@@ -11,13 +11,17 @@ import HomeCarousel from '@/components/home-carousel';
 import { useCart } from '@/firebase/cart';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, formatPriceAsString } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
 export default function ProductsPage() {
   const firestore = useFirestore();
   const { user } = useUser();
   const { cartItems, isLoading: isCartLoading } = useCart(user?.uid);
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // 1. Fetch all groups and all active products once
   const productGroupsQuery = useMemoFirebase(() => {
@@ -134,7 +138,7 @@ export default function ProductsPage() {
                         <span>Finalizar Pedido</span>
                     )}
                   </div>
-                  <span>{formatPrice(subtotal)}</span>
+                  <span>{isMounted ? formatPrice(subtotal) : formatPriceAsString(subtotal)}</span>
               </Link>
             </Button>
         </div>

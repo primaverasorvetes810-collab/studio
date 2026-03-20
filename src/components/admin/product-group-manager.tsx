@@ -1,7 +1,7 @@
 'use client';
 
 import type { Product, ProductGroup } from '@/lib/data/products';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Loader2, Pencil, PlusCircle, Trash2, MoreVertical, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { deleteProductGroup } from '@/firebase/product-groups';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import Image from 'next/image';
-import { formatPrice, getProductImageUrl } from '@/lib/utils';
+import { formatPrice, getProductImageUrl, formatPriceAsString } from '@/lib/utils';
 import { deleteProduct, updateProduct } from '@/firebase/products';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -36,6 +36,10 @@ function ProductListGrid({ group, products, onEdit, onAdd }: {
 }) {
   const { toast } = useToast();
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const subgroups = useMemo(() => ['Geral', ...(group.subgroups ?? [])], [group.subgroups]);
   
@@ -117,7 +121,7 @@ function ProductListGrid({ group, products, onEdit, onAdd }: {
                                                 {product.isActive ? 'Ativo' : 'Inativo'}
                                             </Badge>
                                         </div>
-                                        <p className="mt-2 text-lg font-bold text-primary">{formatPrice(product.price)}</p>
+                                        <p className="mt-2 text-lg font-bold text-primary">{isMounted ? formatPrice(product.price) : formatPriceAsString(product.price)}</p>
                                     </CardContent>
                                 </Card>
                                 <div className="absolute top-2 right-2 z-10 opacity-0 group-hover/item:opacity-100 transition-opacity flex flex-col gap-2">

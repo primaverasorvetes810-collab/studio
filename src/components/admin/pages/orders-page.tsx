@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
 import { Order, OrderStatus, updateOrderStatus } from '@/firebase/orders';
 import {
@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { cn, formatPrice } from '@/lib/utils';
+import { cn, formatPrice, formatPriceAsString } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -64,6 +64,10 @@ export default function OrdersPage({ allOrders, isLoading, isOrderDelayed }: Ord
   const [statusFilter, setStatusFilter] = useState<OrderFilterStatus>('Todos');
   const firestore = useFirestore();
   const { toast } = useToast();
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleStatusChange = async (
     order: Order,
@@ -246,7 +250,7 @@ export default function OrdersPage({ allOrders, isLoading, isOrderDelayed }: Ord
                                 {selectedOrder.items.map(item => (
                                     <li key={item.id} className='flex justify-between'>
                                         <span>{item.product.name} x{item.quantity}</span>
-                                        <span>{formatPrice(item.itemPrice * item.quantity)}</span>
+                                        <span>{isMounted ? formatPrice(item.itemPrice * item.quantity) : formatPriceAsString(item.itemPrice * item.quantity)}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -256,11 +260,11 @@ export default function OrdersPage({ allOrders, isLoading, isOrderDelayed }: Ord
                                     <ul className="space-y-1 text-sm pl-6">
                                         <li className="flex justify-between text-muted-foreground">
                                             <span>Subtotal</span>
-                                            <span>{formatPrice(selectedOrder.subtotal)}</span>
+                                            <span>{isMounted ? formatPrice(selectedOrder.subtotal) : formatPriceAsString(selectedOrder.subtotal)}</span>
                                         </li>
                                         <li className="flex justify-between text-muted-foreground">
                                             <span>Taxa de Entrega</span>
-                                            <span>{formatPrice(selectedOrder.shippingFee)}</span>
+                                            <span>{isMounted ? formatPrice(selectedOrder.shippingFee) : formatPriceAsString(selectedOrder.shippingFee)}</span>
                                         </li>
                                     </ul>
                                 </>
@@ -268,7 +272,7 @@ export default function OrdersPage({ allOrders, isLoading, isOrderDelayed }: Ord
                             <Separator className="my-2"/>
                             <div className="flex justify-between font-bold text-sm pl-6">
                                 <span>Total</span>
-                                <span>{formatPrice(selectedOrder.totalAmount)}</span>
+                                <span>{isMounted ? formatPrice(selectedOrder.totalAmount) : formatPriceAsString(selectedOrder.totalAmount)}</span>
                             </div>
                             <div className="flex justify-between text-sm pl-6">
                                 <span className="text-muted-foreground">Pagamento</span>

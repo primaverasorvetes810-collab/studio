@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { formatPrice, getProductImageUrl } from '@/lib/utils';
+import { formatPrice, getProductImageUrl, formatPriceAsString } from '@/lib/utils';
 import { CreditCard, Trash2, Loader2, MapPin, Info } from 'lucide-react';
 import PageHeader from '@/components/page-header';
 import { useToast } from '@/hooks/use-toast';
@@ -57,6 +57,10 @@ export default function CartPage() {
   const { settings, isLoading: isSettingsLoading } = useStoreSettings();
   const isStoreOpen = settings?.isOpen ?? true;
 
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (user && firestore) {
@@ -256,7 +260,7 @@ export default function CartPage() {
                           <div>
                             <h3 className="font-semibold break-words">{item.product.name}</h3>
                             <p className="text-sm font-medium text-muted-foreground">
-                              {formatPrice(item.product.price)}
+                              {isMounted ? formatPrice(item.product.price) : formatPriceAsString(item.product.price)}
                             </p>
                           </div>
 
@@ -334,7 +338,7 @@ export default function CartPage() {
               <CardContent className="grid gap-4">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>{formatPrice(subtotal)}</span>
+                  <span>{isMounted ? formatPrice(subtotal) : formatPriceAsString(subtotal)}</span>
                 </div>
                 <div className="flex justify-between items-center min-h-[24px]">
                   <span className="flex items-center gap-1">
@@ -346,7 +350,7 @@ export default function CartPage() {
                   ) : shippingError ? (
                     <span className="text-sm text-right font-semibold text-destructive">{shippingError}</span>
                   ) : shippingFee !== null ? (
-                    <span>{formatPrice(shippingFee)}</span>
+                    <span>{isMounted ? formatPrice(shippingFee) : formatPriceAsString(shippingFee)}</span>
                   ) : (
                     <span className="text-sm text-muted-foreground">--</span>
                   )}
@@ -354,7 +358,7 @@ export default function CartPage() {
                 <Separator />
                 <div className="flex justify-between font-bold">
                   <span>Total</span>
-                  <span>{formatPrice(total)}</span>
+                  <span>{isMounted ? formatPrice(total) : formatPriceAsString(total)}</span>
                 </div>
                 <div className="grid gap-2">
                   <label

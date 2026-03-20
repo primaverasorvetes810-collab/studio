@@ -18,7 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, formatPriceAsString } from '@/lib/utils';
 import {
   MoreVertical,
   Loader2,
@@ -57,6 +57,10 @@ export default function ClientsPage() {
   const [selectedClient, setSelectedClient] = useState<ClientWithStats | null>(null);
   const { toast } = useToast();
   const firestore = useFirestore();
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const fetchClientData = async () => {
       setIsLoading(true);
@@ -157,7 +161,7 @@ export default function ClientsPage() {
                     <TableCell>
                       <div className="font-medium">{client.fullName}</div>
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">{formatPrice(client.totalSpent)}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{isMounted ? formatPrice(client.totalSpent) : formatPriceAsString(client.totalSpent)}</TableCell>
                     <TableCell className="hidden md:table-cell">{client.lastOrderDate || 'N/A'}</TableCell>
                     <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => setSelectedClient(client)}>
@@ -203,7 +207,7 @@ export default function ClientsPage() {
                             <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Cliente desde:</span> {selectedClient.registerTime ? selectedClient.registerTime.toDate().toLocaleDateString() : 'Não disponível'}</p>
                             <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Último pedido:</span> {selectedClient.lastOrderDate || 'Nenhum pedido'}</p>
                             <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Total de pedidos:</span> {selectedClient.totalOrders}</p>
-                            <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Total gasto:</span> {formatPrice(selectedClient.totalSpent)}</p>
+                            <p className="text-sm text-muted-foreground pl-6"><span className='font-medium'>Total gasto:</span> {isMounted ? formatPrice(selectedClient.totalSpent) : formatPriceAsString(selectedClient.totalSpent)}</p>
                         </div>
                      </div>
                  </ScrollArea>
