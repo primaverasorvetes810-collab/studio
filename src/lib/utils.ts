@@ -25,7 +25,7 @@ export function formatPrice(price: number) {
     integerPart,
     React.createElement(
       'span',
-      { className: 'text-[0.7em] font-medium align-baseline tracking-tight' },
+      { className: 'text-[0.5em] font-medium align-baseline tracking-tight' },
       `,${fractionPart}`
     )
   );
