@@ -15,9 +15,13 @@ export function formatPrice(price: number) {
     adjustedPrice = Math.ceil(price);
   }
 
+  const isInteger = adjustedPrice % 1 === 0;
+
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
+    minimumFractionDigits: isInteger ? 0 : 2,
+    maximumFractionDigits: 2,
   }).format(adjustedPrice);
 }
 
