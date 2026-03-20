@@ -90,7 +90,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardFooter className="p-2 pt-0">
         <Button 
             size="lg"
-            className="w-full" 
+            className="w-full text-lg" 
             onClick={handleAddToCart}
             disabled={!isStoreOpen}
         >
