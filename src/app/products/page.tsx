@@ -125,8 +125,8 @@ export default function ProductsPage() {
               asChild
               className={cn(
                 "w-full font-bold shadow-2xl shadow-primary/30 flex justify-between items-center animate-pulse-deep",
-                "h-14 px-4 text-base rounded-lg",
-                "sm:h-16 sm:px-6 sm:text-xl"
+                "h-14 px-4 text-xl rounded-lg",
+                "sm:h-16 sm:px-6 sm:text-2xl"
               )}
             >
               <Link href="/cart">
@@ -135,7 +135,7 @@ export default function ProductsPage() {
                     {totalItems > 0 ? (
                         <span>Ver Carrinho ({totalItems})</span>
                     ) : (
-                        <span>Finalizar Pedido</span>
+                        <span>Peça Agora</span>
                     )}
                   </div>
                   <span>{isMounted ? formatPrice(subtotal) : formatPriceAsString(subtotal)}</span>
