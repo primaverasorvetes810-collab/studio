@@ -32,7 +32,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect } from 'react';
 import { createOrderFromCart, type User as UserProfile } from '@/firebase/orders';
 import { useRouter } from 'next/navigation';
-import { calculateShipping } from '@/ai/flows/calculate-shipping-flow';
 import { getDoc, doc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from '@/lib/utils';
@@ -51,9 +50,6 @@ export default function CartPage() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   
-  const [shippingFee, setShippingFee] = useState<number | null>(null);
-  const [shippingError, setShippingError] = useState<string | null>(null);
-  const [isCalculatingShipping, setIsCalculatingShipping] = useState(true);
   const { settings, isLoading: isSettingsLoading } = useStoreSettings();
   const isStoreOpen = settings?.isOpen ?? true;
 
@@ -79,44 +75,14 @@ export default function CartPage() {
     }
   }, [user, firestore]);
 
-  useEffect(() => {
-    if (isProfileLoading) return;
-
-    setIsCalculatingShipping(true);
-    setShippingError(null);
-    setShippingFee(null);
-
-    if (!userProfile?.neighborhood) {
-        setIsCalculatingShipping(false);
-        return;
-    }
-
-    calculateShipping({ neighborhood: userProfile.neighborhood })
-      .then(result => {
-        if (result.fee !== undefined && !result.error) {
-          setShippingFee(result.fee);
-          setShippingError(null);
-        } else {
-          setShippingError(result.error || 'Não é possível entregar neste bairro.');
-          setShippingFee(null);
-        }
-      })
-      .catch(() => {
-        setShippingError('Falha ao calcular o frete.');
-        setShippingFee(null);
-      })
-      .finally(() => {
-        setIsCalculatingShipping(false);
-      });
-}, [userProfile, isProfileLoading]);
-
+  const shippingFee = 10.00;
   const isProfileIncomplete = !userProfile?.address || !userProfile?.neighborhood || !userProfile?.city;
 
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.product.price * item.quantity,
     0
   );
-  const total = subtotal + (shippingFee || 0);
+  const total = subtotal + shippingFee;
 
   const handleRemoveItem = (cartItemId: string) => {
     if (!user || !cartId || !isStoreOpen) return;
@@ -162,26 +128,10 @@ export default function CartPage() {
         });
         return;
     }
-    if (shippingError) {
-        toast({
-            variant: 'destructive',
-            title: 'Erro na Entrega',
-            description: shippingError,
-        });
-        return;
-    }
-    if (subtotal > 0 && shippingFee === null) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro no Frete',
-        description: 'Ainda não foi possível calcular o frete para seu endereço.',
-      });
-      return;
-    }
 
     setIsPlacingOrder(true);
     try {
-      await createOrderFromCart(user, cartId, cartItems, paymentMethod, shippingFee || 0);
+      await createOrderFromCart(user, cartId, cartItems, paymentMethod, shippingFee);
       playSuccessSound();
       toast({
         title: 'Pedido realizado!',
@@ -321,17 +271,7 @@ export default function CartPage() {
               </Alert>
             )}
 
-            {shippingError && !isProfileIncomplete && (
-              <Alert variant="destructive">
-                  <Info className="h-4 w-4" />
-                  <AlertTitle>Fora da Área de Entrega</AlertTitle>
-                  <AlertDescription>
-                      {shippingError}
-                  </AlertDescription>
-              </Alert>
-            )}
-
-            <Card className={cn((isProfileIncomplete || !!shippingError) && 'opacity-60 pointer-events-none')}>
+            <Card className={cn(isProfileIncomplete && 'opacity-60 pointer-events-none')}>
               <CardHeader>
                 <CardTitle>Resumo do Pedido</CardTitle>
               </CardHeader>
@@ -345,15 +285,7 @@ export default function CartPage() {
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     Taxa de Entrega
                   </span>
-                  {isCalculatingShipping ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : shippingError ? (
-                    <span className="text-sm text-right font-semibold text-destructive">{shippingError}</span>
-                  ) : shippingFee !== null ? (
-                    <span>{isMounted ? formatPrice(shippingFee) : formatPriceAsString(shippingFee)}</span>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">--</span>
-                  )}
+                  <span>{isMounted ? formatPrice(shippingFee) : formatPriceAsString(shippingFee)}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-bold">
@@ -386,7 +318,7 @@ export default function CartPage() {
                     size="lg"
                     className="w-full h-12 text-lg"
                     onClick={handlePlaceOrder}
-                    disabled={isPlacingOrder || isCalculatingShipping || !paymentMethod || !isStoreOpen || isProfileIncomplete || !!shippingError}
+                    disabled={isPlacingOrder || !paymentMethod || !isStoreOpen || isProfileIncomplete}
                 >
                     {isPlacingOrder ? (
                     <Loader2 className="h-6 w-6 animate-spin" />
