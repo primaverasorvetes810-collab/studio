@@ -83,8 +83,8 @@ export function ProductCard({ product }: ProductCardProps) {
           <CardTitle className="mb-1 text-base font-semibold">{product.name}</CardTitle>
           <CardDescription className="line-clamp-2 text-xs">{product.description}</CardDescription>
         </div>
-        <div className="mt-2">
-            <p className="text-2xl font-bold text-primary sm:text-3xl lg:text-6xl">{isMounted ? formatPrice(product.price) : formatPriceAsString(product.price)}</p>
+        <div className="mt-2 text-center">
+            <p className="text-2xl font-bold text-primary sm:text-3xl lg:text-4xl">{isMounted ? formatPrice(product.price) : formatPriceAsString(product.price)}</p>
         </div>
       </CardContent>
       <CardFooter className="p-2 pt-0">
