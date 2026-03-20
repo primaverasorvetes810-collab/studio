@@ -84,11 +84,12 @@ export function ProductCard({ product }: ProductCardProps) {
           <CardDescription className="line-clamp-2 text-xs">{product.description}</CardDescription>
         </div>
         <div className="mt-2 text-center">
-            <p className="text-center text-4xl font-bold text-primary md:text-4xl lg:text-5xl">{isMounted ? formatPrice(product.price) : formatPriceAsString(product.price)}</p>
+            <p className="text-center text-4xl font-bold text-primary md:text-3xl lg:text-2xl">{isMounted ? formatPrice(product.price) : formatPriceAsString(product.price)}</p>
         </div>
       </CardContent>
       <CardFooter className="p-2 pt-0">
         <Button 
+            size="lg"
             className="w-full" 
             onClick={handleAddToCart}
             disabled={!isStoreOpen}

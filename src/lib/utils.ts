@@ -2,42 +2,29 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import type { Product } from "./data/products";
-import React from "react";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
 export function formatPrice(price: number) {
-  const priceString = new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 2, // Always show cents to split
-  }).format(price);
-
-  const parts = priceString.split(',');
-  const integerPart = parts[0];
-  const fractionPart = parts[1];
-
-  return React.createElement(
-    React.Fragment,
-    null,
-    integerPart,
-    React.createElement(
-      'span',
-      { className: 'text-[0.4em] font-bold align-baseline tracking-tight' },
-      `,${fractionPart}`
-    )
-  );
+    const roundedPrice = Math.round(price);
+    return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(roundedPrice);
 }
 
 export function formatPriceAsString(price: number) {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(price);
+    const roundedPrice = Math.round(price);
+    return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(roundedPrice);
 }
 
 /**
