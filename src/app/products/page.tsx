@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import PageHeader from '@/components/page-header';
 import { ProductCard } from '@/components/product-card';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import type { Product, ProductGroup } from '@/lib/data/products';
@@ -79,12 +78,6 @@ export default function ProductsPage() {
     <div className="pb-32">
       <HomeCarousel />
       <div className="container mx-auto px-4 py-8">
-        <div className="my-8">
-          <PageHeader
-            title="Faça seu pedido agora mesmo"
-            description="Navegue por nossas categorias e encontre o que deseja."
-          />
-        </div>
         
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
