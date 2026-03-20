@@ -1,55 +1,81 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Confetti from 'react-confetti';
+import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Button } from './ui/button';
-import { cn } from '@/lib/utils';
+import confetti from 'canvas-confetti';
 
-interface ConfettiScreenProps {
+interface OrderSuccessOverlayProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function ConfettiScreen({ isOpen, onClose }: ConfettiScreenProps) {
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+export default function OrderSuccessOverlay({ isOpen, onClose }: OrderSuccessOverlayProps) {
+  const animationInterval = useRef<NodeJS.Timeout | null>(null);
 
+  // Effect for confetti animation
   useEffect(() => {
-    const { innerWidth, innerHeight } = window;
-    setDimensions({ width: innerWidth, height: innerHeight });
+    if (isOpen) {
+      // Start confetti
+      animationInterval.current = setInterval(() => {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      }, 800);
+    } else {
+        if (animationInterval.current) {
+            clearInterval(animationInterval.current);
+        }
+    }
 
-    const handleResize = () => {
-      setDimensions({ width: window.innerWidth, height: window.innerHeight });
+    // Cleanup function
+    return () => {
+      if (animationInterval.current) {
+        clearInterval(animationInterval.current);
+      }
+    };
+  }, [isOpen]);
+
+
+  // Effect for handling Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose]);
+
 
   if (!isOpen) {
     return null;
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-      <Confetti
-        width={dimensions.width}
-        height={dimensions.height}
-        recycle={true}
-        numberOfPieces={400}
-        gravity={0.1}
-      />
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="order-success-title"
+    >
       <div className="relative flex flex-col items-center gap-4 text-center">
         <h1 
-          className="text-6xl md:text-8xl font-black uppercase text-white"
+          id="order-success-title"
+          className="text-6xl md:text-8xl font-black uppercase text-destructive"
           style={{
-            color: '#ff003c',
-            textShadow: '0 0 5px #ff003c, 0 0 10px #ff003c, 0 0 20px #ff003c, 0 0 40px #ff003c, 0 0 80px #ff003c',
+            textShadow: '0 0 5px hsl(var(--destructive)), 0 0 10px hsl(var(--destructive)), 0 0 20px hsl(var(--destructive))',
           }}
         >
           Pedido Finalizado
         </h1>
-        <p className="text-lg text-white/80">
+        <p className="text-base text-gray-200">
           Verifique o status dos seus pedidos para acompanhar a entrega.
         </p>
       </div>
@@ -58,9 +84,9 @@ export default function ConfettiScreen({ isOpen, onClose }: ConfettiScreenProps)
         size="icon"
         onClick={onClose}
         className="absolute top-6 right-6 h-12 w-12 rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
+        aria-label="Fechar"
       >
         <X className="h-8 w-8" />
-        <span className="sr-only">Fechar</span>
       </Button>
     </div>
   );

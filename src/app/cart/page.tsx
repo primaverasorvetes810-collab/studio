@@ -35,7 +35,7 @@ import { useRouter } from 'next/navigation';
 import { getDoc, doc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from '@/lib/utils';
-import ConfettiScreen from '@/components/confetti-screen';
+import OrderSuccessOverlay from '@/components/confetti-screen';
 
 
 export default function CartPage() {
@@ -339,7 +339,7 @@ export default function CartPage() {
           </div>
         </div>
       </div>
-      <ConfettiScreen isOpen={isConfirmationVisible} onClose={handleCloseConfirmation} />
+      <OrderSuccessOverlay isOpen={isConfirmationVisible} onClose={handleCloseConfirmation} />
     </>
   );
 }
