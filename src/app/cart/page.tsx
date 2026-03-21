@@ -351,7 +351,7 @@ export default function CartPage() {
 
                 {paymentMethod === 'Dinheiro' && (
                   <div className="grid gap-2">
-                    <Label htmlFor="amount-paid">Valor para troco</Label>
+                    <Label htmlFor="amount-paid">Quanto você vai pagar?</Label>
                     <Input
                       id="amount-paid"
                       type="text"
