@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -26,10 +27,10 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice, getProductImageUrl, formatPriceAsString } from '@/lib/utils';
-import { CreditCard, Trash2, Loader2, MapPin, Info } from 'lucide-react';
+import { Trash2, Loader2, MapPin, Info, Copy } from 'lucide-react';
 import PageHeader from '@/components/page-header';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createOrderFromCart, type User as UserProfile } from '@/firebase/orders';
 import { useRouter } from 'next/navigation';
 import { getDoc, doc } from 'firebase/firestore';
@@ -45,6 +46,7 @@ export default function CartPage() {
   const router = useRouter();
   
   const [paymentMethod, setPaymentMethod] = useState('');
+  const [amountPaid, setAmountPaid] = useState<string>(''); // For cash payment
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -85,6 +87,16 @@ export default function CartPage() {
   );
   const total = subtotal + shippingFee;
 
+  const change = useMemo(() => {
+    if (paymentMethod !== 'Dinheiro') return null;
+    const paid = parseFloat(amountPaid.replace(',', '.'));
+    if (isNaN(paid) || paid < total) {
+      return null;
+    }
+    return paid - total;
+  }, [amountPaid, total, paymentMethod]);
+
+
   const handleRemoveItem = (cartItemId: string) => {
     if (!user || !cartId || !isStoreOpen) return;
     removeProductFromCart(user.uid, cartId, cartItemId);
@@ -121,6 +133,17 @@ export default function CartPage() {
       });
       return;
     }
+    if (paymentMethod === 'Dinheiro') {
+      const paid = parseFloat(amountPaid.replace(',', '.'));
+      if (isNaN(paid) || paid < total) {
+        toast({
+          variant: 'destructive',
+          title: 'Valor Inválido',
+          description: 'Por favor, insira um valor em dinheiro igual ou maior que o total do pedido.',
+        });
+        return;
+      }
+    }
     if (isProfileIncomplete) {
         toast({
             variant: 'destructive',
@@ -132,7 +155,11 @@ export default function CartPage() {
 
     setIsPlacingOrder(true);
     try {
-      await createOrderFromCart(user, cartId, cartItems, paymentMethod, shippingFee);
+      const orderPaymentMethod = paymentMethod === 'Dinheiro' && change !== null
+        ? `Dinheiro (Troco para ${formatPrice(parseFloat(amountPaid.replace(',', '.')))})`
+        : paymentMethod;
+        
+      await createOrderFromCart(user, cartId, cartItems, orderPaymentMethod, shippingFee);
       playSuccessSound();
       toast({
         title: 'Pedido realizado!',
@@ -294,12 +321,9 @@ export default function CartPage() {
                   <span>{isMounted ? formatPrice(total) : formatPriceAsString(total)}</span>
                 </div>
                 <div className="grid gap-2">
-                  <label
-                    htmlFor="payment-method"
-                    className="text-sm font-medium"
-                  >
+                  <Label htmlFor="payment-method">
                     Forma de Pagamento
-                  </label>
+                  </Label>
                   <Select onValueChange={setPaymentMethod} value={paymentMethod} disabled={!isStoreOpen}>
                     <SelectTrigger id="payment-method">
                       <SelectValue placeholder="Selecione um método" />
@@ -313,11 +337,43 @@ export default function CartPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                {paymentMethod === 'Pix' && (
+                  <Alert>
+                    <Copy className="h-4 w-4" />
+                    <AlertTitle>Pague com Pix!</AlertTitle>
+                    <AlertDescription>
+                      <p>Use nosso CNPJ para o pagamento:</p>
+                      <p className="font-mono font-bold">12.345.678/0001-99</p>
+                      <p className="mt-2 text-xs">O QR Code para pagamento será apresentado na entrega.</p>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {paymentMethod === 'Dinheiro' && (
+                  <div className="grid gap-2">
+                    <Label htmlFor="amount-paid">Valor para troco</Label>
+                    <Input
+                      id="amount-paid"
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="Ex: 50,00"
+                      value={amountPaid}
+                      onChange={(e) => setAmountPaid(e.target.value)}
+                      disabled={!isStoreOpen}
+                    />
+                    {change !== null && change >= 0 && (
+                      <div className="text-sm text-green-600 font-medium flex justify-between">
+                        <span>Troco:</span>
+                        <span>{isMounted ? formatPrice(change) : formatPriceAsString(change)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
                  <Button
                     size="lg"
-                    className="w-full h-12 text-2xl"
+                    className="w-full h-14 text-xl"
                     onClick={handlePlaceOrder}
                     disabled={isPlacingOrder || !paymentMethod || !isStoreOpen || isProfileIncomplete}
                 >
