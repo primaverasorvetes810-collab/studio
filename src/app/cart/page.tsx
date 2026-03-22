@@ -293,7 +293,7 @@ export default function CartPage() {
 
             <Card className={cn(isProfileIncomplete && 'opacity-60 pointer-events-none')}>
               <CardHeader>
-                <CardTitle className="text-primary [text-shadow:0_0_8px_hsl(var(--primary))]">Termine aqui seu pedido</CardTitle>
+                <CardTitle className="text-primary">Termine aqui seu pedido</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
                 <div className="flex justify-between text-base">
