@@ -111,13 +111,6 @@ export default function CartPage() {
     updateCartItemQuantity(user.uid, cartId, cartItemId, newQuantity);
   };
 
-  const playSuccessSound = () => {
-    const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-1.mp3');
-    audio.play().catch(error => {
-      console.log("Falha ao reproduzir som de sucesso:", error);
-    });
-  }
-
   const handlePlaceOrder = async () => {
     if (!isStoreOpen) {
       return;
@@ -160,7 +153,6 @@ export default function CartPage() {
         : paymentMethod;
         
       await createOrderFromCart(user, cartId, cartItems, orderPaymentMethod, shippingFee);
-      playSuccessSound();
       toast({
         title: 'Pedido realizado!',
         description: 'Seu pedido foi criado com sucesso. Redirecionando...',
@@ -304,11 +296,11 @@ export default function CartPage() {
                 <CardTitle className="text-primary [text-shadow:0_0_8px_hsl(var(--primary))]">Termine aqui seu pedido</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
-                <div className="flex justify-between text-xl">
+                <div className="flex justify-between text-base">
                   <span>Subtotal</span>
                   <span>{isMounted ? formatPrice(subtotal) : formatPriceAsString(subtotal)}</span>
                 </div>
-                <div className="flex justify-between items-center text-xl">
+                <div className="flex justify-between items-center text-base">
                   <span className="flex items-center gap-1">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     Taxa de Entrega
@@ -321,7 +313,7 @@ export default function CartPage() {
                   <span>{isMounted ? formatPrice(total) : formatPriceAsString(total)}</span>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="payment-method" className="text-lg">
+                  <Label htmlFor="payment-method" className="text-2xl text-center">
                     Forma de Pagamento
                   </Label>
                   <Select onValueChange={setPaymentMethod} value={paymentMethod} disabled={!isStoreOpen}>
