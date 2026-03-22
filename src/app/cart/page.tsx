@@ -303,12 +303,12 @@ export default function CartPage() {
               <CardHeader>
                 <CardTitle className="text-primary [text-shadow:0_0_8px_hsl(var(--primary))]">Termine aqui seu pedido</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-4 text-2xl">
-                <div className="flex justify-between">
+              <CardContent className="grid gap-4">
+                <div className="flex justify-between text-xl">
                   <span>Subtotal</span>
                   <span>{isMounted ? formatPrice(subtotal) : formatPriceAsString(subtotal)}</span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center text-xl">
                   <span className="flex items-center gap-1">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     Taxa de Entrega
@@ -316,22 +316,22 @@ export default function CartPage() {
                   <span>{isMounted ? formatPrice(shippingFee) : formatPriceAsString(shippingFee)}</span>
                 </div>
                 <Separator />
-                <div className="flex justify-between font-bold text-xl">
+                <div className="flex justify-between font-bold text-2xl">
                   <span>Total</span>
                   <span>{isMounted ? formatPrice(total) : formatPriceAsString(total)}</span>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="payment-method">
+                  <Label htmlFor="payment-method" className="text-lg">
                     Forma de Pagamento
                   </Label>
                   <Select onValueChange={setPaymentMethod} value={paymentMethod} disabled={!isStoreOpen}>
-                    <SelectTrigger id="payment-method">
+                    <SelectTrigger id="payment-method" className="h-14 text-lg">
                       <SelectValue placeholder="Selecione um método" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Pix">Pix</SelectItem>
-                      <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                      <SelectItem value="Cartão de Crédito ou Débito">
+                      <SelectItem value="Pix" className="text-lg">Pix</SelectItem>
+                      <SelectItem value="Dinheiro" className="text-lg">Dinheiro</SelectItem>
+                      <SelectItem value="Cartão de Crédito ou Débito" className="text-lg">
                         Cartão de Crédito/Débito
                       </SelectItem>
                     </SelectContent>
@@ -351,7 +351,7 @@ export default function CartPage() {
 
                 {paymentMethod === 'Dinheiro' && (
                   <div className="grid gap-2">
-                    <Label htmlFor="amount-paid">Quanto você vai pagar?</Label>
+                    <Label htmlFor="amount-paid" className="text-lg">Quanto você vai pagar?</Label>
                     <Input
                       id="amount-paid"
                       type="text"
@@ -360,9 +360,10 @@ export default function CartPage() {
                       value={amountPaid}
                       onChange={(e) => setAmountPaid(e.target.value)}
                       disabled={!isStoreOpen}
+                      className="h-14 text-lg"
                     />
                     {change !== null && change >= 0 && (
-                      <div className="text-sm text-green-600 font-medium flex justify-between">
+                      <div className="text-base text-green-600 font-medium flex justify-between">
                         <span>Troco:</span>
                         <span>{isMounted ? formatPrice(change) : formatPriceAsString(change)}</span>
                       </div>
