@@ -304,11 +304,11 @@ export default function CartPage() {
                 <CardTitle>Resumo do Pedido</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
-                <div className="flex justify-between">
+                <div className="flex justify-between text-lg">
                   <span>Subtotal</span>
                   <span>{isMounted ? formatPrice(subtotal) : formatPriceAsString(subtotal)}</span>
                 </div>
-                <div className="flex justify-between items-center min-h-[24px]">
+                <div className="flex justify-between items-center text-lg">
                   <span className="flex items-center gap-1">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     Taxa de Entrega
@@ -316,7 +316,7 @@ export default function CartPage() {
                   <span>{isMounted ? formatPrice(shippingFee) : formatPriceAsString(shippingFee)}</span>
                 </div>
                 <Separator />
-                <div className="flex justify-between font-bold">
+                <div className="flex justify-between font-bold text-xl">
                   <span>Total</span>
                   <span>{isMounted ? formatPrice(total) : formatPriceAsString(total)}</span>
                 </div>
