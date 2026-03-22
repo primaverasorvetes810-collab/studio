@@ -169,7 +169,7 @@ export default function CartPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <PageHeader title="Carrinho de Compras" />
+        <PageHeader title="Arraste para baixo" />
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -180,7 +180,7 @@ export default function CartPage() {
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
-        <PageHeader title="Carrinho de Compras" />
+        <PageHeader title="Arraste para baixo" />
         <p className="mt-4">
           Você precisa estar logado para ver seu carrinho.
         </p>
@@ -194,7 +194,7 @@ export default function CartPage() {
   if (cartItems.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
-        <PageHeader title="Carrinho de Compras" />
+        <PageHeader title="Arraste para baixo" />
         <p className="mt-4">Seu carrinho está vazio.</p>
         <Button asChild className="mt-4 py-4 px-8 text-lg">
           <Link href="/">Ver Produtos</Link>
@@ -206,7 +206,7 @@ export default function CartPage() {
   return (
     <>
       <div className="container mx-auto px-4 py-8">
-        <PageHeader title="Carrinho de Compras" />
+        <PageHeader title="Arraste para baixo" />
         <div className="mt-8 flex flex-col lg:flex-row gap-8">
           <div className="flex-1">
             <Card>
