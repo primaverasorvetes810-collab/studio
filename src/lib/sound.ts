@@ -30,7 +30,7 @@ class AudioService {
   initialize() {
     if (this.isInitialized || typeof window === 'undefined') return;
     
-    const audioUrl = 'https://res.cloudinary.com/dh88bfqo0/video/upload/v1773510919/freesound_community-attention_tone_sm30-96953_knaykg.mp3';
+    const audioUrl = 'https://res.cloudinary.com/dh88bfqo0/video/upload/v1774214433/blendertimer-cyber-alarms-synthesized-116358_zrlqgr.mp3';
     this.audio = new Audio(audioUrl);
     this.audio.loop = true; // Alerts should loop
     this.audio.preload = 'auto';
