@@ -301,14 +301,14 @@ export default function CartPage() {
 
             <Card className={cn(isProfileIncomplete && 'opacity-60 pointer-events-none')}>
               <CardHeader>
-                <CardTitle>Resumo do Pedido</CardTitle>
+                <CardTitle className="text-primary [text-shadow:0_0_8px_hsl(var(--primary))]">Termine aqui seu pedido</CardTitle>
               </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="flex justify-between text-lg">
+              <CardContent className="grid gap-4 text-2xl">
+                <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span>{isMounted ? formatPrice(subtotal) : formatPriceAsString(subtotal)}</span>
                 </div>
-                <div className="flex justify-between items-center text-lg">
+                <div className="flex justify-between items-center">
                   <span className="flex items-center gap-1">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     Taxa de Entrega
