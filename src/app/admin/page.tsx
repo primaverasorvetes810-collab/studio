@@ -66,8 +66,10 @@ export default function AdminGatePage() {
   }, []);
   
   const hasPendingOrders = useMemo(() => {
-    return allOrders.some(order => order.status === 'Pendente' && !isOrderDelayed(order));
-  }, [allOrders, isOrderDelayed]);
+    // The alarm should sound if there is any order with the status 'Pendente'.
+    // The 'Atrasado' status is a UI-only concept derived from 'Pendente'.
+    return allOrders.some(order => order.status === 'Pendente');
+  }, [allOrders]);
 
 
   const correctPassword = "810Primavera*";
