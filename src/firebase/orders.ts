@@ -17,6 +17,7 @@ import {
   increment,
   writeBatch,
   onSnapshot,
+  DocumentReference,
 } from 'firebase/firestore';
 import { getClientSdks, useCollection, useMemoFirebase } from '@/firebase';
 import { errorEmitter } from './error-emitter';
@@ -159,82 +160,104 @@ export async function createOrderFromCart(
   cartId: string,
   cartItems: CartItemWithProduct[],
   paymentMethod: string,
-  shippingFee: number,
+  shippingFee: number
 ) {
   const { firestore } = getClientSdks();
   const userId = user.uid;
 
   try {
-    const userRef = doc(firestore, 'users', userId);
-    let userData: Partial<User> = {};
-    
-    try {
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-            userData = userSnap.data() as User;
+    await runTransaction(firestore, async (transaction) => {
+      // 1. Fetch user data (outside transaction for non-critical display data)
+      const userRef = doc(firestore, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      const userData = userSnap.exists() ? (userSnap.data() as User) : {};
+
+      let subtotal = 0;
+      const validatedOrderItems = [];
+      const productUpdates: { ref: DocumentReference; newStock: number }[] = [];
+
+      // 2. Process each cart item within the transaction
+      for (const cartItem of cartItems) {
+        const productRef = doc(firestore, 'products', cartItem.productId);
+        const productSnap = await transaction.get(productRef);
+
+        if (!productSnap.exists()) {
+          throw new Error(
+            `Produto "${cartItem.product.name}" não está mais disponível.`
+          );
         }
-    } catch (e) {
-        console.warn("Não foi possível buscar o perfil do usuário durante a criação do pedido:", e);
-    }
 
-    let subtotal = 0;
-    const validatedOrderItems = [];
+        const serverProduct = productSnap.data() as Product;
 
-    for (const cartItem of cartItems) {
-      const productRef = doc(firestore, 'products', cartItem.productId);
-      const productSnap = await getDoc(productRef);
+        // 3. Check stock if it's managed
+        if (serverProduct.manageStock) {
+          if (serverProduct.stock < cartItem.quantity) {
+            throw new Error(
+              `Estoque insuficiente para "${serverProduct.name}". Temos apenas ${serverProduct.stock} unidade(s).`
+            );
+          }
+          // Prepare stock update
+          productUpdates.push({
+            ref: productRef,
+            newStock: serverProduct.stock - cartItem.quantity,
+          });
+        }
 
-      if (!productSnap.exists()) {
-        throw new Error(`Produto com ID ${cartItem.productId} não encontrado.`);
+        const itemPrice = serverProduct.price;
+        subtotal += itemPrice * cartItem.quantity;
+
+        validatedOrderItems.push({
+          id: cartItem.id, // cartItemId
+          productId: cartItem.productId,
+          quantity: cartItem.quantity,
+          itemPrice: itemPrice,
+          product: { ...serverProduct, id: cartItem.productId },
+        });
       }
 
-      const serverProduct = productSnap.data() as Product;
+      // All checks passed, proceed with writes
 
-      const itemPrice = serverProduct.price; 
-      subtotal += itemPrice * cartItem.quantity;
-      
-      validatedOrderItems.push({
-        id: cartItem.id, // cartItemId
-        productId: cartItem.productId,
-        quantity: cartItem.quantity,
-        itemPrice: itemPrice, 
-        product: { ...serverProduct, id: cartItem.productId }
-      });
-    }
+      // 4. Update product stocks
+      for (const update of productUpdates) {
+        transaction.update(update.ref, { stock: update.newStock });
+      }
 
-    const totalAmount = subtotal + shippingFee;
+      // 5. Create the new order
+      const totalAmount = subtotal + shippingFee;
+      const newOrderData = {
+        userId,
+        userName: userData.fullName || user.displayName || user.email || 'N/A',
+        userEmail: user.email || 'N/A',
+        userPhone: userData.phone || '',
+        userAddress: userData.address || '',
+        userNeighborhood: userData.neighborhood || '',
+        userCity: userData.city || '',
+        orderDate: serverTimestamp(),
+        statusUpdatedAt: serverTimestamp(),
+        paymentMethod,
+        subtotal,
+        shippingFee,
+        totalAmount,
+        status: 'Pendente' as const,
+        items: validatedOrderItems,
+      };
+      const newOrderRef = doc(collection(firestore, `users/${userId}/orders`));
+      transaction.set(newOrderRef, newOrderData);
 
-    const newOrderData = {
-      userId,
-      userName: userData.fullName || user.displayName || user.email || 'N/A',
-      userEmail: user.email || 'N/A',
-      userPhone: userData.phone || '',
-      userAddress: userData.address || '',
-      userNeighborhood: userData.neighborhood || '',
-      userCity: userData.city || '',
-      orderDate: serverTimestamp(),
-      statusUpdatedAt: serverTimestamp(),
-      paymentMethod,
-      subtotal,
-      shippingFee,
-      totalAmount,
-      status: 'Pendente' as const,
-      items: validatedOrderItems,
-    };
-
-    const newOrderRef = await addDoc(collection(firestore, `users/${userId}/orders`), newOrderData);
-
-    const batch = writeBatch(firestore);
-
-    for (const item of cartItems) {
-        const cartItemRef = doc(firestore, `users/${userId}/shoppingCarts/${cartId}/cartItems`, item.id);
-        batch.delete(cartItemRef);
-    }
-    
-    await batch.commit();
-
+      // 6. Clear the shopping cart
+      for (const item of cartItems) {
+        const cartItemRef = doc(
+          firestore,
+          `users/${userId}/shoppingCarts/${cartId}/cartItems`,
+          item.id
+        );
+        transaction.delete(cartItemRef);
+      }
+    });
   } catch (error: any) {
-    if (!(error.message.includes('Estoque insuficiente'))) {
+    console.error("Order creation transaction failed: ", error);
+    // For other errors, emit a generic permission error for debugging.
+    if (!error.message.includes('Estoque insuficiente') && !error.message.includes('não está mais disponível')) {
       errorEmitter.emit(
         'permission-error',
         new FirestorePermissionError({
@@ -246,9 +269,11 @@ export async function createOrderFromCart(
         })
       );
     }
-     throw error;
+    // Re-throw the error so the UI can display a meaningful message to the user.
+    throw error;
   }
 }
+
 
 export async function updateOrderStatus(userId: string, orderId: string, status: OrderStatus) {
   const { firestore } = getClientSdks();

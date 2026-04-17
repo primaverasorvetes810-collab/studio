@@ -181,7 +181,7 @@ export default function CartPage() {
         toast({
             variant: "destructive",
             title: "Erro ao criar pedido",
-            description: "Houve um problema ao processar seu pedido. Tente novamente.",
+            description: error.message || "Houve um problema ao processar seu pedido. Tente novamente.",
         });
     } finally {
       setIsPlacingOrder(false);
