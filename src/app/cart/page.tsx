@@ -35,6 +35,15 @@ import { createOrderFromCart, type User as UserProfile } from '@/firebase/orders
 import { useRouter } from 'next/navigation';
 import { getDoc, doc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import VideoOverlay from '@/components/video-overlay';
 import { soundEffectsService } from '@/lib/sound-effects';
@@ -51,6 +60,7 @@ export default function CartPage() {
   const [amountPaid, setAmountPaid] = useState<string>(''); // For cash payment
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isVideoOverlayOpen, setIsVideoOverlayOpen] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -178,12 +188,7 @@ export default function CartPage() {
         description: 'Seu pedido foi criado com sucesso.',
       });
     } catch (error: any) {
-        // If order creation fails, do not open the video. Just show an error toast.
-        toast({
-            variant: "destructive",
-            title: "Erro ao criar pedido",
-            description: error.message || "Houve um problema ao processar seu pedido. Tente novamente.",
-        });
+        setOrderError(error.message || "Houve um problema ao processar seu pedido. Tente novamente.");
     } finally {
       setIsPlacingOrder(false);
     }
@@ -249,6 +254,21 @@ export default function CartPage() {
         onClose={handleOverlayClose}
         videoSrc="https://res.cloudinary.com/du4ccw2pg/video/upload/v1776465717/Pedido_finalizado_1_opgcdz.mp4"
       />
+
+      <AlertDialog open={!!orderError} onOpenChange={(open) => !open && setOrderError(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Erro ao Processar Pedido</AlertDialogTitle>
+            <AlertDialogDescription>
+              {orderError}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setOrderError(null)}>Entendi</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="container mx-auto px-4 py-8">
         <PageHeader title="Arraste para baixo" />
         <div className="mt-8 flex flex-col lg:flex-row gap-8">
