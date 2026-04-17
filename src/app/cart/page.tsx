@@ -223,10 +223,19 @@ export default function CartPage() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
+      <div className="container mx-auto flex min-h-[calc(100vh-20rem)] flex-col items-center justify-center px-4 py-8 text-center">
         <PageHeader title="Arraste para baixo" />
-        <p className="mt-4">Seu carrinho está vazio.</p>
-        <Button asChild className="mt-4 py-4 px-8 text-lg">
+        <div className="relative mt-8 h-64 w-64">
+          <Image
+            src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776467354/Primavera_3_mcdukx.png"
+            alt="Carrinho de compras vazio"
+            fill
+            className="object-contain"
+          />
+        </div>
+        <p className="mt-8 text-xl font-semibold">Seu carrinho está vazio.</p>
+        <p className="text-muted-foreground">Que tal adicionar alguns produtos?</p>
+        <Button asChild className="mt-6 py-4 px-8 text-lg">
           <Link href="/">Ver Produtos</Link>
         </Button>
       </div>
