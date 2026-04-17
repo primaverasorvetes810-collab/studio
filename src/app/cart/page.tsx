@@ -30,7 +30,7 @@ import { formatPrice, getProductImageUrl, formatPriceAsString } from '@/lib/util
 import { Trash2, Loader2, MapPin, Info, Copy } from 'lucide-react';
 import PageHeader from '@/components/page-header';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createOrderFromCart, type User as UserProfile } from '@/firebase/orders';
 import { useRouter } from 'next/navigation';
 import { getDoc, doc } from 'firebase/firestore';
@@ -61,9 +61,6 @@ export default function CartPage() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isVideoOverlayOpen, setIsVideoOverlayOpen] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
-  
-  const orderSucceeded = useRef(false);
-  const videoFinished = useRef(false);
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -167,11 +164,6 @@ export default function CartPage() {
 
     setIsPlacingOrder(true);
     setOrderError(null);
-    orderSucceeded.current = false;
-    videoFinished.current = false;
-
-    // Show video immediately for an optimistic UI response
-    setIsVideoOverlayOpen(true);
 
     try {
       const orderPaymentMethod =
@@ -180,7 +172,8 @@ export default function CartPage() {
               parseFloat(amountPaid.replace(',', '.'))
             )})`
           : paymentMethod;
-
+      
+      // Wait for order creation to complete
       await createOrderFromCart(
         user,
         cartId,
@@ -189,30 +182,24 @@ export default function CartPage() {
         shippingFee
       );
       
-      orderSucceeded.current = true;
+      // On success, show toast and then the video
       toast({
         title: 'Pedido realizado!',
         description: 'Seu pedido foi criado com sucesso.',
       });
-      
-      if (videoFinished.current) {
-        router.push('/orders');
-      }
+      setIsVideoOverlayOpen(true);
+
     } catch (error: any) {
-        // On failure, hide the video immediately and show the error.
-        setIsVideoOverlayOpen(false);
+        // On failure, show the error and re-enable the button
         setOrderError(error.message || "Houve um problema ao processar seu pedido. Tente novamente.");
-    } finally {
-      setIsPlacingOrder(false);
+        setIsPlacingOrder(false);
     }
   };
   
   const handleOverlayClose = () => {
-    videoFinished.current = true;
+    // When video is closed (on end), redirect to orders page
     setIsVideoOverlayOpen(false);
-    if (orderSucceeded.current) {
-      router.push('/orders');
-    }
+    router.push('/orders');
   };
 
   const isLoading = isUserLoading || isCartLoading || isProfileLoading || isSettingsLoading;
