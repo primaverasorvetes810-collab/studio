@@ -27,7 +27,15 @@ class SoundEffectsService {
       const audio = this.clickSound.cloneNode(true) as HTMLAudioElement;
       // Reset currentTime to play from the start if it's already playing.
       audio.currentTime = 0;
-      audio.play().catch(e => console.error("Error playing click sound:", e));
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          // Ignore AbortError which is common on navigation.
+          if (error.name !== 'AbortError') {
+            console.error("Error playing click sound:", error);
+          }
+        });
+      }
     }
   }
 
@@ -37,7 +45,15 @@ class SoundEffectsService {
     if (this.checkoutSound) {
       const audio = this.checkoutSound.cloneNode(true) as HTMLAudioElement;
       audio.currentTime = 0;
-      audio.play().catch(e => console.error("Error playing checkout sound:", e));
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          // Ignore AbortError which is common on navigation.
+          if (error.name !== 'AbortError') {
+            console.error("Error playing checkout sound:", error);
+          }
+        });
+      }
     }
   }
 }
