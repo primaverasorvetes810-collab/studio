@@ -37,6 +37,7 @@ import { getDoc, doc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from '@/lib/utils';
 import VideoOverlay from '@/components/video-overlay';
+import { soundEffectsService } from '@/lib/sound-effects';
 
 
 export default function CartPage() {
@@ -114,6 +115,7 @@ export default function CartPage() {
   };
 
   const handlePlaceOrder = async () => {
+    soundEffectsService.playCheckoutSound();
     if (!isStoreOpen) {
       return;
     }
@@ -381,6 +383,7 @@ export default function CartPage() {
                     className="w-full h-14 text-xl"
                     onClick={handlePlaceOrder}
                     disabled={isPlacingOrder || !paymentMethod || !isStoreOpen || isProfileIncomplete}
+                    suppressSound
                 >
                     {isPlacingOrder ? (
                     <Loader2 className="h-6 w-6 animate-spin" />
