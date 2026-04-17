@@ -122,7 +122,7 @@ export default function CartPage() {
     if (!user || !cartId || cartItems.length === 0) {
       return;
     }
-     if (!paymentMethod) {
+    if (!paymentMethod) {
       toast({
         variant: 'destructive',
         title: 'Forma de Pagamento',
@@ -136,33 +136,53 @@ export default function CartPage() {
         toast({
           variant: 'destructive',
           title: 'Valor Inválido',
-          description: 'Por favor, insira um valor em dinheiro igual ou maior que o total do pedido.',
+          description:
+            'Por favor, insira um valor em dinheiro igual ou maior que o total do pedido.',
         });
         return;
       }
     }
     if (isProfileIncomplete) {
-        toast({
-            variant: 'destructive',
-            title: 'Endereço Incompleto',
-            description: 'Por favor, atualize seu perfil com seu endereço completo para continuar.',
-        });
-        return;
+      toast({
+        variant: 'destructive',
+        title: 'Endereço Incompleto',
+        description:
+          'Por favor, atualize seu perfil com seu endereço completo para continuar.',
+      });
+      return;
     }
 
     setIsPlacingOrder(true);
+    // Show video immediately after validations
+    setIsVideoOverlayOpen(true);
+
     try {
-      const orderPaymentMethod = paymentMethod === 'Dinheiro' && change !== null
-        ? `Dinheiro (Troco para ${formatPrice(parseFloat(amountPaid.replace(',', '.')))})`
-        : paymentMethod;
-        
-      await createOrderFromCart(user, cartId, cartItems, orderPaymentMethod, shippingFee);
+      const orderPaymentMethod =
+        paymentMethod === 'Dinheiro' && change !== null
+          ? `Dinheiro (Troco para ${formatPrice(
+              parseFloat(amountPaid.replace(',', '.'))
+            )})`
+          : paymentMethod;
+
+      await createOrderFromCart(
+        user,
+        cartId,
+        cartItems,
+        orderPaymentMethod,
+        shippingFee
+      );
       toast({
         title: 'Pedido realizado!',
         description: 'Seu pedido foi criado com sucesso.',
       });
-      setIsVideoOverlayOpen(true);
     } catch (error: any) {
+        // If order creation fails, close the video and show an error toast
+        setIsVideoOverlayOpen(false);
+        toast({
+            variant: "destructive",
+            title: "Erro ao criar pedido",
+            description: "Houve um problema ao processar seu pedido. Tente novamente.",
+        });
     } finally {
       setIsPlacingOrder(false);
     }
