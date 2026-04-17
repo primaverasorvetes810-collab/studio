@@ -1,8 +1,8 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import PageHeader from "@/components/page-header";
 import {
   Accordion,
@@ -117,13 +117,21 @@ export default function OrdersPage() {
 
   if (orders.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
+      <div className="container mx-auto flex min-h-[calc(100vh-20rem)] flex-col items-center justify-center px-4 py-8 text-center">
         <PageHeader
           title="Seus pedidos"
           description="Verifique o status dos seus pedidos recentes."
         />
-        <p className="mt-4">Você ainda não fez nenhum pedido.</p>
-        <Button asChild className="mt-4 py-4 px-8 text-lg">
+        <div className="relative mt-8 h-64 w-64">
+          <Image
+            src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776468768/ChatGPT_Image_17_de_abr._de_2026_20_29_01_zxrws8.png"
+            alt="Nenhum pedido encontrado"
+            fill
+            className="object-contain"
+          />
+        </div>
+        <p className="mt-8 text-xl font-semibold">Você ainda não fez nenhum pedido.</p>
+        <Button asChild className="mt-6 py-4 px-8 text-lg">
           <Link href="/">Ver Produtos</Link>
         </Button>
       </div>
