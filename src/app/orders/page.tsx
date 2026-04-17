@@ -90,7 +90,7 @@ export default function OrdersPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <PageHeader
-          title="Meus Pedidos"
+          title="Seus pedidos"
           description="Verifique o status dos seus pedidos recentes."
         />
         <div className="flex justify-center items-center h-64">
@@ -104,7 +104,7 @@ export default function OrdersPage() {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <PageHeader
-          title="Meus Pedidos"
+          title="Seus pedidos"
           description="Verifique o status dos seus pedidos recentes."
         />
         <p className="mt-4">Você precisa estar logado para ver seus pedidos.</p>
@@ -119,7 +119,7 @@ export default function OrdersPage() {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <PageHeader
-          title="Meus Pedidos"
+          title="Seus pedidos"
           description="Verifique o status dos seus pedidos recentes."
         />
         <p className="mt-4">Você ainda não fez nenhum pedido.</p>
@@ -133,7 +133,7 @@ export default function OrdersPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <PageHeader
-        title="Meus Pedidos"
+        title="Seus pedidos"
         description="Verifique o status dos seus pedidos recentes."
       />
       <Card>
