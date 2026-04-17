@@ -91,6 +91,15 @@ export default function CartPage() {
         setIsProfileLoading(false);
     }
   }, [user, firestore]);
+  
+  useEffect(() => {
+    // This effect handles the redirection after the video overlay is closed
+    // and the order was successful. This avoids a race condition where the
+    // video finishes before the order creation is confirmed.
+    if (orderSuccessful && !isVideoOverlayOpen) {
+      router.push('/orders');
+    }
+  }, [orderSuccessful, isVideoOverlayOpen, router]);
 
   const shippingFee = 10.00;
   const isProfileIncomplete = !userProfile?.address || !userProfile?.neighborhood || !userProfile?.city;
@@ -202,9 +211,6 @@ export default function CartPage() {
   
   const handleOverlayClose = () => {
     setIsVideoOverlayOpen(false);
-    if (orderSuccessful) {
-      router.push('/orders');
-    }
   };
 
   const isLoading = isUserLoading || isCartLoading || isProfileLoading || isSettingsLoading;
