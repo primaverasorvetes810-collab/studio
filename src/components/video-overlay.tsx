@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Button } from './ui/button';
-import { X } from 'lucide-react';
+// We no longer need Button or X for the close functionality
+// import { Button } from './ui/button';
+// import { X } from 'lucide-react';
 
 interface VideoOverlayProps {
   isOpen: boolean;
@@ -25,23 +26,19 @@ export default function VideoOverlay({ isOpen, onClose, videoSrc }: VideoOverlay
   useEffect(() => {
     if (!isOpen) return;
 
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-
+    // This function will be called when the video finishes playing
     const handleVideoEnd = () => {
         onClose();
     }
 
     const currentVideoRef = videoRef.current;
+    
+    // Add event listener for when the video ends
     currentVideoRef?.addEventListener('ended', handleVideoEnd);
-    window.addEventListener("keydown", handleEsc);
 
+    // Cleanup function to remove the event listener
     return () => {
       currentVideoRef?.removeEventListener('ended', handleVideoEnd);
-      window.removeEventListener("keydown", handleEsc);
     }
   }, [isOpen, onClose]);
 
@@ -54,26 +51,19 @@ export default function VideoOverlay({ isOpen, onClose, videoSrc }: VideoOverlay
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
-      onClick={onClose}
+      // Removed onClick={onClose} to prevent closing by clicking the background
     >
       <video
         ref={videoRef}
         src={videoSrc}
         className="max-h-[90vh] max-w-[90vw]"
+        // Prevent clicks on the video from propagating and potentially closing the modal if the backdrop had an onClick
         onClick={(e) => e.stopPropagation()}
         autoPlay
         playsInline
-        muted={false}
+        muted={false} // Ensuring sound plays
       />
-       <Button
-        variant="ghost"
-        size="icon"
-        onClick={onClose}
-        className="absolute top-6 right-6 h-12 w-12 rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white"
-        aria-label="Fechar"
-      >
-        <X className="h-8 w-8" />
-      </Button>
+      {/* The close button has been removed to ensure the video plays to completion */}
     </div>
   );
 }
