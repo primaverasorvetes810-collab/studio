@@ -153,8 +153,6 @@ export default function CartPage() {
     }
 
     setIsPlacingOrder(true);
-    // Show video immediately after validations
-    setIsVideoOverlayOpen(true);
 
     try {
       const orderPaymentMethod =
@@ -171,13 +169,16 @@ export default function CartPage() {
         orderPaymentMethod,
         shippingFee
       );
+      
+      // Order successful, now show video
+      setIsVideoOverlayOpen(true);
+      
       toast({
         title: 'Pedido realizado!',
         description: 'Seu pedido foi criado com sucesso.',
       });
     } catch (error: any) {
-        // If order creation fails, close the video and show an error toast
-        setIsVideoOverlayOpen(false);
+        // If order creation fails, do not open the video. Just show an error toast.
         toast({
             variant: "destructive",
             title: "Erro ao criar pedido",
@@ -327,7 +328,7 @@ export default function CartPage() {
 
             <Card className={cn(isProfileIncomplete && 'opacity-60 pointer-events-none')}>
               <CardHeader>
-                <CardTitle className="text-primary">Termine aqui seu pedido</CardTitle>
+                <CardTitle>Termine aqui seu pedido</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
                 <div className="flex justify-between text-base">
