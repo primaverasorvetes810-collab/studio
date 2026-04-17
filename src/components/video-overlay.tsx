@@ -13,7 +13,6 @@ export default function VideoOverlay({ isOpen, onClose, videoSrc }: VideoOverlay
 
   useEffect(() => {
     if (isOpen && videoRef.current) {
-        videoRef.current.playbackRate = 0.75; // Play at 75% speed to make it longer
         videoRef.current.currentTime = 0;
         const playPromise = videoRef.current.play();
         if (playPromise !== undefined) {
