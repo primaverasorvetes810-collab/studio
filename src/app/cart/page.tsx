@@ -61,6 +61,7 @@ export default function CartPage() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isVideoOverlayOpen, setIsVideoOverlayOpen] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+  const [orderSuccessful, setOrderSuccessful] = useState(false);
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -164,6 +165,7 @@ export default function CartPage() {
 
     setIsPlacingOrder(true);
     setOrderError(null);
+    setOrderSuccessful(false);
 
     // Show video immediately for an optimistic UI response
     setIsVideoOverlayOpen(true);
@@ -184,7 +186,7 @@ export default function CartPage() {
         shippingFee
       );
       
-      // On success, the video is already playing. The overlay's onEnd will handle redirection.
+      setOrderSuccessful(true);
       toast({
         title: 'Pedido realizado!',
         description: 'Seu pedido foi criado com sucesso.',
@@ -200,7 +202,9 @@ export default function CartPage() {
   
   const handleOverlayClose = () => {
     setIsVideoOverlayOpen(false);
-    router.push('/orders');
+    if (orderSuccessful) {
+      router.push('/orders');
+    }
   };
 
   const isLoading = isUserLoading || isCartLoading || isProfileLoading || isSettingsLoading;
