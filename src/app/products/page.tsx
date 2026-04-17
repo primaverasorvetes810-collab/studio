@@ -87,6 +87,8 @@ export default function ProductsPage() {
       <HomeCarousel />
       <div className="container mx-auto px-4 py-8 space-y-8">
         
+        <video controls autoPlay loop muted playsInline src="https://res.cloudinary.com/du4ccw2pg/video/upload/v1776464272/Pedido_finalizado_kjuvgm.mp4" className="w-full rounded-lg" />
+
         {productGroups && productGroups.length > 0 && (
           <CategoryFilters
             groups={productGroups}
