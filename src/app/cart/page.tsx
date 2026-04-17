@@ -217,7 +217,7 @@ export default function CartPage() {
       <VideoOverlay 
         isOpen={isVideoOverlayOpen}
         onClose={handleOverlayClose}
-        videoSrc="https://res.cloudinary.com/du4ccw2pg/video/upload/v1776464272/Pedido_finalizado_kjuvgm.mp4"
+        videoSrc="https://res.cloudinary.com/du4ccw2pg/video/upload/v1776465717/Pedido_finalizado_1_opgcdz.mp4"
       />
       <div className="container mx-auto px-4 py-8">
         <PageHeader title="Arraste para baixo" />
