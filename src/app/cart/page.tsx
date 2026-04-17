@@ -62,8 +62,8 @@ export default function CartPage() {
   const [isVideoOverlayOpen, setIsVideoOverlayOpen] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   
-  // Use a ref to track order success to avoid state-related race conditions with the redirect.
   const orderSucceeded = useRef(false);
+  const videoFinished = useRef(false);
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -167,7 +167,8 @@ export default function CartPage() {
 
     setIsPlacingOrder(true);
     setOrderError(null);
-    orderSucceeded.current = false; // Reset on new attempt
+    orderSucceeded.current = false;
+    videoFinished.current = false;
 
     // Show video immediately for an optimistic UI response
     setIsVideoOverlayOpen(true);
@@ -188,11 +189,15 @@ export default function CartPage() {
         shippingFee
       );
       
-      orderSucceeded.current = true; // Set redirect flag on success
+      orderSucceeded.current = true;
       toast({
         title: 'Pedido realizado!',
         description: 'Seu pedido foi criado com sucesso.',
       });
+      
+      if (videoFinished.current) {
+        router.push('/orders');
+      }
     } catch (error: any) {
         // On failure, hide the video immediately and show the error.
         setIsVideoOverlayOpen(false);
@@ -203,6 +208,7 @@ export default function CartPage() {
   };
   
   const handleOverlayClose = () => {
+    videoFinished.current = true;
     setIsVideoOverlayOpen(false);
     if (orderSucceeded.current) {
       router.push('/orders');
