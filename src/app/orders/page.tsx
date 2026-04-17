@@ -156,7 +156,7 @@ export default function OrdersPage() {
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">
                   <div className="space-y-4">
-                    <p className="font-semibold">Itens:</p>
+                    <p className="font-semibold text-lg">Você Pediu</p>
                     <ul className="space-y-2">
                         {order.items.map((item) => (
                             <li key={item.id} className="flex justify-between text-sm">
