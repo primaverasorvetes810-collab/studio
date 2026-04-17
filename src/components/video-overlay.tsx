@@ -29,23 +29,19 @@ export default function VideoOverlay({ isOpen, onClose, videoSrc }: VideoOverlay
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!videoRef.current) return;
 
-    // This function will be called when the video finishes playing
     const handleVideoEnd = () => {
-        onClose();
-    }
+      onClose();
+    };
 
-    const currentVideoRef = videoRef.current;
-    
-    // Add event listener for when the video ends
-    currentVideoRef?.addEventListener('ended', handleVideoEnd);
+    const currentVideo = videoRef.current;
+    currentVideo.addEventListener('ended', handleVideoEnd);
 
-    // Cleanup function to remove the event listener
     return () => {
-      currentVideoRef?.removeEventListener('ended', handleVideoEnd);
-    }
-  }, [isOpen, onClose]);
+      currentVideo.removeEventListener('ended', handleVideoEnd);
+    };
+  }, [onClose]);
 
   if (!isOpen) {
     return null;
@@ -59,13 +55,15 @@ export default function VideoOverlay({ isOpen, onClose, videoSrc }: VideoOverlay
     >
       <video
         ref={videoRef}
-        src={videoSrc}
         className="max-h-[90vh] max-w-[90vw]"
-        onClick={(e) => e.stopPropagation()}
         autoPlay
         playsInline
         muted={false}
-      />
+        onClick={(e) => e.stopPropagation()}
+      >
+        <source src={videoSrc} type="video/mp4" />
+        Seu navegador não suporta o player de vídeo.
+      </video>
     </div>
   );
 }
