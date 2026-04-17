@@ -61,7 +61,7 @@ export default function Header() {
 
   const navLinks = [
     { href: "/products", label: "Produtos", icon: Package },
-    { href: "/orders", label: "Meus Pedidos", icon: Box, requiresAuth: true },
+    { href: "/orders", label: "Seus Pedidos", icon: Box, requiresAuth: true },
     { href: "/profile", label: "Meu Perfil", icon: User, requiresAuth: true },
     { href: "/ajuda", label: "Ajuda", icon: HelpCircle },
     { href: "/admin", label: "Admin", icon: Shield },
