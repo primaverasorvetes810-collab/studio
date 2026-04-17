@@ -36,6 +36,7 @@ import { useRouter } from 'next/navigation';
 import { getDoc, doc } from 'firebase/firestore';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from '@/lib/utils';
+import VideoOverlay from '@/components/video-overlay';
 
 
 export default function CartPage() {
@@ -48,6 +49,7 @@ export default function CartPage() {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [amountPaid, setAmountPaid] = useState<string>(''); // For cash payment
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [isVideoOverlayOpen, setIsVideoOverlayOpen] = useState(false);
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -155,13 +157,18 @@ export default function CartPage() {
       await createOrderFromCart(user, cartId, cartItems, orderPaymentMethod, shippingFee);
       toast({
         title: 'Pedido realizado!',
-        description: 'Seu pedido foi criado com sucesso. Redirecionando...',
+        description: 'Seu pedido foi criado com sucesso.',
       });
-      router.push('/orders');
+      setIsVideoOverlayOpen(true);
     } catch (error: any) {
     } finally {
       setIsPlacingOrder(false);
     }
+  };
+  
+  const handleOverlayClose = () => {
+    setIsVideoOverlayOpen(false);
+    router.push('/orders');
   };
 
   const isLoading = isUserLoading || isCartLoading || isProfileLoading || isSettingsLoading;
@@ -205,6 +212,11 @@ export default function CartPage() {
 
   return (
     <>
+      <VideoOverlay 
+        isOpen={isVideoOverlayOpen}
+        onClose={handleOverlayClose}
+        videoSrc="https://res.cloudinary.com/du4ccw2pg/video/upload/v1776464272/Pedido_finalizado_kjuvgm.mp4"
+      />
       <div className="container mx-auto px-4 py-8">
         <PageHeader title="Arraste para baixo" />
         <div className="mt-8 flex flex-col lg:flex-row gap-8">
