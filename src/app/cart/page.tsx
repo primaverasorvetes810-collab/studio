@@ -163,6 +163,10 @@ export default function CartPage() {
     }
 
     setIsPlacingOrder(true);
+    setOrderError(null);
+
+    // Show video immediately for an optimistic UI response
+    setIsVideoOverlayOpen(true);
 
     try {
       const orderPaymentMethod =
@@ -180,14 +184,14 @@ export default function CartPage() {
         shippingFee
       );
       
-      // Order successful, now show video
-      setIsVideoOverlayOpen(true);
-      
+      // On success, the video is already playing. The overlay's onEnd will handle redirection.
       toast({
         title: 'Pedido realizado!',
         description: 'Seu pedido foi criado com sucesso.',
       });
     } catch (error: any) {
+        // On failure, hide the video immediately and show the error.
+        setIsVideoOverlayOpen(false);
         setOrderError(error.message || "Houve um problema ao processar seu pedido. Tente novamente.");
     } finally {
       setIsPlacingOrder(false);
