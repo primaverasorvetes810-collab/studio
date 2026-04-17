@@ -30,7 +30,7 @@ import { formatPrice, getProductImageUrl, formatPriceAsString } from '@/lib/util
 import { Trash2, Loader2, MapPin, Info, Copy } from 'lucide-react';
 import PageHeader from '@/components/page-header';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { createOrderFromCart, type User as UserProfile } from '@/firebase/orders';
 import { useRouter } from 'next/navigation';
 import { getDoc, doc } from 'firebase/firestore';
@@ -61,7 +61,9 @@ export default function CartPage() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isVideoOverlayOpen, setIsVideoOverlayOpen] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
+  
+  // Use a ref to track order success to avoid state-related race conditions with the redirect.
+  const orderSucceeded = useRef(false);
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -165,7 +167,7 @@ export default function CartPage() {
 
     setIsPlacingOrder(true);
     setOrderError(null);
-    setShouldRedirect(false);
+    orderSucceeded.current = false; // Reset on new attempt
 
     // Show video immediately for an optimistic UI response
     setIsVideoOverlayOpen(true);
@@ -186,7 +188,7 @@ export default function CartPage() {
         shippingFee
       );
       
-      setShouldRedirect(true);
+      orderSucceeded.current = true; // Set redirect flag on success
       toast({
         title: 'Pedido realizado!',
         description: 'Seu pedido foi criado com sucesso.',
@@ -202,7 +204,7 @@ export default function CartPage() {
   
   const handleOverlayClose = () => {
     setIsVideoOverlayOpen(false);
-    if (shouldRedirect) {
+    if (orderSucceeded.current) {
       router.push('/orders');
     }
   };
