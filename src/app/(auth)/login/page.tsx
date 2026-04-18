@@ -111,7 +111,7 @@ export default function LoginPage() {
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Qual é o seu nome?</FormLabel>
+                  <FormLabel>Qual é o seu nome completo?</FormLabel>
                   <FormControl>
                     <Input placeholder="Usuário Primavera" {...field} />
                   </FormControl>
