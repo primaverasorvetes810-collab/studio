@@ -132,6 +132,15 @@ export default function OrdersPage() {
       <PageHeader
         title="Seus pedidos estão lá embaixo. Confira!"
       />
+      <div className="mt-8 flex flex-col items-center gap-8">
+          <Image
+            src="https://res.cloudinary.com/du4ccw2pg/image/upload/q_auto/f_auto/v1776471564/Primavera_5_wl97md.png"
+            alt="Banner promocional"
+            width={800}
+            height={200}
+            className="rounded-lg object-contain"
+          />
+      </div>
       <Card className="mt-8">
         <CardContent className="p-0">
           <Accordion type="single" collapsible className="w-full">
@@ -214,16 +223,6 @@ export default function OrdersPage() {
         </CardContent>
       </Card>
       
-      <div className="mt-8 flex flex-col items-center gap-8">
-          <Image
-            src="https://res.cloudinary.com/du4ccw2pg/image/upload/q_auto/f_auto/v1776471564/Primavera_5_wl97md.png"
-            alt="Banner promocional"
-            width={800}
-            height={200}
-            className="rounded-lg object-contain"
-          />
-      </div>
-
       <AlertDialog open={!!orderToCancel} onOpenChange={(open) => !open && setOrderToCancel(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
