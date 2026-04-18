@@ -104,7 +104,7 @@ export default function ProductsPage() {
             {groupedData.length > 0 ? (
               groupedData.map((group) => (
                 <section key={group.id} aria-labelledby={`group-title-${group.id}`}>
-                  <h2 id={`group-title-${group.id}`} className="text-xl font-bold tracking-tight border-b-2 border-primary pb-2 mb-4">{group.name}</h2>
+                  <h2 id={`group-title-${group.id}`} className="text-lg font-bold tracking-tight border-b-2 border-primary pb-2 mb-4">{group.name}</h2>
                   <div className="space-y-8">
                     {group.subgroups.map(subgroup => (
                       <div key={subgroup.name} aria-labelledby={`subgroup-title-${group.id}-${subgroup.name}`}>
