@@ -162,7 +162,7 @@ export default function LoginPage() {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Telefone</FormLabel>
+                  <FormLabel>Digite o seu telefone</FormLabel>
                   <FormControl>
                     <Input placeholder="(11) 99999-9999" {...field} />
                   </FormControl>
