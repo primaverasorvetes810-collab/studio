@@ -15,11 +15,11 @@ import Link from "next/link";
 const faqs = [
   {
     question: "Como faço para criar uma conta?",
-    answer: "É fácil! Clique no ícone de perfil no canto superior direito do site e selecione 'Cadastre-se'. Preencha suas informações e você estará pronto para fazer seu primeiro pedido. Ter uma conta permite que você acompanhe seus pedidos e tenha uma experiência de compra mais rápida."
+    answer: "Para criar sua conta, clique em 'Login' no menu do site. Você será levado à página de cadastro, onde deverá preencher suas informações. Após o cadastro, você já pode começar a fazer seus pedidos. Ter uma conta permite que você acompanhe seus pedidos e tenha uma experiência de compra mais rápida."
   },
   {
     question: "Como faço um pedido?",
-    answer: "Navegue pelas nossas categorias de produtos na página inicial. Ao encontrar um item que goste, clique no botão 'Adicionar'. Quando terminar de escolher, clique no ícone do carrinho de compras no topo da página para revisar seus itens e finalizar a compra."
+    answer: "Navegue pelos nossos produtos na página principal. Você pode usar os filtros no topo para ver categorias específicas. Ao encontrar algo que goste, clique no botão 'Pedir agora'. Quando terminar, clique no ícone do carrinho no topo da página ou no botão flutuante na parte inferior para revisar seus itens e finalizar a compra."
   },
   {
     question: "Quais são as formas de pagamento aceitas?",
@@ -35,7 +35,7 @@ const faqs = [
   },
   {
     question: "Posso cancelar meu pedido?",
-    answer: "Sim, você pode cancelar seu pedido diretamente na página 'Meus Pedidos', mas apenas enquanto o status do pedido ainda for 'Pendente'. Após o pedido ser marcado como 'Pago' ou 'Enviado', ele não poderá mais ser cancelado."
+    answer: "Sim, você pode cancelar seu pedido diretamente na página 'Meus Pedidos', mas apenas enquanto o status do pedido ainda for 'Pendente'. Após o pedido ser marcado como 'Enviado', ele não poderá mais ser cancelado."
   },
 ];
 
