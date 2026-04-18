@@ -54,7 +54,7 @@ export default function HelpPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
       <PageHeader
-        title="Central de Ajuda"
+        title="Está perdido no nosso aplicativo? Veio ao lugar certo."
         description="Precisa de ajuda? Encontre as respostas aqui."
       />
       <div className="mt-8 grid gap-8">
