@@ -134,26 +134,22 @@ export interface CartItemWithProduct extends CartItem {
 }
 
 export function useCart(userId?: string) {
-  const [cartId, setCartId] = useState<string | null>(null);
-  const [isCartIdLoading, setIsCartIdLoading] = useState(true);
   const { firestore } = getClientSdks();
+  
+  // Create a memoized query for the user's shopping cart document.
+  // There should only ever be one, so we limit the query to 1.
+  const userCartQuery = useMemoFirebase(() => {
+    if (!userId || !firestore) return null;
+    return query(collection(firestore, `users/${userId}/shoppingCarts`), limit(1));
+  }, [userId, firestore]);
+  
+  // Use `useCollection` to listen for the cart document itself.
+  const { data: carts, isLoading: isCartIdLoading } = useCollection(userCartQuery);
 
-  // Effect to find the user's cart ID
-  useEffect(() => {
-    if (!userId) {
-      setIsCartIdLoading(false);
-      setCartId(null);
-      return;
-    }
+  // Derive the cartId from the listener's result.
+  const cartId = useMemo(() => carts?.[0]?.id, [carts]);
 
-    setIsCartIdLoading(true);
-    findUserShoppingCartRef(userId).then((ref) => {
-      setCartId(ref ? ref.id : null);
-      setIsCartIdLoading(false);
-    });
-  }, [userId]);
-
-  // Memoize the query to the cartItems subcollection
+  // Memoize the query to the cartItems subcollection based on the derived cartId.
   const cartItemsQuery = useMemoFirebase(() => {
     if (!userId || !cartId) return null;
     return collection(
@@ -162,13 +158,14 @@ export function useCart(userId?: string) {
     );
   }, [userId, cartId, firestore]);
 
-  // Use the useCollection hook to get cart items
+  // Use the useCollection hook to get cart items in real-time.
   const {
     data: cartItemsData,
     isLoading: isCartItemsLoading,
     error,
   } = useCollection<CartItem>(cartItemsQuery);
-
+  
+  // Fetch all products to join with cart items.
   const productsCollection = useMemoFirebase(() => collection(firestore, 'products'), [firestore]);
   const { data: products, isLoading: areProductsLoading } = useCollection<Product>(productsCollection);
 
