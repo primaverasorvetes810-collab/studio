@@ -113,7 +113,7 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel className="text-base">Qual é o seu nome completo?</FormLabel>
                   <FormControl>
-                    <Input placeholder="Usuário Primavera" {...field} className="text-lg" />
+                    <Input placeholder="Maria Oliveira" {...field} className="text-lg" />
                   </FormControl>
                   <FormMessage className="text-base" />
                 </FormItem>
