@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -214,7 +215,7 @@ export default function LoginPage() {
               name="city"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cidade</FormLabel>
+                  <FormLabel>Digite sua cidade</FormLabel>
                   <FormControl>
                     <Input placeholder="São Paulo" {...field} />
                   </FormControl>
