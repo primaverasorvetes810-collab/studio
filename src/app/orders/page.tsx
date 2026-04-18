@@ -112,7 +112,7 @@ export default function OrdersPage() {
       <div className="container mx-auto flex min-h-[calc(100vh-20rem)] flex-col items-center justify-center px-4 py-8 text-center">
         <div className="relative mt-8 h-64 w-64">
           <Image
-            src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776468768/ChatGPT_Image_17_de_abr._de_2026_20_29_01_zxrws8.png"
+            src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776467354/Primavera_3_mcdukx.png"
             alt="Nenhum pedido encontrado"
             fill
             className="object-contain"
@@ -128,18 +128,22 @@ export default function OrdersPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <PageHeader
-        title="Seus pedidos estão lá embaixo. Confira!"
-      />
-      <div className="mt-8 flex justify-center">
-        <Image
-          src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776471564/Primavera_5_wl97md.png"
-          alt="Banner de Pedidos"
-          width={400}
-          height={200}
-          className="rounded-lg object-contain"
-        />
-      </div>
+      {orders.length > 0 && (
+        <>
+          <PageHeader
+            title="Seus pedidos estão lá embaixo. Confira!"
+          />
+          <div className="mt-8 flex justify-center">
+            <Image
+              src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776471564/Primavera_5_wl97md.png"
+              alt="Banner de Pedidos"
+              width={400}
+              height={200}
+              className="rounded-lg object-contain"
+            />
+          </div>
+        </>
+      )}
       <Card className="mt-8">
         <CardContent className="p-0">
           <Accordion type="single" collapsible className="w-full">
