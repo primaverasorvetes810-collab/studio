@@ -99,7 +99,7 @@ export default function ProductsPage() {
         <Input
           type="search"
           placeholder="O que você procura?"
-          className="w-full pl-12 h-12 text-base rounded-none border-x-0 border-t-0"
+          className="w-full pl-12 h-8 text-base rounded-none border-x-0 border-t-0"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
