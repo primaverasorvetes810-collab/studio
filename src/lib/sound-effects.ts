@@ -3,6 +3,7 @@
 class SoundEffectsService {
   private clickSound: HTMLAudioElement | null = null;
   private checkoutSound: HTMLAudioElement | null = null;
+  private expirationSound: HTMLAudioElement | null = null;
   private isInitialized = false;
 
   initialize() {
@@ -15,6 +16,10 @@ class SoundEffectsService {
     const checkoutSoundUrl = 'https://res.cloudinary.com/du4ccw2pg/video/upload/v1776463053/universfield-new-notification-036-485897_huiiog.mp3';
     this.checkoutSound = new Audio(checkoutSoundUrl);
     this.checkoutSound.preload = 'auto';
+
+    const expirationSoundUrl = 'https://res.cloudinary.com/du4ccw2pg/video/upload/v1776540265/soundreality-evil-bell-343686_s3gfja.mp3';
+    this.expirationSound = new Audio(expirationSoundUrl);
+    this.expirationSound.preload = 'auto';
 
     this.isInitialized = true;
   }
@@ -51,6 +56,24 @@ class SoundEffectsService {
           // Ignore AbortError which is common on navigation.
           if (error.name !== 'AbortError') {
             console.error("Error playing checkout sound:", error);
+          }
+        });
+      }
+    }
+  }
+
+  playExpirationSound() {
+    this.initialize(); // Ensure initialized
+    
+    if (this.expirationSound) {
+      const audio = this.expirationSound.cloneNode(true) as HTMLAudioElement;
+      audio.currentTime = 0;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          // Ignore AbortError which is common on navigation.
+          if (error.name !== 'AbortError') {
+            console.error("Error playing expiration sound:", error);
           }
         });
       }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +15,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { Info, Timer } from 'lucide-react';
 import type { OrderWithItems } from '@/firebase/orders';
 import { cn } from '@/lib/utils';
+import { soundEffectsService } from '@/lib/sound-effects';
 
 interface OrderTimerProps {
   order: OrderWithItems;
@@ -25,6 +26,7 @@ const ORDER_DELIVERY_TIME_MINUTES = 40;
 export default function OrderTimer({ order }: OrderTimerProps) {
   const [timeLeft, setTimeLeft] = useState('');
   const [isExpired, setIsExpired] = useState(false);
+  const hasPlayedSound = useRef(false);
 
   useEffect(() => {
     if (!order.orderDate) {
@@ -41,6 +43,10 @@ export default function OrderTimer({ order }: OrderTimerProps) {
         if (distance < 0) {
             setTimeLeft('Tempo esgotado');
             setIsExpired(true);
+            if (!hasPlayedSound.current) {
+                soundEffectsService.playExpirationSound();
+                hasPlayedSound.current = true;
+            }
             return false; // Indicates timer should stop
         }
 
