@@ -149,7 +149,7 @@ export default function LoginPage() {
               name="birthDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Data de Nascimento</FormLabel>
+                  <FormLabel>Quando você nasceu?</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
