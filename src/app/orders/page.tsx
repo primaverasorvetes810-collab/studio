@@ -153,22 +153,22 @@ export default function OrdersPage() {
                 <AccordionTrigger className="px-6 py-8 hover:no-underline">
                   <div className="flex w-full items-center justify-between">
                     <div className="flex flex-col items-start text-left">
-                      <span className="font-bold text-lg">{statusDisplayMessages[order.status]}</span>
+                      <span className="font-bold text-xl">{statusDisplayMessages[order.status]}</span>
                     </div>
                     <div className="flex items-center gap-4">
                        <span className="hidden sm:inline font-bold text-primary">{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
-                       <Badge className={cn("whitespace-nowrap px-4 py-2 text-base", statusColors[order.status])} variant="outline">
+                       <Badge className={cn("whitespace-nowrap px-4 py-2 text-lg", statusColors[order.status])} variant="outline">
                          {order.status}
                        </Badge>
                     </div>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">
-                  <div className="space-y-4">
-                    <p className="font-semibold text-lg">Você Pediu</p>
+                  <div className="space-y-4 text-base">
+                    <p className="font-semibold text-xl">Você Pediu</p>
                     <ul className="space-y-2">
                         {order.items.map((item) => (
-                            <li key={item.id} className="flex justify-between text-sm">
+                            <li key={item.id} className="flex justify-between">
                                 <span>{item.product.name} x {item.quantity}</span>
                                 <span>{isMounted ? formatPrice(item.itemPrice * item.quantity) : formatPriceAsString(item.itemPrice * item.quantity)}</span>
                             </li>
@@ -178,7 +178,7 @@ export default function OrdersPage() {
                     {order.subtotal !== undefined && order.shippingFee !== undefined ? (
                         <>
                             <Separator />
-                            <ul className="space-y-1 text-sm text-muted-foreground">
+                            <ul className="space-y-1 text-muted-foreground">
                                 <li className="flex justify-between">
                                     <span>Subtotal</span>
                                     <span>{isMounted ? formatPrice(order.subtotal) : formatPriceAsString(order.subtotal)}</span>
@@ -192,15 +192,15 @@ export default function OrdersPage() {
                     ) : null}
 
                     <Separator />
-                    <div className="flex justify-between font-semibold">
+                    <div className="flex justify-between font-semibold text-lg">
                         <span>Total</span>
                         <span>{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
                     </div>
-                     <div className="flex justify-between text-sm">
+                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Forma de Pagamento</span>
                         <span>{order.paymentMethod}</span>
                     </div>
-                     <div className="flex justify-between text-sm">
+                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Data do Pedido</span>
                         <span>{order.orderDate ? order.orderDate.toDate().toLocaleString() : 'Processando...'}</span>
                     </div>
