@@ -159,9 +159,9 @@ export default function OrdersPage() {
                     </div>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="px-6 pb-4">
-                  <div className="space-y-4 text-2xl">
-                    <p className="font-semibold text-2xl">Você Pediu</p>
+                <AccordionContent className="px-6 pb-4 text-2xl">
+                  <div className="space-y-4 text-base">
+                    <p className="font-semibold text-lg">Você Pediu</p>
                     <ul className="space-y-2">
                         {order.items.map((item) => (
                             <li key={item.id} className="flex justify-between">
@@ -188,7 +188,7 @@ export default function OrdersPage() {
                     ) : null}
 
                     <Separator />
-                    <div className="flex justify-between font-semibold text-2xl">
+                    <div className="flex justify-between font-semibold text-lg">
                         <span>Total</span>
                         <span>{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
                     </div>
@@ -221,6 +221,16 @@ export default function OrdersPage() {
           </Accordion>
         </CardContent>
       </Card>
+      
+      <div className="mt-8 flex flex-col items-center gap-8">
+          <Image
+            src="https://res.cloudinary.com/du4ccw2pg/image/upload/q_auto/f_auto/v1776471564/Primavera_5_wl97md.png"
+            alt="Banner promocional"
+            width={800}
+            height={200}
+            className="rounded-lg object-contain"
+          />
+      </div>
 
       <AlertDialog open={!!orderToCancel} onOpenChange={(open) => !open && setOrderToCancel(null)}>
         <AlertDialogContent>
