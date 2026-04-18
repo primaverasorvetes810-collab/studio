@@ -86,7 +86,7 @@ export default function RegisterPage() {
   return (
     <Card>
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-primary">Bem-vindo de novo</CardTitle>
+        <CardTitle className="text-2xl text-primary">Bem-vindo de volta</CardTitle>
         <CardDescription>
           Digite seu e-mail abaixo para fazer login em sua conta
         </CardDescription>
