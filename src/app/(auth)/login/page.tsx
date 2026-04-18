@@ -98,8 +98,8 @@ export default function LoginPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl text-primary">Falta pouco para começar a pedir</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-3xl text-primary">Falta pouco para começar a pedir</CardTitle>
+        <CardDescription className="text-lg">
           Diga só algumas informações sobre você.
         </CardDescription>
       </CardHeader>
@@ -111,11 +111,11 @@ export default function LoginPage() {
               name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Qual é o seu nome completo?</FormLabel>
+                  <FormLabel className="text-base">Qual é o seu nome completo?</FormLabel>
                   <FormControl>
-                    <Input placeholder="Usuário Primavera" {...field} />
+                    <Input placeholder="Usuário Primavera" {...field} className="text-lg" />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-base" />
                 </FormItem>
               )}
             />
@@ -124,11 +124,11 @@ export default function LoginPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Digite seu E-mail</FormLabel>
+                  <FormLabel className="text-base">Digite seu E-mail</FormLabel>
                   <FormControl>
-                    <Input placeholder="m@example.com" {...field} />
+                    <Input placeholder="m@example.com" {...field} className="text-lg" />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-base" />
                 </FormItem>
               )}
             />
@@ -137,11 +137,11 @@ export default function LoginPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Digite a senha</FormLabel>
+                  <FormLabel className="text-base">Digite a senha</FormLabel>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <Input type="password" {...field} className="text-lg" />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-base" />
                 </FormItem>
               )}
             />
@@ -150,11 +150,11 @@ export default function LoginPage() {
               name="birthDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Quando você nasceu?</FormLabel>
+                  <FormLabel className="text-base">Quando você nasceu?</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input type="date" {...field} className="text-lg" />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-base" />
                 </FormItem>
               )}
             />
@@ -163,11 +163,11 @@ export default function LoginPage() {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Digite o seu telefone</FormLabel>
+                  <FormLabel className="text-base">Digite o seu telefone</FormLabel>
                   <FormControl>
-                    <Input placeholder="(11) 99999-9999" {...field} />
+                    <Input placeholder="(11) 99999-9999" {...field} className="text-lg" />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-base" />
                 </FormItem>
               )}
             />
@@ -176,11 +176,11 @@ export default function LoginPage() {
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Digite seu endereço</FormLabel>
+                  <FormLabel className="text-base">Digite seu endereço</FormLabel>
                   <FormControl>
-                    <Input placeholder="Rua das Flores, 123" {...field} />
+                    <Input placeholder="Rua das Flores, 123" {...field} className="text-lg" />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-base" />
                 </FormItem>
               )}
             />
@@ -189,24 +189,24 @@ export default function LoginPage() {
               name="neighborhood"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Selecione o bairro onde você mora</FormLabel>
+                  <FormLabel className="text-base">Selecione o bairro onde você mora</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="text-lg">
                             <SelectValue placeholder="Selecione seu bairro" />
                         </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <ScrollArea className="h-72">
                               {allowedNeighborhoods.map((neighborhood) => (
-                                  <SelectItem key={neighborhood} value={neighborhood}>
+                                  <SelectItem key={neighborhood} value={neighborhood} className="text-base">
                                   {neighborhood}
                                   </SelectItem>
                               ))}
                           </ScrollArea>
                         </SelectContent>
                     </Select>
-                  <FormMessage />
+                  <FormMessage className="text-base" />
                 </FormItem>
               )}
             />
@@ -215,21 +215,21 @@ export default function LoginPage() {
               name="city"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Digite sua cidade</FormLabel>
+                  <FormLabel className="text-base">Digite sua cidade</FormLabel>
                   <FormControl>
-                    <Input placeholder="São Paulo" {...field} />
+                    <Input placeholder="São Paulo" {...field} className="text-lg" />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-base" />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+            <Button type="submit" className="w-full text-lg" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting ? "Criando..." : "Criar uma conta"}
             </Button>
           </form>
         </Form>
       </CardContent>
-      <div className="mt-4 text-center text-base p-6 pt-0">
+      <div className="mt-4 text-center text-lg p-6 pt-0">
         Já tem uma conta?{" "}
         <Link href="/register" className="underline text-blue-600">
           Login
