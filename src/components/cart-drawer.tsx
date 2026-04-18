@@ -63,7 +63,7 @@ export function CartDrawer() {
       <SheetTrigger asChild>
         <Button variant="ghost" className="relative h-16 w-16 rounded-full md:h-20 md:w-20">
           <Image
-            src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773962848/Design_sem_nome__2_-removebg-preview_i3n025.png"
+            src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776467354/Primavera_3_mcdukx.png"
             alt="Carrinho de Compras"
             fill
             className="object-contain"
@@ -89,7 +89,7 @@ export function CartDrawer() {
           <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
             <div className="relative h-24 w-24 text-muted-foreground">
                  <Image
-                    src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773962848/Design_sem_nome__2_-removebg-preview_i3n025.png"
+                    src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776467354/Primavera_3_mcdukx.png"
                     alt="Carrinho de Compras Vazio"
                     fill
                     className="object-contain opacity-50"
