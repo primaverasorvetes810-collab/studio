@@ -11,9 +11,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Info, Timer } from 'lucide-react';
 import type { OrderWithItems } from '@/firebase/orders';
+import { cn } from '@/lib/utils';
 
 interface OrderTimerProps {
   order: OrderWithItems;
@@ -80,10 +81,24 @@ export default function OrderTimer({ order }: OrderTimerProps) {
       </div>
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              // Stop the click from bubbling up to the AccordionTrigger
+              e.stopPropagation();
+            }}
+            onKeyDown={(e) => {
+              // Stop keydown events for Enter/Space from bubbling up
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.stopPropagation();
+              }
+            }}
+            className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), "h-8 w-8 cursor-pointer rounded-full")}
+          >
             <Info className="h-5 w-5 text-muted-foreground" />
             <span className="sr-only">Ver informação da entrega</span>
-          </Button>
+          </div>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
