@@ -45,7 +45,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
-import VideoOverlay from '@/components/video-overlay';
 import { soundEffectsService } from '@/lib/sound-effects';
 
 
@@ -59,7 +58,6 @@ export default function CartPage() {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [amountPaid, setAmountPaid] = useState<string>(''); // For cash payment
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [isVideoOverlayOpen, setIsVideoOverlayOpen] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -125,7 +123,6 @@ export default function CartPage() {
   };
 
   const handlePlaceOrder = async () => {
-    soundEffectsService.playCheckoutSound();
     if (!isStoreOpen) {
       return;
     }
@@ -164,6 +161,7 @@ export default function CartPage() {
 
     setIsPlacingOrder(true);
     setOrderError(null);
+    soundEffectsService.playCheckoutSound();
 
     try {
       const orderPaymentMethod =
@@ -173,7 +171,6 @@ export default function CartPage() {
             )})`
           : paymentMethod;
       
-      // Wait for order creation to complete
       await createOrderFromCart(
         user,
         cartId,
@@ -182,24 +179,17 @@ export default function CartPage() {
         shippingFee
       );
       
-      // On success, show toast and then the video
       toast({
         title: 'Pedido realizado!',
         description: 'Seu pedido foi criado com sucesso.',
       });
-      setIsVideoOverlayOpen(true);
+      
+      router.push('/orders');
 
     } catch (error: any) {
-        // On failure, show the error and re-enable the button
         setOrderError(error.message || "Houve um problema ao processar seu pedido. Tente novamente.");
         setIsPlacingOrder(false);
     }
-  };
-  
-  const handleOverlayClose = () => {
-    // When video is closed (on end), redirect to orders page
-    setIsVideoOverlayOpen(false);
-    router.push('/orders');
   };
 
   const isLoading = isUserLoading || isCartLoading || isProfileLoading || isSettingsLoading;
@@ -252,12 +242,6 @@ export default function CartPage() {
 
   return (
     <>
-      <VideoOverlay 
-        isOpen={isVideoOverlayOpen}
-        onClose={handleOverlayClose}
-        videoSrc="https://res.cloudinary.com/du4ccw2pg/video/upload/v1776465717/Pedido_finalizado_1_opgcdz.mp4"
-      />
-
       <AlertDialog open={!!orderError} onOpenChange={(open) => !open && setOrderError(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
