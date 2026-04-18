@@ -180,7 +180,7 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-6 md:flex">
-          {isMounted && navLinks
+          {navLinks
             .filter((link) => !(link as any).isMobileOnly)
             .map(
               (link) =>
@@ -198,7 +198,7 @@ export default function Header() {
 
         {/* Right side icons */}
         <div className="flex items-center">
-          <CartDrawer />
+          {isMounted && <CartDrawer />}
 
           {!isMounted || isUserLoading ? (
             <div className="hidden h-8 w-8 animate-pulse rounded-full bg-muted md:block" />
