@@ -80,7 +80,7 @@ export default function OrderTimer({ order }: OrderTimerProps) {
     <div className="w-full flex items-center justify-between gap-4 rounded-lg border bg-muted/50 p-4">
       <Timer className={`h-8 w-8 ${isExpired ? 'text-destructive' : 'text-primary'}`} />
       <div className="flex-1 text-center">
-        <p className="font-semibold text-base">{isExpired ? 'Pedido pode estar atrasado' : 'Sua entrega chegará em um tempo estimado de 40 minutos'}</p>
+        <p className="font-semibold text-xs">{isExpired ? 'Pedido pode estar atrasado' : 'Sua entrega chegará em um tempo estimado de 40 minutos'}</p>
         <p className={`text-4xl font-bold font-mono ${isExpired ? 'text-destructive' : 'text-primary'}`}>
           {timeLeft}
         </p>
