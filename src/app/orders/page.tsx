@@ -135,7 +135,7 @@ export default function OrdersPage() {
           />
           <div className="mt-8 flex justify-center">
             <Image
-              src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776471564/Primavera_5_wl97md.png"
+              src="https://res.cloudinary.com/du4ccw2pg/image/upload/q_auto/f_auto/v1776468768/ChatGPT_Image_17_de_abr._de_2026_20_29_01_zxrws8.png"
               alt="Banner de Pedidos"
               width={400}
               height={200}
