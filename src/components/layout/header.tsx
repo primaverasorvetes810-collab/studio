@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -82,7 +81,7 @@ export default function Header() {
                 <span className="sr-only">Abrir menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col">
+            <SheetContent side="left" className="flex flex-col bg-card">
               <SheetHeader>
                 <SheetTitle className="sr-only">Menu Principal</SheetTitle>
                 <SheetDescription className="sr-only">
