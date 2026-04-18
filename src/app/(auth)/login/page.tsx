@@ -99,7 +99,7 @@ export default function LoginPage() {
       <CardHeader>
         <CardTitle className="text-2xl">Falta pouco para começar a pedir</CardTitle>
         <CardDescription>
-          Digite suas informações para criar uma conta
+          Diga só algumas informações sobre você.
         </CardDescription>
       </CardHeader>
       <CardContent>
