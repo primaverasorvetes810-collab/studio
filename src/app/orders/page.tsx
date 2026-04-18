@@ -146,22 +146,24 @@ export default function OrdersPage() {
           <Accordion type="single" collapsible className="w-full">
             {orders.map((order) => (
               <AccordionItem value={order.id} key={order.id}>
-                <AccordionTrigger className="px-6 py-8 text-xl hover:no-underline">
-                  <div className="flex w-full items-center justify-between">
-                    <div className="flex flex-col items-start text-left">
-                      <span className="font-bold text-xl">{statusDisplayMessages[order.status]}</span>
+                <AccordionTrigger className="px-6 py-4 text-base hover:no-underline">
+                  <div className="flex w-full flex-col items-start gap-4">
+                    <div className="flex w-full items-center justify-between">
+                      <div className="flex flex-col items-start text-left">
+                        <span className="font-bold text-xl">{statusDisplayMessages[order.status]}</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="hidden sm:inline font-bold text-primary">{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
+                        <Badge className={cn("whitespace-nowrap px-4 py-3 text-lg", statusColors[order.status])} variant="outline">
+                          {order.status}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                       <span className="hidden sm:inline font-bold text-primary">{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
-                       <Badge className={cn("whitespace-nowrap px-4 py-3 text-lg", statusColors[order.status])} variant="outline">
-                         {order.status}
-                       </Badge>
-                    </div>
+                    <OrderTimer order={order} />
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">
-                  <OrderTimer order={order} />
-                  <div className="space-y-4 text-base">
+                  <div className="space-y-4 text-xl">
                     <p className="font-semibold text-lg">Você Pediu</p>
                     <ul className="space-y-2">
                         {order.items.map((item) => (
