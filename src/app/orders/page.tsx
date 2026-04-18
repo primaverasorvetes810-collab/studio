@@ -123,6 +123,15 @@ export default function OrdersPage() {
         <Button asChild className="mt-6 py-4 px-8 text-lg">
           <Link href="/">Ver Produtos</Link>
         </Button>
+        <div className="mt-8 flex flex-col items-center gap-8">
+            <Image
+              src="https://res.cloudinary.com/du4ccw2pg/image/upload/q_auto/f_auto/v1776471564/Primavera_5_wl97md.png"
+              alt="Banner promocional"
+              width={800}
+              height={200}
+              className="rounded-lg object-contain"
+            />
+        </div>
       </div>
     );
   }
@@ -225,18 +234,6 @@ export default function OrdersPage() {
           </Accordion>
         </CardContent>
       </Card>
-
-      {orders.length > 0 && (
-          <div className="mt-8 flex flex-col items-center gap-8">
-              <Image
-                src="https://res.cloudinary.com/du4ccw2pg/image/upload/q_auto/f_auto/v1776471564/Primavera_5_wl97md.png"
-                alt="Banner promocional"
-                width={800}
-                height={200}
-                className="rounded-lg object-contain"
-              />
-          </div>
-      )}
 
       <AlertDialog open={!!orderToCancel} onOpenChange={(open) => !open && setOrderToCancel(null)}>
         <AlertDialogContent>
