@@ -180,7 +180,7 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-6 md:flex">
-          {navLinks
+          {isMounted && navLinks
             .filter((link) => !(link as any).isMobileOnly)
             .map(
               (link) =>
@@ -198,53 +198,61 @@ export default function Header() {
 
         {/* Right side icons */}
         <div className="flex items-center">
-          {isMounted && <CartDrawer />}
-
-          {!isMounted || isUserLoading ? (
-            <div className="hidden h-8 w-8 animate-pulse rounded-full bg-muted md:block" />
-          ) : user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative hidden h-8 w-8 rounded-full md:flex"
-                >
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage
-                      src={user.photoURL ?? ""}
-                      alt={user.displayName ?? "Usuário"}
-                    />
-                    <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
-                  </Avatar>
-                  <span className="sr-only">Abrir menu do usuário</span>
+          {isMounted ? (
+            <>
+              <CartDrawer />
+              {isUserLoading ? (
+                <div className="hidden h-8 w-8 animate-pulse rounded-full bg-muted md:block" />
+              ) : user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="relative hidden h-8 w-8 rounded-full md:flex"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src={user.photoURL ?? ""}
+                          alt={user.displayName ?? "Usuário"}
+                        />
+                        <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+                      </Avatar>
+                      <span className="sr-only">Abrir menu do usuário</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">
+                          {user.displayName || "Usuário"}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push('/profile')}>
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Meu Perfil</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Sair</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button asChild className="hidden md:flex">
+                  <Link href="/login">Login</Link>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {user.displayName || "Usuário"}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/profile')}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Meu Perfil</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sair</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              )}
+            </>
           ) : (
-            <Button asChild className="hidden md:flex">
-              <Link href="/login">Login</Link>
-            </Button>
+            <>
+              <div className="h-16 w-16 rounded-full md:h-20 md:w-20" />
+              <div className="hidden h-8 w-8 rounded-full bg-muted md:block" />
+            </>
           )}
         </div>
       </div>
