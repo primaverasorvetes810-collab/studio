@@ -80,44 +80,48 @@ export default function OrderTimer({ order }: OrderTimerProps) {
     <div className="w-full flex items-center justify-between gap-4 rounded-lg border bg-muted/50 p-4">
       <Timer className={`h-8 w-8 ${isExpired ? 'text-destructive' : 'text-primary'}`} />
       <div className="flex-1 text-center">
-        <p className="font-semibold text-base">{isExpired ? 'Pedido pode estar atrasado' : 'Tempo estimado restante'}</p>
+        <p className="font-semibold text-base">{isExpired ? 'Pedido pode estar atrasado' : 'Sua entrega chegará em um tempo estimado de 40 minutos'}</p>
         <p className={`text-4xl font-bold font-mono ${isExpired ? 'text-destructive' : 'text-primary'}`}>
           {timeLeft}
         </p>
       </div>
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={(e) => {
-              // Stop the click from bubbling up to the AccordionTrigger
-              e.stopPropagation();
-            }}
-            onKeyDown={(e) => {
-              // Stop keydown events for Enter/Space from bubbling up
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.stopPropagation();
-              }
-            }}
-            className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), "h-8 w-8 cursor-pointer rounded-full")}
-          >
-            <Info className="h-5 w-5 text-muted-foreground" />
-            <span className="sr-only">Ver informação da entrega</span>
-          </div>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Estimativa de Entrega</AlertDialogTitle>
-            <AlertDialogDescription>
-              Seu pedido chegará em aproximadamente 40 minutos a partir do momento em que foi feito. Este é um tempo estimado e pode variar.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction>Entendi</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={(e) => {
+          // Stop the click from bubbling up to the AccordionTrigger
+          e.stopPropagation();
+        }}
+        onKeyDown={(e) => {
+          // Stop keydown events for Enter/Space from bubbling up
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.stopPropagation();
+          }
+        }}
+        className="cursor-pointer"
+      >
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <div
+              className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), "h-8 w-8 rounded-full")}
+            >
+              <Info className="h-5 w-5 text-muted-foreground" />
+              <span className="sr-only">Ver informação da entrega</span>
+            </div>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Estimativa de Entrega</AlertDialogTitle>
+              <AlertDialogDescription>
+                Seu pedido chegará em aproximadamente 40 minutos a partir do momento em que foi feito. Este é um tempo estimado e pode variar.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction>Entendi</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 }
