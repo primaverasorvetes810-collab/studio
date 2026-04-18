@@ -123,15 +123,6 @@ export default function OrdersPage() {
         <Button asChild className="mt-6 py-4 px-8 text-lg">
           <Link href="/">Ver Produtos</Link>
         </Button>
-        <div className="mt-8 flex flex-col items-center gap-8">
-            <Image
-              src="https://res.cloudinary.com/du4ccw2pg/image/upload/q_auto/f_auto/v1776471564/Primavera_5_wl97md.png"
-              alt="Banner promocional"
-              width={800}
-              height={200}
-              className="rounded-lg object-contain"
-            />
-        </div>
       </div>
     );
   }
@@ -146,8 +137,7 @@ export default function OrdersPage() {
           <Accordion type="single" collapsible className="w-full">
             {orders.map((order) => (
               <AccordionItem value={order.id} key={order.id}>
-                <AccordionTrigger className="px-6 py-4 text-base hover:no-underline">
-                  <div className="flex w-full flex-col items-start gap-4">
+                <AccordionTrigger className="flex w-full flex-col items-start gap-4 px-6 py-4 text-base hover:no-underline">
                     <div className="flex w-full items-center justify-between">
                       <div className="flex flex-col items-start text-left">
                         <span className="font-bold text-xl">{statusDisplayMessages[order.status]}</span>
@@ -160,7 +150,6 @@ export default function OrdersPage() {
                       </div>
                     </div>
                     <OrderTimer order={order} />
-                  </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">
                   <div className="space-y-4 text-xl">
