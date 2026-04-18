@@ -152,7 +152,7 @@ export default function OrdersPage() {
                 <AccordionTrigger className="px-6 py-8 hover:no-underline">
                   <div className="flex w-full items-center justify-between">
                     <div className="flex flex-col items-start text-left">
-                      <span className="font-bold">{statusDisplayMessages[order.status]}</span>
+                      <span className="font-bold text-xl">{statusDisplayMessages[order.status]}</span>
                     </div>
                     <div className="flex items-center gap-4">
                        <span className="hidden sm:inline font-bold text-primary">{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
