@@ -136,7 +136,7 @@ export default function LoginPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Senha</FormLabel>
+                  <FormLabel>Digite a senha</FormLabel>
                   <FormControl>
                     <Input type="password" {...field} />
                   </FormControl>
