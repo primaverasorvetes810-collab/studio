@@ -225,7 +225,7 @@ export default function CartPage() {
         <PageHeader title="Arraste para baixo" />
         <div className="relative mt-8 h-64 w-64">
           <Image
-            src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776467354/Primavera_3_mcdukx.png"
+            src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773962848/Design_sem_nome__2_-removebg-preview_i3n025.png"
             alt="Carrinho de compras vazio"
             fill
             className="object-contain"
