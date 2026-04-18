@@ -97,11 +97,11 @@ export default function ProductsPage() {
       <div className="container mx-auto px-4 py-8 space-y-8">
         
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             type="search"
             placeholder="O que você procura?"
-            className="w-full pl-12 h-10 text-base"
+            className="w-full pl-10 h-10 text-base"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
