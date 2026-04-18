@@ -86,8 +86,8 @@ export default function RegisterPage() {
   return (
     <Card>
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-primary">Bem-vindo de volta</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-3xl text-primary">Bem-vindo de volta</CardTitle>
+        <CardDescription className="text-lg">
           Digite seu e-mail abaixo para fazer login em sua conta
         </CardDescription>
       </CardHeader>
@@ -99,11 +99,11 @@ export default function RegisterPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Digite seu E-mail</FormLabel>
+                  <FormLabel className="text-base">Digite seu E-mail</FormLabel>
                   <FormControl>
-                    <Input placeholder="m@example.com" {...field} />
+                    <Input placeholder="m@example.com" {...field} className="text-lg" />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-base" />
                 </FormItem>
               )}
             />
@@ -113,22 +113,22 @@ export default function RegisterPage() {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center">
-                    <FormLabel>Digite a senha</FormLabel>
+                    <FormLabel className="text-base">Digite a senha</FormLabel>
                   </div>
                   <FormControl>
-                    <Input type="password" {...field} />
+                    <Input type="password" {...field} className="text-lg" />
                   </FormControl>
-                  <FormMessage />
+                  <FormMessage className="text-base" />
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+            <Button type="submit" className="w-full text-lg" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting ? "Entrando..." : "Login"}
             </Button>
           </form>
         </Form>
       </CardContent>
-      <div className="mt-4 text-center text-base p-6 pt-0">
+      <div className="mt-4 text-center text-lg p-6 pt-0">
         Não tem uma conta?{" "}
         <Link href="/login" className="underline text-blue-600">
           Cadastre-se
