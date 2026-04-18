@@ -4,14 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import PageHeader from "@/components/page-header";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useUser } from '@/firebase';
 import { useUserOrders, type OrderWithItems, updateOrderStatus, OrderStatus } from '@/firebase/orders';
@@ -141,27 +135,23 @@ export default function OrdersPage() {
             className="rounded-lg object-contain"
           />
       </div>
-      <Card className="mt-8">
-        <CardContent className="p-0">
-          <Accordion type="single" collapsible className="w-full">
-            {orders.map((order) => (
-              <AccordionItem value={order.id} key={order.id}>
-                <AccordionTrigger className="flex w-full flex-col items-start gap-4 px-6 py-4 text-base hover:no-underline">
-                    <div className="flex w-full items-center justify-between">
-                      <div className="flex flex-col items-start text-left">
-                        <span className="font-bold text-xl">{statusDisplayMessages[order.status]}</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="hidden sm:inline font-bold text-primary">{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
-                        <Badge className={cn("whitespace-nowrap px-4 py-3 text-lg", statusColors[order.status])} variant="outline">
-                          {order.status}
-                        </Badge>
-                      </div>
-                    </div>
-                    <OrderTimer order={order} />
-                </AccordionTrigger>
-                <AccordionContent className="px-6 pb-4">
-                  <div className="space-y-4 text-xl">
+      <div className="mt-8 space-y-4">
+        {orders.map((order) => (
+          <Card key={order.id}>
+            <CardHeader className="flex flex-row w-full items-center justify-between gap-4 px-6 py-4 text-base">
+                <div className="flex flex-col items-start text-left">
+                    <span className="font-bold text-xl">{statusDisplayMessages[order.status]}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                    <span className="hidden sm:inline font-bold text-primary">{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
+                    <Badge className={cn("whitespace-nowrap px-4 py-3 text-lg", statusColors[order.status])} variant="outline">
+                    {order.status}
+                    </Badge>
+                </div>
+            </CardHeader>
+            <CardContent className="px-6 pb-4">
+                <OrderTimer order={order} />
+                <div className="mt-4 space-y-4 text-xl">
                     <p className="font-semibold text-2xl">Você Pediu</p>
                     <ul className="space-y-2">
                         {order.items.map((item) => (
@@ -193,18 +183,18 @@ export default function OrdersPage() {
                         <span>Total</span>
                         <span>{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
                     </div>
-                     <div className="flex justify-between">
+                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Forma de Pagamento</span>
                         <span>{order.paymentMethod}</span>
                     </div>
-                     <div className="flex justify-between">
+                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Data do Pedido</span>
                         <span>{order.orderDate ? order.orderDate.toDate().toLocaleString() : 'Processando...'}</span>
                     </div>
                     {order.status === 'Pendente' && (
                         <>
                             <Separator />
-                            <div className="flex justify-end">
+                            <div className="flex justify-end pt-4">
                                 <Button 
                                     variant="destructive"
                                     size="sm"
@@ -215,13 +205,11 @@ export default function OrdersPage() {
                             </div>
                         </>
                     )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </CardContent>
-      </Card>
+                </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
       
       <AlertDialog open={!!orderToCancel} onOpenChange={(open) => !open && setOrderToCancel(null)}>
         <AlertDialogContent>
