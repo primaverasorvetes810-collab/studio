@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -31,6 +30,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import OrderTimer from '@/components/order-timer';
 
 
 const statusColors: Record<OrderStatus, string> = {
@@ -159,7 +159,8 @@ export default function OrdersPage() {
                     </div>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="px-6 pb-4 text-2xl">
+                <AccordionContent className="px-6 pb-4">
+                  <OrderTimer order={order} />
                   <div className="space-y-4 text-base">
                     <p className="font-semibold text-lg">Você Pediu</p>
                     <ul className="space-y-2">
