@@ -13,9 +13,11 @@ import {
 import { getClientSdks } from '@/firebase';
 import { addDocumentNonBlocking, updateDocumentNonBlocking } from './non-blocking-updates';
 import { z } from 'zod';
+import { errorEmitter } from './error-emitter';
+import { FirestorePermissionError } from './errors';
 
 const GroupPayloadSchema = z.object({
-    name: z.string(),
+    name: z.string().min(2, 'O nome deve ter pelo menos 2 caracteres.'),
     description: z.string().optional(),
     subgroups: z.array(z.string()).optional(),
 });
@@ -42,7 +44,6 @@ export function deleteProductGroup(groupId: string) {
     const groupDocRef = doc(firestore, 'productGroups', groupId);
 
     // This is an async operation that runs in the background.
-    // We don't use the non-blocking variants here because it's a transaction.
     const deleteGroupAndProducts = async () => {
         try {
             const batch = writeBatch(firestore);
@@ -64,8 +65,13 @@ export function deleteProductGroup(groupId: string) {
             await batch.commit();
 
         } catch (error) {
-            // This error is critical, but we don't have a global handler for batch writes.
-            // Logging to console is the fallback.
+            errorEmitter.emit(
+                'permission-error',
+                new FirestorePermissionError({
+                  path: `productGroups/${groupId} and its products`,
+                  operation: 'delete',
+                })
+              );
             console.error("Failed to delete product group and its products:", error);
         }
     };
