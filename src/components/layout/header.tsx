@@ -60,17 +60,12 @@ export default function Header() {
   };
 
   const navLinks = [
-    { href: "/products", label: "Produtos", icon: Package },
+    { href: "/products", label: "Produtos", icon: Package, requiresAuth: false },
     { href: "/orders", label: "Seus Pedidos", icon: Box, requiresAuth: true },
     { href: "/profile", label: "Meu Perfil", icon: User, requiresAuth: true },
-    { href: "/ajuda", label: "Ajuda", icon: HelpCircle },
-    { href: "/admin", label: "Admin", icon: Shield },
+    { href: "/ajuda", label: "Ajuda", icon: HelpCircle, requiresAuth: false },
+    { href: "/admin", label: "Admin", icon: Shield, requiresAuth: false },
   ];
-
-  const renderLink = (link: (typeof navLinks)[0]) => {
-    if (link.requiresAuth && !user) return null;
-    return true;
-  };
 
   return (
     <header className={cn(
@@ -106,20 +101,22 @@ export default function Header() {
               </SheetClose>
 
               <nav className="flex flex-1 flex-col gap-2">
-                {isMounted && navLinks.map(
-                  (link) =>
-                    renderLink(link) && (
-                      <SheetClose asChild key={link.href}>
-                        <Link
-                          href={link.href}
-                          className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                        >
-                          <link.icon className="h-5 w-5" />
-                          {link.label}
-                        </Link>
-                      </SheetClose>
-                    )
-                )}
+                {navLinks.map((link) => {
+                  if (link.requiresAuth && !(isMounted && user)) {
+                    return null;
+                  }
+                  return (
+                    <SheetClose asChild key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      >
+                        <link.icon className="h-5 w-5" />
+                        {link.label}
+                      </Link>
+                    </SheetClose>
+                  );
+                })}
               </nav>
 
               <div className="mt-auto flex flex-col gap-2 border-t pt-4">
@@ -180,79 +177,79 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-6 md:flex">
-          {isMounted && navLinks
-            .filter((link) => !(link as any).isMobileOnly)
-            .map(
-              (link) =>
-                renderLink(link) && (
-                  <Link
+            {navLinks.filter(l => !l.requiresAuth).map(link => (
+                <Link
                     key={link.href}
                     href={link.href}
                     className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                  >
+                >
                     {link.label}
-                  </Link>
-                )
-            )}
+                </Link>
+            ))}
+            {isMounted && user && navLinks.filter(l => l.requiresAuth).map(link => (
+                 <Link
+                    key={link.href}
+                    href={link.href}
+                    className="flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                >
+                    {link.label}
+                </Link>
+            ))}
         </nav>
 
         {/* Right side icons */}
         <div className="flex items-center">
           {isMounted ? (
-            <>
-              <CartDrawer />
-              {isUserLoading ? (
-                <div className="hidden h-8 w-8 animate-pulse rounded-full bg-muted md:block" />
-              ) : user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="relative hidden h-8 w-8 rounded-full md:flex"
-                    >
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={user.photoURL ?? ""}
-                          alt={user.displayName ?? "Usuário"}
-                        />
-                        <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
-                      </Avatar>
-                      <span className="sr-only">Abrir menu do usuário</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">
-                          {user.displayName || "Usuário"}
-                        </p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          {user.email}
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => router.push('/profile')}>
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Meu Perfil</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleSignOut}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Sair</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button asChild className="hidden md:flex">
-                  <Link href="/login">Login</Link>
-                </Button>
-              )}
-            </>
+            <CartDrawer />
           ) : (
-            <>
-              <div className="h-16 w-16 rounded-full md:h-20 md:w-20" />
-              <div className="hidden h-8 w-8 rounded-full bg-muted md:block" />
-            </>
+            <div className="h-16 w-16 rounded-full bg-muted/20 md:h-20 md:w-20" />
+          )}
+
+          {!isMounted || isUserLoading ? (
+            <div className="hidden h-8 w-8 animate-pulse rounded-full bg-muted md:block" />
+          ) : user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative hidden h-8 w-8 rounded-full md:flex"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage
+                      src={user.photoURL ?? ""}
+                      alt={user.displayName ?? "Usuário"}
+                    />
+                    <AvatarFallback>{getInitials(user.email)}</AvatarFallback>
+                  </Avatar>
+                  <span className="sr-only">Abrir menu do usuário</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {user.displayName || "Usuário"}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/profile')}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Meu Perfil</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button asChild className="hidden md:flex">
+              <Link href="/login">Login</Link>
+            </Button>
           )}
         </div>
       </div>
