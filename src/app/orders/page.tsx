@@ -89,18 +89,6 @@ export default function OrdersPage() {
   if (isUserLoading || areOrdersLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <PageHeader
-          title="Seus pedidos estão lá embaixo. Confira."
-        />
-        <div className="mt-8 flex justify-center">
-          <Image
-            src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776471564/Primavera_5_wl97md.png"
-            alt="Banner de Pedidos"
-            width={400}
-            height={200}
-            className="rounded-lg object-contain"
-          />
-        </div>
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
@@ -111,18 +99,6 @@ export default function OrdersPage() {
   if (!user) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
-        <PageHeader
-          title="Seus pedidos estão lá embaixo. Confira."
-        />
-        <div className="mt-8 flex justify-center">
-          <Image
-            src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776471564/Primavera_5_wl97md.png"
-            alt="Banner de Pedidos"
-            width={400}
-            height={200}
-            className="rounded-lg object-contain"
-          />
-        </div>
         <p className="mt-4">Você precisa estar logado para ver seus pedidos.</p>
         <Button asChild className="mt-4">
           <Link href="/login">Fazer Login</Link>
@@ -134,18 +110,6 @@ export default function OrdersPage() {
   if (orders.length === 0) {
     return (
       <div className="container mx-auto flex min-h-[calc(100vh-20rem)] flex-col items-center justify-center px-4 py-8 text-center">
-        <PageHeader
-          title="Seus pedidos estão lá embaixo. Confira."
-        />
-        <div className="mt-8 flex justify-center">
-          <Image
-            src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776471564/Primavera_5_wl97md.png"
-            alt="Banner de Pedidos"
-            width={400}
-            height={200}
-            className="rounded-lg object-contain"
-          />
-        </div>
         <div className="relative mt-8 h-64 w-64">
           <Image
             src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776468768/ChatGPT_Image_17_de_abr._de_2026_20_29_01_zxrws8.png"
