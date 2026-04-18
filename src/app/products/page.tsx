@@ -115,11 +115,11 @@ export default function ProductsPage() {
             {filteredAndGroupedData.length > 0 ? (
               filteredAndGroupedData.map((group) => (
                 <section key={group.id} aria-labelledby={`group-title-${group.id}`}>
-                  <h2 id={`group-title-${group.id}`} className="text-lg font-bold tracking-tight mb-4">{group.name}</h2>
+                  <h2 id={`group-title-${group.id}`} className="text-lg font-bold tracking-tight mb-2">{group.name}</h2>
                   <div className="space-y-8">
                     {group.subgroups.map(subgroup => (
                       <div key={subgroup.name} aria-labelledby={`subgroup-title-${group.id}-${subgroup.name}`}>
-                        <h3 id={`subgroup-title-${group.id}-${subgroup.name}`} className="text-sm font-semibold mb-4 text-muted-foreground">{subgroup.name}</h3>
+                        <h3 id={`subgroup-title-${group.id}-${subgroup.name}`} className="text-sm font-semibold mb-2 text-muted-foreground">{subgroup.name}</h3>
                         <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
                           {subgroup.products.map((product) => (
                             <ProductCard key={product.id} product={product} />
