@@ -90,7 +90,7 @@ export default function OrdersPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <PageHeader
-          title="Seus pedidos estão aqui enbaixo. Arraste!"
+          title="Seus pedidos estão lá embaixo. Confira."
         />
         <div className="mt-8 flex justify-center">
           <Image
@@ -112,7 +112,7 @@ export default function OrdersPage() {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <PageHeader
-          title="Seus pedidos estão aqui enbaixo. Arraste!"
+          title="Seus pedidos estão lá embaixo. Confira."
         />
         <div className="mt-8 flex justify-center">
           <Image
@@ -135,7 +135,7 @@ export default function OrdersPage() {
     return (
       <div className="container mx-auto flex min-h-[calc(100vh-20rem)] flex-col items-center justify-center px-4 py-8 text-center">
         <PageHeader
-          title="Seus pedidos estão aqui enbaixo. Arraste!"
+          title="Seus pedidos estão lá embaixo. Confira."
         />
         <div className="mt-8 flex justify-center">
           <Image
@@ -165,7 +165,7 @@ export default function OrdersPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <PageHeader
-        title="Seus pedidos estão aqui enbaixo. Arraste!"
+        title="Seus pedidos estão lá embaixo. Confira."
       />
       <div className="mt-8 flex justify-center">
         <Image
