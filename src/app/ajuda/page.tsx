@@ -27,11 +27,11 @@ const faqs = [
   },
   {
     question: "Como posso acompanhar meu pedido?",
-    answer: "Após finalizar a compra, você pode acompanhar o status do seu pedido em tempo real na página 'Meus Pedidos'. Assim que o status for atualizado (por exemplo, de 'Pendente' para 'Enviado'), você verá a mudança lá."
+    answer: "Após finalizar a compra, você pode acompanhar o status do seu pedido em tempo real na página 'Meus Pedidos'. Para pedidos 'Pendentes' ou 'Enviados', você verá um cronômetro com a contagem regressiva de 40 minutos para a entrega estimada. Assim que o status for atualizado (por exemplo, de 'Pendente' para 'Enviado'), você verá a mudança lá."
   },
   {
     question: "Qual é o tempo estimado de entrega?",
-    answer: "O tempo de entrega varia dependendo da sua localização. Em geral, os pedidos são entregues em até 60 minutos após a confirmação do pagamento. Você receberá uma notificação quando seu pedido sair para entrega."
+    answer: "O tempo de entrega estimado é de 40 minutos após a confirmação do seu pedido. Na página 'Meus Pedidos', você encontrará um cronômetro que mostra o tempo restante para a chegada da sua entrega. Este é um tempo estimado e pode variar."
   },
   {
     question: "Posso cancelar meu pedido?",
