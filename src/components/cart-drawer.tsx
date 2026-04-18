@@ -61,7 +61,7 @@ export function CartDrawer() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" className="relative h-16 w-16 rounded-full md:h-20 md:w-20">
+        <Button variant="ghost" className="relative h-24 w-24 rounded-full md:h-28 md:w-28">
           <Image
             src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776467354/Primavera_3_mcdukx.png"
             alt="Carrinho de Compras"
@@ -69,7 +69,7 @@ export function CartDrawer() {
             className="object-contain"
           />
           {totalItems > 0 && (
-            <span className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-base font-bold text-primary-foreground md:right-2 md:top-2 md:h-8 md:w-8 md:text-lg">
+            <span className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground md:right-3 md:top-3 md:h-10 md:w-10 md:text-xl">
               {totalItems}
             </span>
           )}
