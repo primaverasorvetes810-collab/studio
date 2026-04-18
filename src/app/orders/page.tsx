@@ -112,7 +112,7 @@ export default function OrdersPage() {
       <div className="container mx-auto flex min-h-[calc(100vh-20rem)] flex-col items-center justify-center px-4 py-8 text-center">
         <div className="relative mt-8 h-64 w-64">
           <Image
-            src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773962848/Design_sem_nome__2_-removebg-preview_i3n025.png"
+            src="https://res.cloudinary.com/du4ccw2pg/image/upload/q_auto/f_auto/v1776468768/ChatGPT_Image_17_de_abr._de_2026_20_29_01_zxrws8.png"
             alt="Nenhum pedido encontrado"
             fill
             className="object-contain"
