@@ -63,7 +63,7 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Card
       className={cn(
-        'group flex h-full flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/20',
+        'group flex h-full flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 [box-shadow:0_0_12px_hsl(var(--primary)/0.4)] hover:[box-shadow:0_0_24px_hsl(var(--primary)/0.5)]',
         !isStoreOpen && 'grayscale'
       )}
     >
