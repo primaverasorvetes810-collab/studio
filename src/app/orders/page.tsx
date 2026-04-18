@@ -149,7 +149,7 @@ export default function OrdersPage() {
           <Accordion type="single" collapsible className="w-full">
             {orders.map((order) => (
               <AccordionItem value={order.id} key={order.id}>
-                <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <AccordionTrigger className="px-6 py-8 hover:no-underline">
                   <div className="flex w-full items-center justify-between">
                     <div className="flex flex-col items-start text-left">
                       <span className="font-bold">{statusDisplayMessages[order.status]}</span>
