@@ -8,23 +8,33 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPrice(price: number) {
-    const isInteger = price % 1 === 0;
+    let priceToFormat = price;
+    if (Math.round((price % 1) * 100) === 99) {
+        priceToFormat = Math.ceil(price);
+    }
+
+    const isInteger = priceToFormat % 1 === 0;
     return new Intl.NumberFormat("pt-BR", {
         style: "currency",
         currency: "BRL",
         minimumFractionDigits: isInteger ? 0 : 2,
         maximumFractionDigits: 2,
-    }).format(price);
+    }).format(priceToFormat);
 }
 
 export function formatPriceAsString(price: number) {
-    const isInteger = price % 1 === 0;
+    let priceToFormat = price;
+    if (Math.round((price % 1) * 100) === 99) {
+        priceToFormat = Math.ceil(price);
+    }
+    
+    const isInteger = priceToFormat % 1 === 0;
     return new Intl.NumberFormat("pt-BR", {
         style: "currency",
         currency: "BRL",
         minimumFractionDigits: isInteger ? 0 : 2,
         maximumFractionDigits: 2,
-    }).format(price);
+    }).format(priceToFormat);
 }
 
 /**
