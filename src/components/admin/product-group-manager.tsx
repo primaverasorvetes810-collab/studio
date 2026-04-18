@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Product, ProductGroup } from '@/lib/data/products';
@@ -105,7 +106,7 @@ function ProductListGrid({ group, products, onEdit, onAdd }: {
                             <div key={product.id} className="group/item relative">
                                  <Card className="group/card flex h-full flex-col overflow-hidden transition-all duration-300 hover:shadow-lg">
                                     <CardHeader className="p-0">
-                                        <div className="relative aspect-square">
+                                        <div className="relative aspect-[4/3]">
                                             <Image
                                                 src={getProductImageUrl(product)}
                                                 alt={product.name}

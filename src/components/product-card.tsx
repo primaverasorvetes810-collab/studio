@@ -68,7 +68,7 @@ export function ProductCard({ product }: ProductCardProps) {
       )}
     >
       <CardHeader className="p-0">
-        <div className="relative aspect-square">
+        <div className="relative aspect-[4/3]">
           <Image
             src={imageUrl}
             alt={product.name}
