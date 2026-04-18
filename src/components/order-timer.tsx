@@ -33,27 +33,35 @@ export default function OrderTimer({ order }: OrderTimerProps) {
     const orderTime = order.orderDate.toDate().getTime();
     const expirationTime = orderTime + ORDER_DELIVERY_TIME_MINUTES * 60 * 1000;
 
-    const updateTimer = () => {
-      const now = new Date().getTime();
-      const distance = expirationTime - now;
+    const calculateTimeLeft = () => {
+        const now = new Date().getTime();
+        const distance = expirationTime - now;
 
-      if (distance <= 0) {
-        setTimeLeft('Tempo esgotado');
-        setIsExpired(true);
-        clearInterval(interval);
-        return;
-      }
+        if (distance < 0) {
+            setTimeLeft('Tempo esgotado');
+            setIsExpired(true);
+            return false; // Indicates timer should stop
+        }
 
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-      setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        return true; // Indicates timer should continue
     };
 
-    const interval = setInterval(updateTimer, 1000);
-    updateTimer(); // Initial call
+    // Run once immediately
+    if (!calculateTimeLeft()) {
+        return; // Stop if already expired
+    }
 
-    return () => clearInterval(interval);
+    const intervalId = setInterval(() => {
+      if (!calculateTimeLeft()) {
+        clearInterval(intervalId);
+      }
+    }, 1000);
+
+    return () => clearInterval(intervalId);
   }, [order.orderDate]);
 
   // Only show timer for pending or sent orders
