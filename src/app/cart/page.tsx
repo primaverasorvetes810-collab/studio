@@ -46,7 +46,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { soundEffectsService } from '@/lib/sound-effects';
-
+import VideoOverlay from '@/components/video-overlay';
 
 export default function CartPage() {
   const { user, isUserLoading } = useUser();
@@ -59,6 +59,7 @@ export default function CartPage() {
   const [amountPaid, setAmountPaid] = useState<string>(''); // For cash payment
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderError, setOrderError] = useState<string | null>(null);
+  const [showVideo, setShowVideo] = useState(false);
 
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -161,7 +162,7 @@ export default function CartPage() {
 
     setIsPlacingOrder(true);
     setOrderError(null);
-    soundEffectsService.playCheckoutSound();
+    
 
     try {
       const orderPaymentMethod =
@@ -184,7 +185,8 @@ export default function CartPage() {
         description: 'Seu pedido foi criado com sucesso.',
       });
       
-      router.push('/orders');
+      soundEffectsService.playCheckoutSound();
+      setShowVideo(true);
 
     } catch (error: any) {
         setOrderError(error.message || "Houve um problema ao processar seu pedido. Tente novamente.");
@@ -242,6 +244,12 @@ export default function CartPage() {
 
   return (
     <>
+      {showVideo && (
+        <VideoOverlay
+          src="https://res.cloudinary.com/du4ccw2pg/video/upload/v1776465717/Pedido_finalizado_1_opgcdz.mp4"
+          onEnded={() => router.push('/orders')}
+        />
+      )}
       <AlertDialog open={!!orderError} onOpenChange={(open) => !open && setOrderError(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
