@@ -68,7 +68,7 @@ export function CartDrawer() {
             fill
             className="object-contain"
           />
-          {totalItems > 0 && (
+          {isMounted && totalItems > 0 && (
             <span className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground md:right-2 md:top-2 md:h-8 md:w-8 md:text-base">
               {totalItems}
             </span>

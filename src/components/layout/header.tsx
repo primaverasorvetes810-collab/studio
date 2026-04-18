@@ -106,7 +106,7 @@ export default function Header() {
               </SheetClose>
 
               <nav className="flex flex-1 flex-col gap-2">
-                {navLinks.map(
+                {isMounted && navLinks.map(
                   (link) =>
                     renderLink(link) && (
                       <SheetClose asChild key={link.href}>
@@ -123,7 +123,7 @@ export default function Header() {
               </nav>
 
               <div className="mt-auto flex flex-col gap-2 border-t pt-4">
-                {isUserLoading ? (
+                {!isMounted || isUserLoading ? (
                   <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
                 ) : user ? (
                   <>
@@ -180,7 +180,7 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-6 md:flex">
-          {navLinks
+          {isMounted && navLinks
             .filter((link) => !(link as any).isMobileOnly)
             .map(
               (link) =>
@@ -200,7 +200,7 @@ export default function Header() {
         <div className="flex items-center">
           <CartDrawer />
 
-          {isUserLoading ? (
+          {!isMounted || isUserLoading ? (
             <div className="hidden h-8 w-8 animate-pulse rounded-full bg-muted md:block" />
           ) : user ? (
             <DropdownMenu>
