@@ -113,7 +113,7 @@ export default function RegisterPage() {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center">
-                    <FormLabel>Senha</FormLabel>
+                    <FormLabel>Digite a senha</FormLabel>
                   </div>
                   <FormControl>
                     <Input type="password" {...field} />
