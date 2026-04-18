@@ -5,21 +5,21 @@ import { ProductCard } from '@/components/product-card';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import type { Product, ProductGroup } from '@/lib/data/products';
 import { collection, query, orderBy, where } from 'firebase/firestore';
-import { Loader2, ShoppingCart } from 'lucide-react';
+import { Loader2, ShoppingCart, Search } from 'lucide-react';
 import HomeCarousel from '@/components/home-carousel';
 import { useCart } from '@/firebase/cart';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { formatPrice, formatPriceAsString } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import CategoryFilters from '@/components/category-filters';
 
 export default function ProductsPage() {
   const firestore = useFirestore();
   const { user } = useUser();
   const { cartItems, isLoading: isCartLoading } = useCart(user?.uid);
   const [isMounted, setIsMounted] = useState(false);
-  const [selectedGroupId, setSelectedGroupId] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     setIsMounted(true);
@@ -38,13 +38,24 @@ export default function ProductsPage() {
   }, [firestore]);
   const { data: allProducts, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
-  // 2. Process data: Create a nested structure Group > Subgroup > Products
-  const groupedData = useMemo(() => {
+  // 2. Process data: Filter products by search, then create a nested structure
+  const filteredAndGroupedData = useMemo(() => {
     if (!productGroups || !allProducts) return [];
-    
+
+    const lowercasedSearchTerm = searchTerm.toLowerCase();
+    const searchedProducts = allProducts.filter(product => 
+      product.name.toLowerCase().includes(lowercasedSearchTerm)
+    );
+
+    if (searchTerm && searchedProducts.length === 0) return [];
+
     const allGroupedData = productGroups.map(group => {
-      const groupProducts = allProducts.filter(p => p.groupId === group.id);
+      const groupProducts = searchedProducts.filter(p => p.groupId === group.id);
       
+      if (groupProducts.length === 0) {
+        return null;
+      }
+
       const productsBySubgroup = groupProducts.reduce((acc, product) => {
         const subgroupName = product.subgroup || 'Geral';
         if (!acc[subgroupName]) {
@@ -54,7 +65,6 @@ export default function ProductsPage() {
         return acc;
       }, {} as Record<string, Product[]>);
 
-      // Order subgroups: 'Geral' first, then others alphabetically from the group definition.
       const definedSubgroups = group.subgroups?.filter(s => s !== 'Geral') || [];
       const subgroupOrder = ['Geral', ...definedSubgroups.sort()];
       
@@ -63,37 +73,39 @@ export default function ProductsPage() {
           products: productsBySubgroup[subgroupName] || [],
       })).filter(sub => sub.products.length > 0);
 
+      if (orderedSubgroups.length === 0) {
+        return null;
+      }
+
       return {
         ...group,
         subgroups: orderedSubgroups,
       };
-    });
+    }).filter((g): g is ProductGroup & { subgroups: { name: string; products: Product[] }[] } => g !== null);
 
-    if (selectedGroupId === 'all') {
-        return allGroupedData.filter(group => group.subgroups.length > 0);
-    }
-    return allGroupedData.filter(group => group.id === selectedGroupId && group.subgroups.length > 0);
-
-  }, [productGroups, allProducts, selectedGroupId]);
+    return allGroupedData;
+  }, [productGroups, allProducts, searchTerm]);
 
   const isLoading = isLoadingGroups || isLoadingProducts;
   
   const totalItems = useMemo(() => cartItems.reduce((acc, item) => acc + item.quantity, 0), [cartItems]);
   const subtotal = useMemo(() => cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0), [cartItems]);
 
-
   return (
     <div className="pb-32">
       <HomeCarousel />
       <div className="container mx-auto px-4 py-8 space-y-8">
         
-        {productGroups && productGroups.length > 0 && (
-          <CategoryFilters
-            groups={productGroups}
-            selectedId={selectedGroupId}
-            onSelect={setSelectedGroupId}
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="O que você procura?"
+            className="w-full pl-12 h-14 text-lg"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
-        )}
+        </div>
 
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
@@ -101,8 +113,8 @@ export default function ProductsPage() {
           </div>
         ) : (
           <div className="space-y-12">
-            {groupedData.length > 0 ? (
-              groupedData.map((group) => (
+            {filteredAndGroupedData.length > 0 ? (
+              filteredAndGroupedData.map((group) => (
                 <section key={group.id} aria-labelledby={`group-title-${group.id}`}>
                   <h2 id={`group-title-${group.id}`} className="text-lg font-bold tracking-tight mb-4">{group.name}</h2>
                   <div className="space-y-8">
@@ -121,7 +133,7 @@ export default function ProductsPage() {
               ))
             ) : (
                <div className="mt-12 text-center text-muted-foreground">
-                  <p>{selectedGroupId === 'all' ? 'Nenhum produto disponível no momento.' : 'Nenhum produto encontrado para esta categoria.'}</p>
+                  <p>{searchTerm ? `Nenhum resultado para "${searchTerm}".` : 'Nenhum produto disponível no momento.'}</p>
                </div>
             )}
           </div>
