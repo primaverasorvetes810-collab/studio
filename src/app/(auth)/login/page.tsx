@@ -175,7 +175,7 @@ export default function LoginPage() {
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Endereço</FormLabel>
+                  <FormLabel>Digite seu endereço</FormLabel>
                   <FormControl>
                     <Input placeholder="Rua das Flores, 123" {...field} />
                   </FormControl>
