@@ -52,7 +52,7 @@ const policies = [
 
 export default function HelpPage() {
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-8">
+    <div className="container mx-auto max-w-4xl px-4 py-6 md:py-8 md:px-6">
       <PageHeader
         title="Está perdido no nosso aplicativo? Veio ao lugar certo."
         description="Veja abaixo algumas perguntas que podem ser iguais a sua e tire suas dúvidas."
@@ -61,7 +61,7 @@ export default function HelpPage() {
         {/* FAQ Section */}
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-xl md:text-2xl">
                     <LifeBuoy className="text-primary" />
                     Perguntas Frequentes (FAQ)
                 </CardTitle>
@@ -70,10 +70,10 @@ export default function HelpPage() {
                 <Accordion type="single" collapsible className="w-full space-y-4">
                     {faqs.map((faq, index) => (
                         <AccordionItem value={`item-faq-${index}`} key={index} className="rounded-lg border bg-background/50 px-4">
-                        <AccordionTrigger className="text-left font-semibold hover:no-underline">
+                        <AccordionTrigger className="text-left text-base font-semibold hover:no-underline">
                             {faq.question}
                         </AccordionTrigger>
-                        <AccordionContent className="text-muted-foreground">
+                        <AccordionContent className="text-muted-foreground text-sm md:text-base">
                             {faq.answer}
                         </AccordionContent>
                         </AccordionItem>
@@ -85,7 +85,7 @@ export default function HelpPage() {
         {/* Policy Section */}
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-xl md:text-2xl">
                     <Book className="text-primary" />
                     Política de Trocas e Devoluções
                 </CardTitle>
@@ -94,10 +94,10 @@ export default function HelpPage() {
                 <Accordion type="single" collapsible className="w-full space-y-4">
                     {policies.map((policy, index) => (
                         <AccordionItem value={`item-policy-${index}`} key={index} className="rounded-lg border bg-background/50 px-4">
-                        <AccordionTrigger className="text-left font-semibold hover:no-underline">
+                        <AccordionTrigger className="text-left text-base font-semibold hover:no-underline">
                             {policy.question}
                         </AccordionTrigger>
-                        <AccordionContent className="text-muted-foreground">
+                        <AccordionContent className="text-muted-foreground text-sm md:text-base">
                             {policy.answer}
                         </AccordionContent>
                         </AccordionItem>
@@ -109,13 +109,13 @@ export default function HelpPage() {
         {/* Contact Section */}
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-xl md:text-2xl">
                     <HeartHandshake className="text-primary" />
                     Ainda precisa de ajuda?
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-muted-foreground mb-4">
+                <p className="text-muted-foreground mb-4 text-sm md:text-base">
                     Se você não encontrou a resposta para sua pergunta, nossa equipe de suporte está pronta para ajudar.
                 </p>
                 <Button asChild>
