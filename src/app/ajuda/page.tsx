@@ -52,7 +52,7 @@ const policies = [
 
 export default function HelpPage() {
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-6 md:py-8 md:px-6">
+    <div className="container mx-auto max-w-3xl px-4 py-6 md:py-8 md:px-6">
       <PageHeader
         title="Está perdido no nosso aplicativo? Veio ao lugar certo."
         description="Veja abaixo algumas perguntas que podem ser iguais a sua e tire suas dúvidas."
