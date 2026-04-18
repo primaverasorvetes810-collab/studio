@@ -98,7 +98,7 @@ export default function LoginPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl">Falta pouco para começar a pedir</CardTitle>
+        <CardTitle className="text-2xl text-primary">Falta pouco para começar a pedir</CardTitle>
         <CardDescription>
           Diga só algumas informações sobre você.
         </CardDescription>
