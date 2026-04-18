@@ -114,12 +114,6 @@ export default function RegisterPage() {
                 <FormItem>
                   <div className="flex items-center">
                     <FormLabel>Senha</FormLabel>
-                    <Link
-                      href="/reset-password"
-                      className="ml-auto inline-block text-sm underline text-blue-600"
-                    >
-                      Esqueceu sua senha?
-                    </Link>
                   </div>
                   <FormControl>
                     <Input type="password" {...field} />
