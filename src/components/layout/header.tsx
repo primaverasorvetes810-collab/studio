@@ -31,6 +31,7 @@ import {
   Box,
   HelpCircle,
   Shield,
+  Menu,
 } from "lucide-react";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
@@ -77,13 +78,7 @@ export default function Header() {
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
-                <Image
-                  src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773962848/Design_sem_nome__2_-removebg-preview_i3n025.png"
-                  alt="Abrir menu"
-                  width={24}
-                  height={24}
-                  className="object-contain"
-                />
+                <Menu className="h-6 w-6" />
                 <span className="sr-only">Abrir menu</span>
               </Button>
             </SheetTrigger>
@@ -202,7 +197,15 @@ export default function Header() {
           {isMounted ? (
             <CartDrawer />
           ) : (
-            <div className="h-16 w-16 rounded-full bg-muted/20 md:h-20 md:w-20" />
+             <Button variant="ghost" className="relative h-16 w-16 rounded-full md:h-20 md:w-20" disabled>
+                  <Image
+                    src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773962848/Design_sem_nome__2_-removebg-preview_i3n025.png"
+                    alt="Carrinho de Compras"
+                    fill
+                    className="object-contain"
+                  />
+                <span className="sr-only">Carrinho de Compras</span>
+              </Button>
           )}
 
           {!isMounted || isUserLoading ? (
