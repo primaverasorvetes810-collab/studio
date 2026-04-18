@@ -134,11 +134,18 @@ export default function OrdersPage() {
           <PageHeader
             title="Seus pedidos estão lá embaixo. Confira!"
           />
-          <div className="mt-8 flex justify-center">
+          <div className="mt-8 flex flex-col items-center gap-8">
             <Image
               src="https://res.cloudinary.com/du4ccw2pg/image/upload/q_auto/f_auto/v1776468768/ChatGPT_Image_17_de_abr._de_2026_20_29_01_zxrws8.png"
               alt="Banner de Pedidos"
               width={400}
+              height={200}
+              className="rounded-lg object-contain"
+            />
+            <Image
+              src="https://res.cloudinary.com/du4ccw2pg/image/upload/q_auto/f_auto/v1776471564/Primavera_5_wl97md.png"
+              alt="Banner promocional"
+              width={800}
               height={200}
               className="rounded-lg object-contain"
             />
@@ -150,22 +157,22 @@ export default function OrdersPage() {
           <Accordion type="single" collapsible className="w-full">
             {orders.map((order) => (
               <AccordionItem value={order.id} key={order.id}>
-                <AccordionTrigger className="px-6 py-8 hover:no-underline">
+                <AccordionTrigger className="px-6 py-8 text-lg hover:no-underline">
                   <div className="flex w-full items-center justify-between">
                     <div className="flex flex-col items-start text-left">
                       <span className="font-bold text-xl">{statusDisplayMessages[order.status]}</span>
                     </div>
                     <div className="flex items-center gap-4">
                        <span className="hidden sm:inline font-bold text-primary">{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
-                       <Badge className={cn("whitespace-nowrap px-4 py-2 text-lg", statusColors[order.status])} variant="outline">
+                       <Badge className={cn("whitespace-nowrap px-4 py-3 text-lg", statusColors[order.status])} variant="outline">
                          {order.status}
                        </Badge>
                     </div>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">
-                  <div className="space-y-4 text-base">
-                    <p className="font-semibold text-xl">Você Pediu</p>
+                  <div className="space-y-4 text-xl">
+                    <p className="font-semibold text-2xl">Você Pediu</p>
                     <ul className="space-y-2">
                         {order.items.map((item) => (
                             <li key={item.id} className="flex justify-between">
@@ -192,7 +199,7 @@ export default function OrdersPage() {
                     ) : null}
 
                     <Separator />
-                    <div className="flex justify-between font-semibold text-lg">
+                    <div className="flex justify-between font-semibold text-2xl">
                         <span>Total</span>
                         <span>{isMounted ? formatPrice(order.totalAmount) : formatPriceAsString(order.totalAmount)}</span>
                     </div>
