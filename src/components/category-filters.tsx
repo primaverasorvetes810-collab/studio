@@ -39,9 +39,9 @@ export default function CategoryFilters({ groups, selectedId, onSelect }: Catego
                             <Button
                                 variant={selectedId === 'all' ? 'default' : 'outline'}
                                 size="icon"
-                                className="h-12 w-12 rounded-full shadow-md"
+                                className="h-10 w-10 rounded-full shadow-md"
                             >
-                                <Shapes className="h-5 w-5" />
+                                <Shapes className="h-4 w-4" />
                             </Button>
                             <span className={cn(
                                 "text-[10px] leading-tight font-medium text-muted-foreground whitespace-normal text-center",
@@ -63,9 +63,9 @@ export default function CategoryFilters({ groups, selectedId, onSelect }: Catego
                                 <Button
                                     variant={selectedId === group.id ? 'default' : 'outline'}
                                     size="icon"
-                                    className="h-12 w-12 rounded-full shadow-md"
+                                    className="h-10 w-10 rounded-full shadow-md"
                                 >
-                                    <CategoryIcon categoryName={group.name} className="h-5 w-5" />
+                                    <CategoryIcon categoryName={group.name} className="h-4 w-4" />
                                 </Button>
                                 <span className={cn(
                                     "text-[10px] leading-tight font-medium text-muted-foreground whitespace-normal text-center",
