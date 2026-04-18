@@ -144,7 +144,16 @@ export default function OrdersPage() {
         title="Seus pedidos"
         description="Verifique o status dos seus pedidos recentes."
       />
-      <Card>
+      <div className="mt-8 flex justify-center">
+        <Image
+          src="https://res.cloudinary.com/du4ccw2pg/image/upload/v1776471564/Primavera_5_wl97md.png"
+          alt="Banner de Pedidos"
+          width={400}
+          height={200}
+          className="rounded-lg object-contain"
+        />
+      </div>
+      <Card className="mt-8">
         <CardContent className="p-0">
           <Accordion type="single" collapsible className="w-full">
             {orders.map((order) => (
