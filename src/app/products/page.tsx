@@ -94,19 +94,22 @@ export default function ProductsPage() {
   return (
     <div className="pb-32">
       <HomeCarousel />
-      <div className="container mx-auto px-4 py-8 space-y-8">
-        
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="O que você procura?"
-            className="w-full pl-10 h-10 text-base"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <div className="py-4">
+        <div className="container mx-auto px-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="O que você procura?"
+              className="w-full pl-10 h-10 text-base"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
-
+      </div>
+      
+      <div className="container mx-auto px-4 pt-4 space-y-8">
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
