@@ -134,7 +134,7 @@ export default function OrdersPage() {
       />
       <div className="mt-8 flex flex-col items-center gap-8">
           <Image
-            src="https://res.cloudinary.com/dh88bfqo0/image/upload/v1773962848/Delivery__6_-removebg-preview_clakf0.png"
+            src="https://res.cloudinary.com/du4ccw2pg/image/upload/q_auto/f_auto/v1776471564/Primavera_5_wl97md.png"
             alt="Banner de entrega"
             width={800}
             height={200}
