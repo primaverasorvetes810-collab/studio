@@ -99,7 +99,7 @@ export default function RegisterPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>E-mail</FormLabel>
+                  <FormLabel>Digite seu E-mail</FormLabel>
                   <FormControl>
                     <Input placeholder="m@example.com" {...field} />
                   </FormControl>
