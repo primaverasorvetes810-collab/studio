@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -85,7 +86,7 @@ export default function RegisterPage() {
   return (
     <Card>
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Login</CardTitle>
+        <CardTitle className="text-2xl">Bem-vindo de novo</CardTitle>
         <CardDescription>
           Digite seu e-mail abaixo para fazer login em sua conta
         </CardDescription>
