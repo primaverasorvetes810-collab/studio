@@ -42,7 +42,7 @@ const statusColors: Record<OrderStatus, string> = {
 };
 
 const statusDisplayMessages: Record<OrderStatus, string> = {
-  Pendente: "Veja o que você acabou de pedir aqui!",
+  Pendente: "Veja o que você pediu! CLICK AQUI!",
   Enviado: "Chegaremos em breve",
   Entregue: "Obrigado pela preferência",
   Atrasado: "Pedido Atrasado",
