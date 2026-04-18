@@ -138,28 +138,15 @@ export default function OrdersPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {orders.length > 0 && (
-        <>
-          <PageHeader
-            title="Seus pedidos estão lá embaixo. Confira!"
-          />
-          <div className="mt-8 flex flex-col items-center gap-8">
-            <Image
-              src="https://res.cloudinary.com/du4ccw2pg/image/upload/q_auto/f_auto/v1776468768/ChatGPT_Image_17_de_abr._de_2026_20_29_01_zxrws8.png"
-              alt="Banner de Pedidos"
-              width={400}
-              height={200}
-              className="rounded-lg object-contain"
-            />
-          </div>
-        </>
-      )}
+      <PageHeader
+        title="Seus pedidos estão lá embaixo. Confira!"
+      />
       <Card className="mt-8">
         <CardContent className="p-0">
           <Accordion type="single" collapsible className="w-full">
             {orders.map((order) => (
               <AccordionItem value={order.id} key={order.id}>
-                <AccordionTrigger className="px-6 py-8 text-lg hover:no-underline">
+                <AccordionTrigger className="px-6 py-8 text-xl hover:no-underline">
                   <div className="flex w-full items-center justify-between">
                     <div className="flex flex-col items-start text-left">
                       <span className="font-bold text-xl">{statusDisplayMessages[order.status]}</span>
@@ -173,7 +160,7 @@ export default function OrdersPage() {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">
-                  <div className="space-y-4 text-xl">
+                  <div className="space-y-4 text-2xl">
                     <p className="font-semibold text-2xl">Você Pediu</p>
                     <ul className="space-y-2">
                         {order.items.map((item) => (
