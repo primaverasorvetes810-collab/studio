@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { formatPrice, formatPriceAsString } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import CategoryFilters from '@/components/category-filters';
 
 export default function ProductsPage() {
   const firestore = useFirestore();
@@ -20,6 +21,7 @@ export default function ProductsPage() {
   const { cartItems, isLoading: isCartLoading } = useCart(user?.uid);
   const [isMounted, setIsMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedGroupId, setSelectedGroupId] = useState('all');
 
   useEffect(() => {
     setIsMounted(true);
@@ -42,14 +44,20 @@ export default function ProductsPage() {
   const filteredAndGroupedData = useMemo(() => {
     if (!productGroups || !allProducts) return [];
 
+    const groupFilteredProducts = selectedGroupId === 'all'
+      ? allProducts
+      : allProducts.filter(p => p.groupId === selectedGroupId);
+
     const lowercasedSearchTerm = searchTerm.toLowerCase();
-    const searchedProducts = allProducts.filter(product => 
+    const searchedProducts = groupFilteredProducts.filter(product => 
       product.name.toLowerCase().includes(lowercasedSearchTerm)
     );
 
-    if (searchTerm && searchedProducts.length === 0) return [];
+    const groupsToRender = selectedGroupId === 'all' 
+      ? productGroups 
+      : productGroups.filter(g => g.id === selectedGroupId);
 
-    const allGroupedData = productGroups.map(group => {
+    return groupsToRender.map(group => {
       const groupProducts = searchedProducts.filter(p => p.groupId === group.id);
       
       if (groupProducts.length === 0) {
@@ -82,9 +90,7 @@ export default function ProductsPage() {
         subgroups: orderedSubgroups,
       };
     }).filter((g): g is ProductGroup & { subgroups: { name: string; products: Product[] }[] } => g !== null);
-
-    return allGroupedData;
-  }, [productGroups, allProducts, searchTerm]);
+  }, [productGroups, allProducts, searchTerm, selectedGroupId]);
 
   const isLoading = isLoadingGroups || isLoadingProducts;
   
@@ -94,12 +100,25 @@ export default function ProductsPage() {
   return (
     <div className="pb-32">
       <HomeCarousel />
+      
+      <div className="container mx-auto px-4 pt-4">
+        {isLoadingGroups ? (
+          <div className="h-20" /> /* Placeholder height */
+        ) : (
+          <CategoryFilters
+            groups={productGroups || []}
+            selectedId={selectedGroupId}
+            onSelect={setSelectedGroupId}
+          />
+        )}
+      </div>
+
       <div className="relative py-2">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/70 z-10" />
         <Input
           type="search"
           placeholder="O que você procura?"
-          className="w-full pl-12 h-8 text-base rounded-none border-x-0"
+          className="w-full pl-12 h-8 text-base rounded-none border-x-0 text-primary placeholder:text-primary/70"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -119,7 +138,7 @@ export default function ProductsPage() {
                   <div className="space-y-8">
                     {group.subgroups.map(subgroup => (
                       <div key={subgroup.name} aria-labelledby={`subgroup-title-${group.id}-${subgroup.name}`}>
-                        <h3 id={`subgroup-title-${group.id}-${subgroup.name}`} className="text-sm font-semibold mb-2 text-muted-foreground">{subgroup.name}</h3>
+                        <h3 id={`subgroup-title-${group.id}-${subgroup.name}`} className="text-xs font-semibold mb-2 text-muted-foreground">{subgroup.name}</h3>
                         <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
                           {subgroup.products.map((product) => (
                             <ProductCard key={product.id} product={product} />
@@ -132,7 +151,7 @@ export default function ProductsPage() {
               ))
             ) : (
                <div className="mt-12 text-center text-muted-foreground">
-                  <p>{searchTerm ? `Nenhum resultado para "${searchTerm}".` : 'Nenhum produto disponível no momento.'}</p>
+                  <p>{(searchTerm || selectedGroupId !== 'all') ? `Nenhum resultado para sua busca.` : 'Nenhum produto disponível no momento.'}</p>
                </div>
             )}
           </div>
