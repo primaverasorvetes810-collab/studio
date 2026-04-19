@@ -196,7 +196,7 @@ export default function AdminGatePage() {
                             className={cn(
                                 "flex items-center gap-3 rounded-lg px-3 text-left transition-all",
                                 isOrdersAndPending 
-                                ? "py-3 font-bold bg-yellow-400 text-black border-2 border-black hover:bg-yellow-500 hover:text-black animate-pulse"
+                                ? "py-3 font-bold bg-yellow-400 text-black border-2 border-black hover:bg-yellow-500 hover:text-black animate-shake"
                                 : "py-2 text-muted-foreground hover:text-primary",
                                 activeSection === item.id && !isOrdersAndPending && "bg-muted text-primary"
                             )}
@@ -222,7 +222,7 @@ export default function AdminGatePage() {
                     size="icon"
                     className={cn(
                       "shrink-0 md:hidden",
-                      hasPendingOrders && "border-black bg-yellow-400 text-black hover:bg-yellow-500 animate-pulse"
+                      hasPendingOrders && "border-black bg-yellow-400 text-black hover:bg-yellow-500 animate-shake"
                     )}
                   >
                     <Menu className="h-5 w-5" />
@@ -253,7 +253,7 @@ export default function AdminGatePage() {
                                 className={cn(
                                     "flex items-center gap-4 rounded-lg px-3 text-left py-2 text-base font-medium transition-colors",
                                     isOrdersAndPending
-                                    ? "bg-yellow-400 text-black border-2 border-black hover:bg-yellow-500 hover:text-black animate-pulse py-3"
+                                    ? "bg-yellow-400 text-black border-2 border-black hover:bg-yellow-500 hover:text-black animate-shake py-3"
                                     : "text-muted-foreground hover:text-foreground",
                                     activeSection === item.id && !isOrdersAndPending && "bg-muted text-foreground"
                                 )}
