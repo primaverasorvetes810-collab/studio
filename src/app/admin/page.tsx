@@ -211,7 +211,10 @@ export default function AdminGatePage() {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="shrink-0 md:hidden"
+                    className={cn(
+                      "shrink-0 md:hidden",
+                      hasPendingOrders && "border-black bg-yellow-400 text-black hover:bg-yellow-500 animate-pulse"
+                    )}
                   >
                     <Menu className="h-5 w-5" />
                     <span className="sr-only">Toggle navigation menu</span>
