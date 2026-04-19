@@ -188,6 +188,9 @@ export default function OrdersPage({ allOrders, isLoading, isOrderDelayed }: Ord
                                     onSelect={() =>
                                     handleStatusChange(order, status as OrderStatus)
                                     }
+                                    className={cn({
+                                        'bg-yellow-400 text-black border border-black hover:bg-yellow-500 focus:bg-yellow-500 focus:text-black': status === 'Enviado',
+                                    })}
                                 >
                                     Marcar como {status}
                                 </DropdownMenuItem>
