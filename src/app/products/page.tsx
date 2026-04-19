@@ -48,22 +48,25 @@ export default function ProductsPage() {
   useEffect(() => {
     if (searchTerm) return;
 
-    let timeoutId: NodeJS.Timeout;
-    const intervalId = setInterval(() => {
+    // This handles the "out" part of the animation
+    const visibilityTimer = setTimeout(() => {
       setIsPlaceholderVisible(false);
-      
-      timeoutId = setTimeout(() => {
-        setCurrentPlaceholderIndex(prevIndex => (prevIndex + 1) % placeholders.length);
-        setIsPlaceholderVisible(true);
-      }, 500); // fade duration
+    }, 3000); // How long the text stays visible
 
-    }, 3000); // visible time + fade duration
+    return () => clearTimeout(visibilityTimer);
+  }, [currentPlaceholderIndex, searchTerm]); // Restart timer whenever text changes or user types
 
-    return () => {
-        clearInterval(intervalId);
-        clearTimeout(timeoutId);
-    };
-  }, [placeholders.length, searchTerm]);
+  useEffect(() => {
+    if (isPlaceholderVisible || searchTerm) return;
+
+    // This handles changing the text and the "in" part
+    const transitionTimer = setTimeout(() => {
+      setCurrentPlaceholderIndex(prevIndex => (prevIndex + 1) % placeholders.length);
+      setIsPlaceholderVisible(true);
+    }, 500); // The duration of the slide-out animation
+
+    return () => clearTimeout(transitionTimer);
+  }, [isPlaceholderVisible, searchTerm, placeholders.length]);
 
 
   // 2. Process data: Filter products by search, then create a nested structure
@@ -119,12 +122,12 @@ export default function ProductsPage() {
     <div className="pb-32">
       <HomeCarousel />
 
-      <div className="relative py-2 border-b">
+      <div className="relative py-2 border-b overflow-hidden">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/70 z-10" />
         <span 
             className={cn(
-                "absolute left-12 top-1/2 -translate-y-1/2 text-base text-primary/70 pointer-events-none transition-opacity duration-500 ease-in-out",
-                isPlaceholderVisible && !searchTerm ? "opacity-100" : "opacity-0"
+                "absolute left-12 top-1/2 -translate-y-1/2 text-base text-primary/70 pointer-events-none transition-all duration-500 ease-in-out",
+                isPlaceholderVisible && !searchTerm ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"
             )}
         >
             {placeholders[currentPlaceholderIndex]}
