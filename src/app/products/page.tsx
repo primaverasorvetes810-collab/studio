@@ -20,6 +20,7 @@ export default function ProductsPage() {
   const { cartItems, isLoading: isCartLoading } = useCart(user?.uid);
   const [isMounted, setIsMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
 
   useEffect(() => {
     setIsMounted(true);
@@ -37,6 +38,21 @@ export default function ProductsPage() {
     return query(collection(firestore, 'products'), where('isActive', '==', true));
   }, [firestore]);
   const { data: allProducts, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
+
+  const placeholders = useMemo(() => {
+    if (!productGroups) return ["O que você procura?"];
+    return ["O que você procura?", ...productGroups.map(g => g.name)];
+  }, [productGroups]);
+
+  useEffect(() => {
+    if (searchTerm) return;
+
+    const intervalId = setInterval(() => {
+      setCurrentPlaceholderIndex(prevIndex => (prevIndex + 1) % placeholders.length);
+    }, 2000); // Change every 2 seconds
+
+    return () => clearInterval(intervalId);
+  }, [placeholders, searchTerm]);
 
   // 2. Process data: Filter products by search, then create a nested structure
   const filteredAndGroupedData = useMemo(() => {
@@ -95,7 +111,7 @@ export default function ProductsPage() {
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/70 z-10" />
         <Input
           type="search"
-          placeholder="O que você procura?"
+          placeholder={placeholders[currentPlaceholderIndex]}
           className="w-full pl-12 h-8 text-base rounded-none border-x-0 text-primary placeholder:text-primary/70"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -140,7 +156,7 @@ export default function ProductsPage() {
             <Button
               asChild
               className={cn(
-                "w-full font-bold shadow-2xl shadow-primary/30 flex justify-between items-center animate-pulse-deep",
+                "w-full font-bold shadow-2xl shadow-primary/30 flex justify-between items-center",
                 "h-14 px-4 text-xl rounded-lg",
                 "sm:h-16 sm:px-6 sm:text-2xl"
               )}
