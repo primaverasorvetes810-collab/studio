@@ -13,7 +13,6 @@ import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { formatPrice, formatPriceAsString } from '@/lib/utils';
 import { cn } from '@/lib/utils';
-import CategoryFilters from '@/components/category-filters';
 
 export default function ProductsPage() {
   const firestore = useFirestore();
@@ -21,7 +20,6 @@ export default function ProductsPage() {
   const { cartItems, isLoading: isCartLoading } = useCart(user?.uid);
   const [isMounted, setIsMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGroupId, setSelectedGroupId] = useState('all');
 
   useEffect(() => {
     setIsMounted(true);
@@ -44,20 +42,12 @@ export default function ProductsPage() {
   const filteredAndGroupedData = useMemo(() => {
     if (!productGroups || !allProducts) return [];
 
-    const groupFilteredProducts = selectedGroupId === 'all'
-      ? allProducts
-      : allProducts.filter(p => p.groupId === selectedGroupId);
-
     const lowercasedSearchTerm = searchTerm.toLowerCase();
-    const searchedProducts = groupFilteredProducts.filter(product => 
+    const searchedProducts = allProducts.filter(product => 
       product.name.toLowerCase().includes(lowercasedSearchTerm)
     );
 
-    const groupsToRender = selectedGroupId === 'all' 
-      ? productGroups 
-      : productGroups.filter(g => g.id === selectedGroupId);
-
-    return groupsToRender.map(group => {
+    return productGroups.map(group => {
       const groupProducts = searchedProducts.filter(p => p.groupId === group.id);
       
       if (groupProducts.length === 0) {
@@ -90,7 +80,7 @@ export default function ProductsPage() {
         subgroups: orderedSubgroups,
       };
     }).filter((g): g is ProductGroup & { subgroups: { name: string; products: Product[] }[] } => g !== null);
-  }, [productGroups, allProducts, searchTerm, selectedGroupId]);
+  }, [productGroups, allProducts, searchTerm]);
 
   const isLoading = isLoadingGroups || isLoadingProducts;
   
@@ -100,18 +90,6 @@ export default function ProductsPage() {
   return (
     <div className="pb-32">
       <HomeCarousel />
-      
-      <div className="container mx-auto px-4 pt-4">
-        {isLoadingGroups ? (
-          <div className="h-20" /> /* Placeholder height */
-        ) : (
-          <CategoryFilters
-            groups={productGroups || []}
-            selectedId={selectedGroupId}
-            onSelect={setSelectedGroupId}
-          />
-        )}
-      </div>
 
       <div className="relative py-2">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/70 z-10" />
@@ -151,7 +129,7 @@ export default function ProductsPage() {
               ))
             ) : (
                <div className="mt-12 text-center text-muted-foreground">
-                  <p>{(searchTerm || selectedGroupId !== 'all') ? `Nenhum resultado para sua busca.` : 'Nenhum produto disponível no momento.'}</p>
+                  <p>{searchTerm ? `Nenhum resultado para sua busca.` : 'Nenhum produto disponível no momento.'}</p>
                </div>
             )}
           </div>
