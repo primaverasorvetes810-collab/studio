@@ -91,4 +91,17 @@
       transform: translate3d(3px, 0, 0);
     }
   }
+
+  .animate-urgent-alert {
+    animation: urgent-alert-anim 1s ease-in-out infinite;
+  }
+
+  @keyframes urgent-alert-anim {
+    0%, 100% { transform: scale(1); }
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(2px); }
+    30%, 70% { transform: translateX(-3px); }
+    40%, 60% { transform: translateX(3px); }
+    50% { transform: scale(1.2); }
+  }
 }

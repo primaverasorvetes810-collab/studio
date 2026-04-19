@@ -175,7 +175,7 @@ export default function OrdersPage({ allOrders, isLoading, isOrderDelayed }: Ord
                         <TableCell className="py-2 px-2 md:px-4">
                             <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Badge className={cn("cursor-pointer", statusColors[order.status], isDelayed && 'border-red-500/50 text-red-500')} variant="outline">
+                                <Badge className={cn("cursor-pointer", statusColors[order.status], isDelayed && 'border-red-500/50 text-red-500', order.status === 'Pendente' && 'animate-urgent-alert')} variant="outline">
                                 {isDelayed ? 'Atrasado' : order.status}
                                 </Badge>
                             </DropdownMenuTrigger>
