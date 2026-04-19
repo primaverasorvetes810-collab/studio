@@ -68,7 +68,7 @@ export function ProductCard({ product }: ProductCardProps) {
       )}
     >
       <CardHeader className="p-0">
-        <div className="relative aspect-[4/3]">
+        <div className="relative aspect-[4/2.5]">
           <Image
             src={imageUrl}
             alt={product.name}
@@ -81,7 +81,7 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardContent className="flex flex-grow flex-col p-3">
         <div className="flex-grow">
           <CardTitle className="mb-1 text-sm font-semibold">{product.name}</CardTitle>
-          <CardDescription className="line-clamp-2 text-xs">{product.description}</CardDescription>
+          <CardDescription className="line-clamp-2 text-[8px]">{product.description}</CardDescription>
         </div>
         <div className="mt-2 text-center">
             <p className="text-center text-3xl font-bold text-primary md:text-2xl lg:text-xl">{isMounted ? formatPrice(product.price) : formatPriceAsString(product.price)}</p>
