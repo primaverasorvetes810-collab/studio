@@ -21,6 +21,7 @@ export default function ProductsPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPlaceholderIndex, setCurrentPlaceholderIndex] = useState(0);
+  const [isPlaceholderVisible, setIsPlaceholderVisible] = useState(true);
 
   useEffect(() => {
     setIsMounted(true);
@@ -40,19 +41,30 @@ export default function ProductsPage() {
   const { data: allProducts, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
 
   const placeholders = useMemo(() => {
-    if (!productGroups) return ["O que você procura?"];
+    if (!productGroups || productGroups.length === 0) return ["O que você procura?"];
     return ["O que você procura?", ...productGroups.map(g => g.name)];
   }, [productGroups]);
 
   useEffect(() => {
     if (searchTerm) return;
 
+    let timeoutId: NodeJS.Timeout;
     const intervalId = setInterval(() => {
-      setCurrentPlaceholderIndex(prevIndex => (prevIndex + 1) % placeholders.length);
-    }, 2000); // Change every 2 seconds
+      setIsPlaceholderVisible(false);
+      
+      timeoutId = setTimeout(() => {
+        setCurrentPlaceholderIndex(prevIndex => (prevIndex + 1) % placeholders.length);
+        setIsPlaceholderVisible(true);
+      }, 500); // fade duration
 
-    return () => clearInterval(intervalId);
-  }, [placeholders, searchTerm]);
+    }, 3000); // visible time + fade duration
+
+    return () => {
+        clearInterval(intervalId);
+        clearTimeout(timeoutId);
+    };
+  }, [placeholders.length, searchTerm]);
+
 
   // 2. Process data: Filter products by search, then create a nested structure
   const filteredAndGroupedData = useMemo(() => {
@@ -107,12 +119,19 @@ export default function ProductsPage() {
     <div className="pb-32">
       <HomeCarousel />
 
-      <div className="relative py-2">
+      <div className="relative py-2 border-b">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/70 z-10" />
+        <span 
+            className={cn(
+                "absolute left-12 top-1/2 -translate-y-1/2 text-base text-primary/70 pointer-events-none transition-opacity duration-500 ease-in-out",
+                isPlaceholderVisible && !searchTerm ? "opacity-100" : "opacity-0"
+            )}
+        >
+            {placeholders[currentPlaceholderIndex]}
+        </span>
         <Input
           type="search"
-          placeholder={placeholders[currentPlaceholderIndex]}
-          className="w-full pl-12 h-8 text-base rounded-none border-x-0 text-primary placeholder:text-primary/70"
+          className="w-full pl-12 h-8 text-base rounded-none border-0 bg-transparent text-primary placeholder:text-transparent focus-visible:ring-0"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
