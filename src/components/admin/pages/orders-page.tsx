@@ -41,7 +41,7 @@ import { cn, formatPrice, formatPriceAsString } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
 const statusColors: Record<OrderStatus, string> = {
-  Pendente: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20 hover:bg-yellow-500/30',
+  Pendente: 'bg-yellow-400 text-black border-black border-2',
   Atrasado: "bg-red-500/20 text-red-500 border-red-500/20",
   Enviado: 'bg-teal-500/20 text-teal-500 border-teal-500/20 hover:bg-teal-500/30',
   Entregue: 'bg-green-500/20 text-green-500 border-green-500/20 hover:bg-green-500/30',
@@ -159,6 +159,7 @@ export default function OrdersPage({ allOrders, isLoading, isOrderDelayed }: Ord
                 {filteredOrders.length > 0 ? (
                     filteredOrders.map((order) => {
                     const isDelayed = order.status === 'Pendente' && isOrderDelayed(order);
+                    const displayStatus: OrderStatus = isDelayed ? 'Atrasado' : order.status;
                     const productNames = order.items
                         .map((item) => `${item.product.name} (x${item.quantity})`)
                         .join(', ');
@@ -175,8 +176,8 @@ export default function OrdersPage({ allOrders, isLoading, isOrderDelayed }: Ord
                         <TableCell className="py-2 px-2 md:px-4">
                             <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Badge className={cn("cursor-pointer", statusColors[order.status], isDelayed && 'border-red-500/50 text-red-500', order.status === 'Pendente' && 'animate-urgent-alert')} variant="outline">
-                                {isDelayed ? 'Atrasado' : order.status}
+                                <Badge className={cn("cursor-pointer", statusColors[displayStatus], order.status === 'Pendente' && 'animate-urgent-alert')} variant="outline">
+                                {displayStatus}
                                 </Badge>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start">
