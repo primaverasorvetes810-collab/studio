@@ -187,19 +187,28 @@ export default function AdminGatePage() {
             </div>
             <div className="flex-1">
               <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
-                {navItems.map(item => (
-                  <button
-                      key={item.id}
-                      onClick={() => setActiveSection(item.id as AdminSection)}
-                      className={cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                          activeSection === item.id && "bg-muted text-primary"
-                      )}
-                  >
-                      <item.icon className="h-4 w-4" />
-                      {item.label}
-                  </button>
-                ))}
+                {navItems.map(item => {
+                    const isOrdersAndPending = item.id === 'orders' && hasPendingOrders;
+                    return (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveSection(item.id as AdminSection)}
+                            className={cn(
+                                "flex items-center gap-3 rounded-lg px-3 text-left transition-all",
+                                isOrdersAndPending 
+                                ? "py-3 font-bold bg-yellow-400 text-black border-2 border-black hover:bg-yellow-500 hover:text-black animate-pulse"
+                                : "py-2 text-muted-foreground hover:text-primary",
+                                activeSection === item.id && !isOrdersAndPending && "bg-muted text-primary"
+                            )}
+                        >
+                            <item.icon className={cn(
+                                "h-4 w-4",
+                                isOrdersAndPending && "text-black"
+                            )} />
+                            <span>{item.label}</span>
+                        </button>
+                    )
+                })}
               </nav>
             </div>
           </div>
@@ -235,20 +244,26 @@ export default function AdminGatePage() {
                         <span >Painel Admin</span>
                       </Link>
                     </SheetClose>
-                    {navItems.map((item) => (
-                      <SheetClose asChild key={item.id}>
-                        <button
-                          onClick={() => setActiveSection(item.id as AdminSection)}
-                          className={cn(
-                              "flex items-center gap-4 rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground",
-                              activeSection === item.id && "bg-muted text-foreground"
-                          )}
-                        >
-                          <item.icon className="h-5 w-5" />
-                          {item.label}
-                        </button>
-                      </SheetClose>
-                    ))}
+                    {navItems.map((item) => {
+                        const isOrdersAndPending = item.id === 'orders' && hasPendingOrders;
+                        return (
+                            <SheetClose asChild key={item.id}>
+                            <button
+                                onClick={() => setActiveSection(item.id as AdminSection)}
+                                className={cn(
+                                    "flex items-center gap-4 rounded-lg px-3 text-left py-2 text-base font-medium transition-colors",
+                                    isOrdersAndPending
+                                    ? "bg-yellow-400 text-black border-2 border-black hover:bg-yellow-500 hover:text-black animate-pulse py-3"
+                                    : "text-muted-foreground hover:text-foreground",
+                                    activeSection === item.id && !isOrdersAndPending && "bg-muted text-foreground"
+                                )}
+                            >
+                                <item.icon className={cn("h-5 w-5", isOrdersAndPending && "text-black")} />
+                                <span>{item.label}</span>
+                            </button>
+                            </SheetClose>
+                        )
+                    })}
                   </nav>
                 </SheetContent>
               </Sheet>
